@@ -1,0 +1,6 @@
+.vs/*
+bin/*
+build/*
+html/CMakeFiles/*
+externals/*
+CMakeFiles/*

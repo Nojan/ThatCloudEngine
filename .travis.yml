@@ -1,0 +1,15 @@
+# This makes travis use the thin image which boots faster
+language: generic
+
+# sudo:required is needed for docker use
+sudo: required
+
+services:
+- docker
+
+install:
+- docker pull nojandocker/seagull:2
+
+script:
+- docker run -v $(pwd):/workdir nojandocker/seagull:2
+
