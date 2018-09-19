@@ -9,6 +9,7 @@
 union SDL_Event;
 
 class MusicEntity;
+class GameEntity;
 
 namespace Gameplay {
 
@@ -31,6 +32,7 @@ public:
 
 private:
     std::unique_ptr<MusicEntity> mMusic;
+    std::vector< GameEntity* > mEntities;
 };
 
 } // namespace

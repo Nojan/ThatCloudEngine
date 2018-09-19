@@ -2,7 +2,16 @@
 
 #include "../root.hpp"
 #include "../camera.hpp"
+#include "../game_entity.hpp"
+#include "../game_system.hpp"
+#include "../global.hpp"
 #include "../music_entity.hpp"
+#include "../rendering_system.hpp"
+#include "../renderableMesh.hpp"
+#include "../resourcemanager.hpp"
+#include "../texture.hpp"
+#include "../transform_system.hpp"
+
 #include "../visualdebug.hpp"
 
 #include "../opengl_includes.hpp"
@@ -23,11 +32,55 @@ LoopManager::~LoopManager()
 void LoopManager::Init()
 {
     mMusic->Init();
+
+    GameSystem* gameSystem = Global::gameSytem();
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/islandvolcano.assxml");
+    }
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/cityvolcano.assxml");
+    }
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/treevolcano.assxml");
+    }
 }
 
 void LoopManager::Terminate()
 {
     mMusic->Terminate();
+    GameSystem* gameSystem = Global::gameSytem();
+    for (size_t idx = 0; idx < mEntities.size(); ++idx)
+    {
+        gameSystem->removeEntity(mEntities[idx]);
+    }
+    mEntities.clear();
 }
 
 void LoopManager::FrameStep()
