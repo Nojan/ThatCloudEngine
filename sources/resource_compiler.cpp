@@ -18,14 +18,13 @@ void GetVertex (const tinyxml2::XMLElement* meshElement, std::vector<glm::vec3>&
     assert(0 == strcmp(meshElement->Value(), "Mesh"));
     const tinyxml2::XMLElement* vertexElement = meshElement->FirstChildElement("Positions");
     const int vertexCount = vertexElement->IntAttribute("num");
-    assert(vertexArray.empty());
-    vertexArray.resize(vertexCount);
+    vertexArray.reserve(vertexArray.size() + vertexCount);
     static const int bufferSize = 128;
     char buffer[bufferSize];
     const char* v = vertexElement->GetText();
     for(int vertexIdx = 0; vertexIdx < vertexCount; ++vertexIdx)
     {
-        glm::vec3& vertex = vertexArray[vertexIdx];
+        glm::vec3 vertex;
         for (int comp = 0; comp < 3; ++comp)
         {
             int bufferIdx;
@@ -46,6 +45,7 @@ void GetVertex (const tinyxml2::XMLElement* meshElement, std::vector<glm::vec3>&
             assert(bufferIdx < bufferSize);
             vertex[comp] = static_cast<float>(atof(buffer));
         }
+        vertexArray.push_back(vertex);
     }
 }
 
@@ -53,14 +53,14 @@ void GetNormal(const tinyxml2::XMLElement* meshElement, std::vector<glm::vec3>& 
     assert(0 == strcmp(meshElement->Value(), "Mesh"));
     const tinyxml2::XMLElement* normalsElement = meshElement->FirstChildElement("Normals");
     const int vertexCount = normalsElement->IntAttribute("num");
-    normalArray.resize(vertexCount);
+    normalArray.reserve(normalArray.size() + vertexCount);
     {
         static const int bufferSize = 128;
         char buffer[bufferSize];
         const char* v = normalsElement->GetText();
         for (int vertexIdx = 0; vertexIdx <vertexCount; ++vertexIdx)
         {
-            glm::vec3& normal = normalArray[vertexIdx];
+            glm::vec3 normal;
             for (int comp = 0; comp < 3; ++comp)
             {
                 int bufferIdx;
@@ -82,6 +82,7 @@ void GetNormal(const tinyxml2::XMLElement* meshElement, std::vector<glm::vec3>& 
                 normal[comp] = atof(buffer);
             }
             assert(glm::abs(glm::length(normal) - 1.f) < 0.05f);
+            normalArray.push_back(normal);
         }
     }
 }
@@ -90,14 +91,14 @@ void GetUV(const tinyxml2::XMLElement* meshElement, std::vector<glm::vec2>& uvAr
     assert(0 == strcmp(meshElement->Value(), "Mesh"));
     const tinyxml2::XMLElement* textureCoordElement = meshElement->FirstChildElement("TextureCoords");
     const int vertexCount = textureCoordElement->IntAttribute("num");
-    uvArray.resize(vertexCount);
+    uvArray.reserve(uvArray.size() + vertexCount);
     {
         static const int bufferSize = 128;
         char buffer[bufferSize];
         const char* v = textureCoordElement->GetText();
         for (int vertexIdx = 0; vertexIdx <vertexCount; ++vertexIdx)
         {
-            glm::vec2& uv = uvArray[vertexIdx];
+            glm::vec2 uv;
             for (int comp = 0; comp < 2; ++comp)
             {
                 int bufferIdx;
@@ -118,15 +119,16 @@ void GetUV(const tinyxml2::XMLElement* meshElement, std::vector<glm::vec2>& uvAr
                 assert(bufferIdx < bufferSize);
                 uv[comp] = atof(buffer);
             }
+            uvArray.push_back(uv);
         }
     }
 }
 
-void GetFace(const tinyxml2::XMLElement* meshElement, std::vector<uint>& faceArray) {
+void GetFace(const tinyxml2::XMLElement* meshElement, std::vector<uint>& faceArray, const uint offset) {
     assert(0 == strcmp(meshElement->Value(), "Mesh"));
     const tinyxml2::XMLElement* faceListElement = meshElement->FirstChildElement("FaceList");
     const int vertexPerFace = 3;
-    faceArray.reserve(faceListElement->IntAttribute("num")*vertexPerFace);
+    faceArray.reserve(faceArray.size() + faceListElement->IntAttribute("num")*vertexPerFace);
     for (const tinyxml2::XMLElement* faceElement = faceListElement->FirstChildElement(); faceElement != nullptr; faceElement = faceElement->NextSiblingElement())
     {
         assert(vertexPerFace == faceElement->IntAttribute("num"));
@@ -134,7 +136,7 @@ void GetFace(const tinyxml2::XMLElement* meshElement, std::vector<uint>& faceArr
         sscanf(faceElement->GetText(),"%d %d %d", &face[0], &face[1], &face[2]);
         for (int vertexPerFaceIdx = 0; vertexPerFaceIdx < vertexPerFace; ++vertexPerFaceIdx)
         {
-            faceArray.push_back(face[vertexPerFaceIdx]);
+            faceArray.push_back(face[vertexPerFaceIdx] + offset);
         }
     }
 }

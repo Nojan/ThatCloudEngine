@@ -18,18 +18,25 @@ void compile_mesh(const char* filepath, Mesh& mesh) {
     tinyxml2::XMLError error = doc.LoadFile(file);
     assert(!error);
     const tinyxml2::XMLElement* visualSceneElement = doc.FirstChildElement("ASSIMP")->FirstChildElement("Scene");
+    const tinyxml2::XMLElement* materialList = visualSceneElement->FirstChildElement("MaterialList");
+    assert(1 == materialList->IntAttribute("num")); // as long there is only one material, we can merge meshes
     const tinyxml2::XMLElement* meshList = visualSceneElement->FirstChildElement("MeshList");
-    assert(1 == meshList->IntAttribute("num"));
-    const tinyxml2::XMLElement* meshElement = meshList->FirstChildElement("Mesh");
-    GetVertex(meshElement, mesh.mVertex);
-    GetNormal(meshElement, mesh.mNormal);
-    GetUV(meshElement, mesh.mTextureCoord);
-    GetFace(meshElement, mesh.mIndex);
-    const tinyxml2::XMLElement* positionsElement = meshElement->FirstChildElement("Positions");
-    const int vertexCount = positionsElement->IntAttribute("num");
-    assert(vertexCount == mesh.mVertex.size());
-    assert(vertexCount == mesh.mNormal.size());
-    assert(vertexCount == mesh.mTextureCoord.size());
+    for (const tinyxml2::XMLElement* meshElement = meshList->FirstChildElement("Mesh"); meshElement != nullptr; meshElement = meshElement->NextSiblingElement("Mesh"))
+    {
+        const uint offset =  mesh.mVertex.size();
+        GetVertex(meshElement, mesh.mVertex);
+        GetNormal(meshElement, mesh.mNormal);
+        GetUV(meshElement, mesh.mTextureCoord);
+        GetFace(meshElement, mesh.mIndex, offset);
+
+        const tinyxml2::XMLElement* positionsElement = meshElement->FirstChildElement("Positions");
+        const int vertexCount = positionsElement->IntAttribute("num") + offset;
+        assert(vertexCount == mesh.mVertex.size());
+        assert(vertexCount == mesh.mNormal.size());
+        assert(vertexCount == mesh.mTextureCoord.size());
+    }
+
+    const uint vertexCount = mesh.mVertex.size();
     for (uint faceIdx = 0; faceIdx < mesh.mIndex.size(); ++faceIdx)
     {
         assert(mesh.mIndex[faceIdx] < vertexCount);
