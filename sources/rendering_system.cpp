@@ -16,13 +16,34 @@
 
 void GraphicMeshComponent::draw(MeshRenderer* renderer)
 {
-    if(!mRenderable || !mEnable)
+    if(mRenderable.empty() || !mEnable)
         return;
-    mRenderable->mTransform = mTransformComponent->Transform();
-    mRenderable->mScale = mTransformComponent->mScale;
-    //mRenderable->mScale = glm::mat4(5.f);
-    mRenderable->mScale[3][3] = 1.f;
-    renderer->PushToRenderQueue(mRenderable.get());
+    for (std::unique_ptr<RenderableMesh>& renderable: mRenderable)
+    {
+        renderable->mTransform = mTransformComponent->Transform();
+        renderable->mScale = mTransformComponent->mScale;
+        //renderable->mScale = glm::mat4(5.f);
+        renderable->mScale[3][3] = 1.f;
+        renderer->PushToRenderQueue(renderable.get());
+    }
+
+}
+
+void GraphicMeshComponent::setupResource(std::shared_ptr<MeshResourceList>& resource)
+{
+    mResource = resource;
+    mRenderable.clear();
+
+    if(!mResource)
+        return;
+
+    for (MeshResource& resource: *mResource)
+    {
+        std::unique_ptr<RenderableMesh> renderable = std::make_unique<RenderableMesh>();
+        renderable->mMaterial.Texture() = resource.m_texture;
+        renderable->mMesh = resource.m_mesh;
+        mRenderable.push_back(std::move(renderable));
+    }
 }
 
 RenderingSystem::RenderingSystem()

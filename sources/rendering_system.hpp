@@ -1,6 +1,7 @@
 #pragma once
 
 #include "icomponentsystem.hpp"
+#include "mesh_resource.hpp"
 #include "color.hpp"
 #include "types.hpp"
 
@@ -36,7 +37,10 @@ public:
     ~GraphicMeshComponent() = default;
     void draw(MeshRenderer* renderer) override;
 
-    std::unique_ptr<RenderableMesh> mRenderable;
+    void setupResource(std::shared_ptr<MeshResourceList>& resource);
+
+    std::vector<std::unique_ptr<RenderableMesh>> mRenderable;
+    std::shared_ptr<MeshResourceList> mResource;
 };
 
 class RenderingSystem : public IComponentSystem {

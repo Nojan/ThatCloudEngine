@@ -13,8 +13,8 @@ class Texture2D;
 
 class Mesh {
 public:
-    Mesh(const char* filename);
     Mesh(const Mesh& ref);
+    Mesh() = default;
     ~Mesh() = default;
 
     bool Valid() const;

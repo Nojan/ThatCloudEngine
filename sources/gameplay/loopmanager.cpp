@@ -34,6 +34,9 @@ void LoopManager::Init()
     mMusic->Init();
 
     GameSystem* gameSystem = Global::gameSytem();
+    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "beachvolcano", "treevolcano"}; 
+
+    for (size_t i = 0; i < 3; ++i)
     {
         GameEntity* entity = gameSystem->createEntity();
         mEntities.push_back(entity);
@@ -43,32 +46,10 @@ void LoopManager::Init()
         gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
         GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/islandvolcano.assxml");
-    }
-    {
-        GameEntity* entity = gameSystem->createEntity();
-        mEntities.push_back(entity);
-        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
-        TransformComponent* transform = entity->getComponent<TransformComponent>();
-
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
-        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/cityvolcano.assxml");
-    }
-    {
-        GameEntity* entity = gameSystem->createEntity();
-        mEntities.push_back(entity);
-        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
-        TransformComponent* transform = entity->getComponent<TransformComponent>();
-
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
-        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../assets/3D/treevolcano.assxml");
+        
+        char filename[256];
+        sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
+        renderingComponent->setupResource( Global::resourceManager()->meshResource(filename) );
     }
 }
 

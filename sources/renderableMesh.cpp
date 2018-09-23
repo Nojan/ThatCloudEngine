@@ -7,11 +7,6 @@
 
 #include <cassert>
 
-Mesh::Mesh(const char* filename)
-{
-    resource_compiler::compile_mesh(filename, *this);
-    assert(Valid());
-}
 
 Mesh::Mesh(const Mesh& ref)
 : mVertex(ref.mVertex)
