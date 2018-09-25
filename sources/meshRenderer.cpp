@@ -61,7 +61,7 @@ void MeshRenderer::Render(const Scene* scene)
         renderer->PushCommand(lightDebug);
     }
     
-    if (mRenderQueue.empty())
+    if (mRenderQueue.empty() && mRenderAlphaQueue.empty())
         return;
     glEnable(GL_DEPTH_TEST);
     mShaderProgram->Bind();
@@ -72,9 +72,27 @@ void MeshRenderer::Render(const Scene* scene)
         Render(*renderable, scene);
     }
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    auto altitudeSort = [](const RenderableMesh* a, const RenderableMesh* b) -> bool
+    {
+        return a->mMesh->mBBox.Max().z < b->mMesh->mBBox.Max().z;
+    };
+
+    //std::sort(mRenderAlphaQueue.begin(), mRenderAlphaQueue.end(), altitudeSort);
+
+    for (const RenderableMesh* renderable: mRenderAlphaQueue)
+    {
+        assert(renderable);
+        Render(*renderable, scene);
+    }
+
     mShaderProgram->Unbind();
+    glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     mRenderQueue.clear();
+    mRenderAlphaQueue.clear();
 }
 
 void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
@@ -97,11 +115,16 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
             glGenTextures(1, &id);
             bufferHandle.setId(id);
             glBindTexture(GL_TEXTURE_2D, bufferHandle.Id());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);   
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            ColorsChannel cchannel = texture->colorChannel();
+            assert(ColorsChannel::RGB == cchannel || ColorsChannel::RGBA == cchannel);
+            if(ColorsChannel::RGB == cchannel)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
+            else
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->getWidth(), texture->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->getData());
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         GLint textureSampler_ID = mShaderProgram->GetUniformLocation(HashedString("textureSampler"));
@@ -168,7 +191,12 @@ void MeshRenderer::PushToRenderQueue(RenderableMesh* renderable)
         meshBuffer->Update();
         renderable->mMeshBuffer.reset(meshBuffer);
     }
-    mRenderQueue.push_back(renderable);
+
+    const bool cloudIsBuggy = true;
+    if(cloudIsBuggy || ColorsChannel::RGBA == renderable->mMaterial.Texture()->colorChannel())
+        mRenderAlphaQueue.push_back(renderable);
+    else
+        mRenderQueue.push_back(renderable);
 }
 
 MeshBuffer * MeshRenderer::RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount)

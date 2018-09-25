@@ -87,6 +87,11 @@ void compile_mesh(const char * filepath, MeshResourceList& meshList)
         {
             assert(mesh.mIndex[faceIdx] < vertexCount);
         }
+
+        for (uint idx = offset; idx < vertexCount; ++idx)
+        {
+            mesh.mBBox.Add(mesh.mVertex[idx]);
+        }
         
         meshList.push_back(meshResource);
     }

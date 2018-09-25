@@ -1,3 +1,4 @@
+#pragma once
 #include "types.hpp"
 
 #include <memory>
@@ -13,7 +14,10 @@ enum class ColorsChannel {
 class Image
 {
 public:
-    Image(const char * filepath);
+    Image();
+
+    void load(const char * filepath);
+    void set(std::unique_ptr<uint8_t[]>& data, int height, int width, ColorsChannel channel);
 
     std::unique_ptr<uint8_t[]> data();
 

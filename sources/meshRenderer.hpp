@@ -36,4 +36,5 @@ private:
 
 private:
     std::vector<RenderableMesh*> mRenderQueue;
+    std::vector<RenderableMesh*> mRenderAlphaQueue;
 };

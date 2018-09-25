@@ -6,6 +6,7 @@
 #include "../game_system.hpp"
 #include "../global.hpp"
 #include "../music_entity.hpp"
+#include "../animated_texture_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
@@ -33,10 +34,19 @@ void LoopManager::Init()
 {
     mMusic->Init();
 
-    GameSystem* gameSystem = Global::gameSytem();
-    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "beachvolcano", "treevolcano"}; 
+    char filename[256];
+    std::vector<std::shared_ptr<Texture2D>> waveTextures;
+    waveTextures.reserve(60);
+    for (size_t i = 0; i < 60; ++i)
+    {
+        sprintf(filename, "../assets/3D/wave_5_%d.tga", i);
+        waveTextures.push_back( Global::resourceManager()->texture(filename) );
+    }
 
-    for (size_t i = 0; i < 3; ++i)
+    GameSystem* gameSystem = Global::gameSytem();
+    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater4rest", "shallowwater5rest", "shallowwater43big", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" }; 
+
+    for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
     {
         GameEntity* entity = gameSystem->createEntity();
         mEntities.push_back(entity);
@@ -47,9 +57,15 @@ void LoopManager::Init()
         GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
         
-        char filename[256];
         sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
         renderingComponent->setupResource( Global::resourceManager()->meshResource(filename) );
+
+        if (meshes[i] == strstr(meshes[i], "wave"))
+        {
+            gameSystem->getSystem<AnimatedTextureSystem>()->attachEntity(entity);
+            AnimatedTextureComponent* animatedComponent = entity->getComponent<AnimatedTextureComponent>();
+            animatedComponent->mTexture.insert(animatedComponent->mTexture.begin(), waveTextures.begin(), waveTextures.end());
+        }
     }
 }
 

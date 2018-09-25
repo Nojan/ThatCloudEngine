@@ -14,83 +14,42 @@ constexpr bool is_power_of_two(uint x)
     return x && ((x & (x - 1)) == 0);
 }
 
-Texture2D::Texture2D()
-: mData(nullptr)
-, mHeight(0)
-, mWidth(0)
-{}
-
-void Texture2D::setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint width)
+void Texture2D::setTexture(std::unique_ptr<Color::rgb[]>& data, uint height, uint width)
 {
-    mData = std::move(data);
-    mHeight = height;
-    mWidth = width;
+    // TODO avoid copy, or remove this method
+    std::unique_ptr<uint8_t[]> d(new uint8_t[3*height*width]);
+    for (uint idx = 0; idx < height*width; ++idx)
+    {
+        d[3*idx+0] = data[idx].r;
+        d[3*idx+1] = data[idx].g;
+        d[3*idx+2] = data[idx].b;
+    }
+    mImage.set(d, height, width, ColorsChannel::RGB);
 }
 
 uint8_t const * const Texture2D::getData() const
 {
-    return &(mData.get()[0].r);
+    return mImage.data();
 }
 
 uint Texture2D::getHeight() const
 {
-    return mHeight;
+    return mImage.height();
 }
 
 uint Texture2D::getWidth() const
 {
-    return mWidth;
+    return mImage.width();
+}
+
+ColorsChannel Texture2D::colorChannel() const
+{
+    return mImage.channel();
 }
 
 GPUBufferHandle & Texture2D::BufferHandle() const
 {
     return mBufferHandle;
-}
-
-void Texture2D::loadBMP_custom(const char * imagepath, Texture2D & texture)
-{
-    assert(!texture.mData);
-    printf("Reading image %s\n", imagepath);
-
-    // Data read from the header of the BMP file
-    unsigned char header[54];
-    uint dataPos;
-    uint imageSize;
-
-    // Open the file
-    FILE * file = fopen(imagepath,"rb");
-    assert(NULL != file);
-
-    // Read the header, i.e. the 54 first bytes
-    const size_t headerSize = 54;
-
-    // If less than 54 byes are read, problem
-    if( fread(header, 1, headerSize, file) != headerSize )
-        assert(false);
-    // A BMP files always begins with "BM"
-    assert( header[0]=='B' && header[1]=='M' );
-
-    // Make sure this is a 24bpp file
-    assert( *(int*)&(header[0x1E]) == 0 );
-    assert( *(int*)&(header[0x1C]) ==24 );
-
-    // Read the information about the image
-    dataPos        = *(int*)&(header[0x0A]);
-    imageSize      = *(int*)&(header[0x22]);
-    texture.mWidth  = *(int*)&(header[0x12]);
-    texture.mHeight = *(int*)&(header[0x16]);
-
-    // Some BMP files are misformatted, guess missing information
-    if (imageSize==0)    imageSize=texture.mWidth*texture.mHeight*3;
-    if (dataPos==0)      dataPos=headerSize; // The BMP header is done that way
-    fseek(file, dataPos, SEEK_SET);
-
-    // Create a buffer
-    texture.mData.reset((Color::rgb*)malloc(sizeof(Color::rgb)*imageSize));
-
-    fread(texture.mData.get(), 1, imageSize, file);
-
-    fclose (file);
 }
 
 std::unique_ptr<Texture2D> Texture2D::generateUniform(uint height, uint width, Color::rgb color)
@@ -134,14 +93,19 @@ std::unique_ptr<Texture2D> Texture2D::generateCheckeredBoard(uint count, uint he
     return std::move(texture);
 }
 
+Texture2D::Texture2D()
+{
+}
+
 void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
 {
-    Image image(imagepath);
-    assert(ColorsChannel::RGB == image.channel());
-    std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
-    Color::rgb * color = reinterpret_cast<Color::rgb*>(data_u8.get());
-    std::unique_ptr<Color::rgb[]> data_color(color);
-    data_u8.release();
+    Image& image = texture.mImage;
+    image.load(imagepath);
+    //assert(ColorsChannel::RGB == image.channel());
+    //std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
+    //Color::rgb * color = reinterpret_cast<Color::rgb*>(data_u8.get());
+    //std::unique_ptr<Color::rgb[]> data_color(color);
+    //data_u8.release();
     // flip x
     //for (size_t y = 0; y < image.height(); ++y)
     //{
@@ -152,31 +116,16 @@ void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
     //        std::swap(data_color[yIndex + x], data_color[yIndex + xInvert]);
     //    }
     //}
-    texture.setTexture(std::move(data_color), image.width(), image.height());
 }
 
 
 Texture2DRGBA::Texture2DRGBA()
-: mData(nullptr)
-, mHeight(0)
-, mWidth(0)
 {}
-
-Texture2DRGBA::Texture2DRGBA(uint height, uint width, Color::rgba color)
-: mHeight(height)
-, mWidth(width)
-{
-    const size_t size = numeric_cast<size_t>(height) * numeric_cast<size_t>(width);
-    mData.reset(new Color::rgba[size]);
-    for (size_t idx = 0; idx < size; ++idx)
-    {
-        mData[idx] = color;
-    }
-}
 
 void Texture2DRGBA::loadFromFile(const char * imagepath, Texture2DRGBA & texture)
 {
-    Image image(imagepath);
+    Image& image = texture.mImage;
+    image.load(imagepath);
     assert(ColorsChannel::RGBA == image.channel());
     std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
     Color::rgba * color = reinterpret_cast<Color::rgba*>(data_u8.get());
@@ -187,24 +136,31 @@ void Texture2DRGBA::loadFromFile(const char * imagepath, Texture2DRGBA & texture
 
 void Texture2DRGBA::setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width)
 {
-    mData = std::move(data);
-    mHeight = height;
-    mWidth = width;
+    // TODO avoid copy, or remove this method
+    std::unique_ptr<uint8_t[]> d(new uint8_t[4*height*width]);
+    for (uint idx = 0; idx < height*width; ++idx)
+    {
+        d[4*idx+0] = data[idx].r;
+        d[4*idx+1] = data[idx].g;
+        d[4*idx+2] = data[idx].b;
+        d[4*idx+2] = data[idx].a;
+    }
+    mImage.set(d, height, width, ColorsChannel::RGBA);
 }
 
 uint8_t const * const Texture2DRGBA::getData() const
 {
-    return &(mData.get()[0].r);
+    return mImage.data();
 }
 
 uint Texture2DRGBA::getHeight() const
 {
-    return mHeight;
+    return mImage.height();
 }
 
 uint Texture2DRGBA::getWidth() const
 {
-    return mWidth;
+    return mImage.width();
 }
 
 GPUBufferHandle & Texture2DRGBA::BufferHandle() const
