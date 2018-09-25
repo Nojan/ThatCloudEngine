@@ -44,7 +44,7 @@ void LoopManager::Init()
     }
 
     GameSystem* gameSystem = Global::gameSytem();
-    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater4rest", "shallowwater5rest", "shallowwater43big", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" }; 
+    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" }; 
 
     for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
     {
