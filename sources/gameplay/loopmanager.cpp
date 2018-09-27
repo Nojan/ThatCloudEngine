@@ -1,5 +1,6 @@
 #include "loopmanager.hpp"
 
+#include "loadlevel.hpp"
 #include "../root.hpp"
 #include "../camera.hpp"
 #include "../game_entity.hpp"
@@ -67,6 +68,9 @@ void LoopManager::Init()
             animatedComponent->mTexture.insert(animatedComponent->mTexture.begin(), waveTextures.begin(), waveTextures.end());
         }
     }
+
+    const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
+    loadlevel(level_name, mEntities);
 }
 
 void LoopManager::Terminate()
