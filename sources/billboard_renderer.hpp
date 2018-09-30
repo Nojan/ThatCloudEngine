@@ -28,7 +28,7 @@ public:
     const char* debug_name() const override { return "Billboard Renderer"; }
 
 private:
-    void Render(const Billboard* billboard);
+    void Render(const Billboard* billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection);
     void SortQueue();
 
 private:

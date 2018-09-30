@@ -118,56 +118,6 @@ void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
     //}
 }
 
-
-Texture2DRGBA::Texture2DRGBA()
-{}
-
-void Texture2DRGBA::loadFromFile(const char * imagepath, Texture2DRGBA & texture)
-{
-    Image& image = texture.mImage;
-    image.load(imagepath);
-    assert(ColorsChannel::RGBA == image.channel());
-    std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
-    Color::rgba * color = reinterpret_cast<Color::rgba*>(data_u8.get());
-    std::unique_ptr<Color::rgba[]> data_color(color);
-    data_u8.release();
-    texture.setTexture(std::move(data_color), image.width(), image.height());
-}
-
-void Texture2DRGBA::setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width)
-{
-    // TODO avoid copy, or remove this method
-    std::unique_ptr<uint8_t[]> d(new uint8_t[4*height*width]);
-    for (uint idx = 0; idx < height*width; ++idx)
-    {
-        d[4*idx+0] = data[idx].r;
-        d[4*idx+1] = data[idx].g;
-        d[4*idx+2] = data[idx].b;
-        d[4*idx+2] = data[idx].a;
-    }
-    mImage.set(d, height, width, ColorsChannel::RGBA);
-}
-
-uint8_t const * const Texture2DRGBA::getData() const
-{
-    return mImage.data();
-}
-
-uint Texture2DRGBA::getHeight() const
-{
-    return mImage.height();
-}
-
-uint Texture2DRGBA::getWidth() const
-{
-    return mImage.width();
-}
-
-GPUBufferHandle & Texture2DRGBA::BufferHandle() const
-{
-    return mBufferHandle;
-}
-
 GPUBufferHandle::GPUBufferHandle()
     : mId(-1)
 {

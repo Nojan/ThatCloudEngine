@@ -52,24 +52,4 @@ private:
     mutable GPUBufferHandle mBufferHandle;
 };
 
-class Texture2DRGBA
-{
-public:
-    Texture2DRGBA();
-    ~Texture2DRGBA() = default;
-
-    static void loadFromFile(const char * imagepath, Texture2DRGBA & texture);
-
-    void setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width);
-    uint8_t const * const getData() const;
-    uint getHeight() const;
-    uint getWidth() const;
-
-    GPUBufferHandle& BufferHandle() const;
-
-private:
-    Image mImage;
-    mutable GPUBufferHandle mBufferHandle;
-};
-
 #endif

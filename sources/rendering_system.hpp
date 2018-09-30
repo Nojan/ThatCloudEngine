@@ -1,6 +1,7 @@
 #pragma once
 
 #include "icomponentsystem.hpp"
+#include "igraphic_component.hpp"
 #include "mesh_resource.hpp"
 #include "color.hpp"
 #include "types.hpp"
@@ -15,27 +16,11 @@ class SkinMeshRenderer;
 class RenderableSkinMesh;
 class TransformComponent;
 
-template<typename TRenderer>
-class IGraphicComponent
-{
-public:
-    IGraphicComponent<TRenderer>()
-        : mTransformComponent(nullptr)
-        , mEnable(true)
-    { }
-    virtual ~IGraphicComponent() {};
-    virtual void draw(TRenderer* renderer) = 0;
-
-    TransformComponent* mTransformComponent;
-    Color::rgbap mColor;
-    bool mEnable;
-};
-
 class GraphicMeshComponent : public IGraphicComponent<MeshRenderer>
 {
 public:
     ~GraphicMeshComponent() = default;
-    void draw(MeshRenderer* renderer) override;
+    void draw(MeshRenderer* renderer);
 
     void setupResource(std::shared_ptr<MeshResourceList>& resource);
 
@@ -63,7 +48,7 @@ class GraphicSkinComponent : public IGraphicComponent<SkinMeshRenderer>
 public:
     GraphicSkinComponent();
     ~GraphicSkinComponent() = default;
-    void draw(SkinMeshRenderer* renderer) override;
+    void draw(SkinMeshRenderer* renderer);
 
     std::unique_ptr<RenderableSkinMesh> mRenderable;
     float mAnimationTime;

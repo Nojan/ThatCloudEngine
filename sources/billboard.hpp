@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-class Texture2DRGBA;
+class Texture2D;
 
 class Billboard {
 public:
@@ -14,5 +14,5 @@ public:
     glm::vec3 mNormal;
     glm::vec2 mSize;
     float     mAlpha;
-    std::shared_ptr< Texture2DRGBA > mTexture;
+    std::shared_ptr< Texture2D > mTexture;
 };

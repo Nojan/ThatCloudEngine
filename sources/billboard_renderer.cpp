@@ -62,9 +62,15 @@ void BillboardRenderer::Render(const Scene * scene)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mShaderProgram->Bind();
 	SortQueue();
+
+    const Camera* camera = Root::Instance().GetCamera();
+    const glm::vec3 direction = glm::normalize(camera->Direction() * -1.f);
+    const glm::vec3& up = camera->Up();
+    const glm::vec3 ortoDirection = glm::cross(direction, up);
+
 	for (const Billboard* billboard: mRenderQueue)
     {
-        Render(billboard);
+        Render(billboard, direction, up, ortoDirection);
     }
     mShaderProgram->Unbind();
     glDisable(GL_DEPTH_TEST);
@@ -74,32 +80,35 @@ void BillboardRenderer::Render(const Scene * scene)
 
 void BillboardRenderer::SortQueue()
 {
-    const glm::vec3 camera = Root::Instance().GetCamera()->Position();
+    const Camera* camera = Root::Instance().GetCamera();
+    const glm::vec3& position = camera->Position();
+    const glm::vec3& normal = camera->Direction();
     
     std::sort(mRenderQueue.begin(), mRenderQueue.end(),
-        [&camera](const Billboard * a, const Billboard * b) -> bool
+        [&position, &normal](const Billboard * a, const Billboard * b) -> bool
     {
-        const float dst_a = glm::length(camera - a->mPosition);
-        const float dst_b = glm::length(camera - b->mPosition);
-        return dst_a > dst_b;
+        const float dst_a = glm::dot(normal, position - a->mPosition);
+        const float dst_b = glm::dot(normal, position - b->mPosition);
+        return dst_a < dst_b;
     });
 }
 
-void BillboardRenderer::Render(const Billboard* billboard)
+void BillboardRenderer::Render(const Billboard* billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection)
 {
     const glm::vec3 position = billboard->mPosition;
-    const glm::vec3 normal = billboard->mNormal;
+    const glm::vec3 normal = direction;
     const glm::vec2 size = billboard->mSize;
     const float alpha = billboard->mAlpha;
-    glm::mat4 modelTransform;
-    modelTransform[3] = glm::vec4(position, 1.f);
-    const glm::mat4 modelTransformAndScale = modelTransform;
 
-    std::vector<glm::vec3> vertices = { position, position, position, position };
-    vertices[1].x += size.x;
-    vertices[2].y += size.y;
-    vertices[3].x += size.x;
-    vertices[3].y += size.y;
+    const glm::vec3 sizeX = size.x * up;
+    const glm::vec3 sizeY = size.y * ortoDirection;
+
+    std::vector<glm::vec3> vertices = { glm::vec3(0), sizeX, sizeY, sizeX + sizeY};
+    for (size_t idx = 0; idx < 4; ++idx)
+    {
+        vertices[idx] += position;
+    }
+
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(vertices, mVboVerticesId); 
     std::vector<glm::vec3> normals = { normal, normal, normal, normal };
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(normals, mVboNormalId); 
@@ -128,7 +137,7 @@ void BillboardRenderer::Render(const Billboard* billboard)
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     }
-    const std::shared_ptr< Texture2DRGBA >& texture = billboard->mTexture;
+    const std::shared_ptr< Texture2D >& texture = billboard->mTexture;
     GPUBufferHandle& bufferHandle = texture->BufferHandle();
     glActiveTexture(GL_TEXTURE0);
     if (bufferHandle.valid())
@@ -145,7 +154,12 @@ void BillboardRenderer::Render(const Billboard* billboard)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->getWidth(), texture->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->getData());
+        ColorsChannel cchannel = texture->colorChannel();
+        assert(ColorsChannel::RGB == cchannel || ColorsChannel::RGBA == cchannel);
+        if(ColorsChannel::RGB == cchannel)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
+        else
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->getWidth(), texture->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->getData());
     }
     // attribute buffer : index
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId);

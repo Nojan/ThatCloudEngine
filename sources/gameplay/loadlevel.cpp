@@ -2,6 +2,7 @@
 
 #include "../types.hpp"
 #include "../camera.hpp"
+#include "../billboard_rendering_system.hpp"
 #include "../global.hpp"
 #include "../platform/platform.hpp"
 #include "../game_entity.hpp"
@@ -54,7 +55,7 @@ void loadlevel(const char * filepath, std::vector<GameEntity*>& entities)
     for (const tinyxml2::XMLElement* cloudElement = CloudsElement->FirstChildElement("cloud"); cloudElement != nullptr; cloudElement = cloudElement->NextSiblingElement("cloud"))
     {
         const float x = cloudElement->FloatAttribute("x") * scale;
-        const float z = cloudElement->FloatAttribute("y") * scale;
+        const float z = -cloudElement->FloatAttribute("y") * scale;
         const glm::vec4 position(x, defaultAltitude, z, 1.f);
 
         GameEntity* entity = gameSystem->createEntity();
@@ -63,10 +64,11 @@ void loadlevel(const char * filepath, std::vector<GameEntity*>& entities)
         TransformComponent* transform = entity->getComponent<TransformComponent>();
         transform->SetPosition(position);
 
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
-        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->setupResource( Global::resourceManager()->meshResource("../assets/3D/cloud.assxml") );
-        renderingComponent->mRenderable.front()->mMaterial.Texture() = cloudsTextures[++idx % 7];
+        gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
+        BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+        billboardComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        billboardComponent->mBillboard.mTexture = cloudsTextures[++idx % 7];
+        billboardComponent->mBillboard.mSize = glm::vec2(25.f);
+        billboardComponent->mBillboard.mAlpha = 1.f;
     }
 }
