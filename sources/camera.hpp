@@ -27,6 +27,10 @@ public:
         float zFar;
     };
 
+    static const glm::vec3 forward;
+    static const glm::vec3 up;
+    static const glm::vec3 right;
+
     Camera();
     ~Camera();
 
@@ -42,14 +46,11 @@ public:
     void SetPosition(glm::vec3 const& position);
 
     glm::vec3 const& Direction() const;
-    void SetDirection(glm::vec3 const& direction);
+    glm::vec3 const& Up() const;
 
     glm::vec3 const& MouseDirection() const;
     glm::vec3 ProjectScreenCoordToWorld(const glm::vec2& screenCoord) const;
     glm::vec3 ProjectScreenCoordNormalizedToWorld(const glm::vec2& screenCoord) const;
-
-    glm::vec3 const& Up() const;
-    void SetUp(glm::vec3 const& up);
 
     glm::mat4 const& View() const;
     glm::mat4 const& ViewInv() const;
@@ -80,6 +81,7 @@ private:
 
     glm::vec2 mMousePosition;
     glm::vec3 mMouseDirectionWorld;
+    glm::vec2 mEulerAngle;
 
     glm::vec3 mPosition;
     glm::vec3 mDirection;

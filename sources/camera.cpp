@@ -13,6 +13,10 @@
 #undef FREE_CAM
 #endif
 
+const glm::vec3 Camera::forward = glm::vec3(0.f, 0.f, 1.f);
+const glm::vec3 Camera::up = glm::vec3(0, 1, 0);
+const glm::vec3 Camera::right = glm::vec3(1, 0, 0);
+
 using namespace std;
 
 #define MV_NONE  0
@@ -31,20 +35,22 @@ Camera::Camera()
 , mUpdateProjection(true)
 , mMousePan(false)
 , mMoveMask(MV_NONE)
-, mSpeed(0.01f)
+, mSpeed(0.1f)
 , mScreenSize(1, 1)
 , mMousePosition(0.f)
 , mMouseDirectionWorld(0.f)
-, mPosition(0.f, 2.f, 5.f)
-, mDirection(glm::normalize(glm::vec3(0.f, -0.05f, -1.f)))
+, mEulerAngle(0.f)
+, mPosition(-668.f, 44.f, 833.f)
+, mDirection(glm::normalize(glm::vec3(0.7f, -0.1f, 0.6f)))
 , mUp(0.f, 1.f, 0.f)
 , mOrthoDirection(glm::cross(mDirection, mUp))
 {
-    mOrthoDirection = (glm::cross(mDirection, mUp));
+    mEulerAngle = glm::vec2(glm::eulerAngles(glm::quat(forward, mDirection)));
+    
     mPerspective.fov = deg2rad(45.f);
     mPerspective.ratio = 4.f/3.f;
     mPerspective.zNear = 1.f;
-    mPerspective.zFar = 1000.f;
+    mPerspective.zFar = 2000.f;
 
     Update(1.f);
 }
@@ -84,6 +90,12 @@ void Camera::Move(const float speed)
     }
 
     if (mUpdateView) {
+        {
+            const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+            mUp = r * up;
+            mOrthoDirection = r * right;
+            mDirection = r * forward;
+        }
         glm::vec3 center = mPosition + mDirection;
         mView = glm::lookAt(mPosition, center, mUp);
         mViewInv = glm::inverse(mView);
@@ -139,13 +151,6 @@ glm::vec3 const& Camera::Direction() const
     return mDirection;
 }
 
-void Camera::SetDirection(glm::vec3 const& direction)
-{
-    mDirection = glm::normalize(direction);
-    mOrthoDirection = glm::cross(mDirection, mUp);
-    mUpdateView = true;
-}
-
 glm::vec3 const& Camera::MouseDirection() const
 {
     return mMouseDirectionWorld;
@@ -173,13 +178,6 @@ glm::vec3 Camera::ProjectScreenCoordNormalizedToWorld(const glm::vec2 & screenCo
 glm::vec3 const& Camera::Up() const
 {
     return mUp;
-}
-
-void Camera::SetUp(glm::vec3 const& up)
-{
-    mUp = glm::normalize(up);
-    mOrthoDirection = glm::cross(mDirection, mUp);
-    mUpdateView = true;
 }
 
 glm::mat4 const& Camera::View() const
@@ -267,13 +265,17 @@ void Camera::Event(const SDL_Event & e)
         {
             const float gain = 0.005f;
             const glm::vec2 vec = (newMousePosition - mMousePosition)*gain;
+            mEulerAngle.x -= vec.y;
+            mEulerAngle.y += vec.x;
+            if(mEulerAngle.x < glm::pi<float>())
+                mEulerAngle.x += 2.f * glm::pi<float>();
+            if(mEulerAngle.x > glm::pi<float>())
+                mEulerAngle.x -= 2.f * glm::pi<float>();
+            if(mEulerAngle.y < glm::pi<float>())
+                mEulerAngle.y += 2.f * glm::pi<float>();
+            if(mEulerAngle.y > glm::pi<float>())
+                mEulerAngle.y -= 2.f * glm::pi<float>();
 
-            const glm::mat3 pitch = glm::mat3(glm::rotate(vec.x, mUp));
-            const glm::mat3 yaw = glm::mat3(glm::rotate(vec.y, mOrthoDirection));
-
-            mDirection = glm::normalize(yaw * pitch * mDirection);
-            mUp = glm::normalize(pitch * mUp);
-            mOrthoDirection = glm::cross(mDirection, mUp);
             mUpdateView = true;
         }
         mMousePosition = newMousePosition;
