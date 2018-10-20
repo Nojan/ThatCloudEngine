@@ -15,7 +15,7 @@
 
 const glm::vec3 Camera::forward = glm::vec3(0.f, 0.f, 1.f);
 const glm::vec3 Camera::up = glm::vec3(0, 1, 0);
-const glm::vec3 Camera::right = glm::vec3(1, 0, 0);
+const glm::vec3 Camera::right = glm::vec3(-1.f, 0, 0);
 
 using namespace std;
 
