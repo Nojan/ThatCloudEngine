@@ -38,6 +38,8 @@ public:
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
 
+    const char* debug_name() const override { return "Rendering"; }
+
 private:
     std::vector<std::unique_ptr<GraphicMeshComponent>> mComponents;
     MeshRenderer* mRenderer;
@@ -66,6 +68,8 @@ public:
 
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
+
+    const char* debug_name() const override { return "RenderingSkin"; }
 
 private:
     std::vector<std::unique_ptr<GraphicSkinComponent>> mComponents;

@@ -2,6 +2,7 @@
 
 #include "iupdater.hpp"
 #include "game_entity.hpp"
+#include "config.hpp"
 
 #include <cassert>
 #include <memory>
@@ -24,6 +25,11 @@ class IComponentSystem : public IUpdater {
 public:
     virtual void attachEntity(GameEntity* entity) = 0;
     virtual void detachEntity(GameEntity* entity) = 0;
+
+#ifdef IMGUI_ENABLE
+    virtual void debug_GUI() const {};
+#endif
+    virtual const char* debug_name() const = 0;
 
 protected:
     template <typename T>

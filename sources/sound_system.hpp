@@ -131,6 +131,8 @@ public:
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
 
+    const char* debug_name() const override { return "Sound"; }
+
     SoundFrame* RequestFrame();
     void SubmitFrame(SoundFrame* frame);
     void ReleaseFrame(SoundFrame* frame);

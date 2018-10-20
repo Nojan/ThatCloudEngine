@@ -3,14 +3,32 @@
 #include "rendering_system.hpp"
 #include "renderableMesh.hpp"
 
+#include "imgui/imgui_header.hpp"
+
+namespace Constant {
+IMGUI_VAR(AnimatedTextureTimer, 0.1f);
+}
+
+#ifdef IMGUI_ENABLE
+void AnimatedTextureSystem::debug_GUI() const
+{
+    ImGui::SliderFloat("Timer", &Constant::AnimatedTextureTimer, 0.f, 0.2f);
+}
+#endif
+
 AnimatedTextureComponent::AnimatedTextureComponent()
 : mGraphicComponent(nullptr)
 , mIdx(0)
+, mTimer(Constant::AnimatedTextureTimer)
 {
 }
 
 void AnimatedTextureComponent::Update(const float deltaTime)
 {
+    mTimer -= deltaTime;
+    if(0 < mTimer)
+        return;
+    mTimer = Constant::AnimatedTextureTimer;
     const size_t nextIdx = (mIdx + 1) % mTexture.size();
     for (std::unique_ptr<RenderableMesh>& renderable : mGraphicComponent->mRenderable)
     {

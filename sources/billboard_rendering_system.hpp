@@ -29,6 +29,8 @@ public:
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
 
+    const char* debug_name() const override { return "BillboardRendering"; }
+
 private:
     std::vector<std::unique_ptr<BillboardComponent>> mComponents;
     BillboardRenderer* mRenderer = nullptr;

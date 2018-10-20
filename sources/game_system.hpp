@@ -2,6 +2,8 @@
 
 #include "iupdater.hpp"
 
+#include "config.hpp"
+
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
@@ -36,6 +38,10 @@ public:
 
     GameEntity* createEntity();
     void removeEntity(GameEntity* entity);
+
+#ifdef IMGUI_ENABLE
+    void debug_GUI() const;
+#endif
 
 private:
     void removeEntitySync(GameEntity* entity);

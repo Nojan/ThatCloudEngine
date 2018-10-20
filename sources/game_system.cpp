@@ -8,6 +8,7 @@
 #include "animated_texture_system.hpp"
 #include "sound_system.hpp"
 
+#include "imgui/imgui_header.hpp"
 #include <cassert>
 
 #define CREATE_SYSTEM(X) {std::unique_ptr<X> system(new X()); addSystem<X>(std::move(system));}
@@ -104,3 +105,17 @@ void GameSystem::removeEntity(GameEntity* entity)
 {
     mDeadEntities.push_back(entity);
 }
+
+#ifdef IMGUI_ENABLE
+void GameSystem::debug_GUI() const
+{
+    if (ImGui::CollapsingHeader("Game System"))
+    {
+        for (auto& componentSystem : mSystems)
+        {
+            if (ImGui::CollapsingHeader(componentSystem->debug_name()))            
+                componentSystem->debug_GUI();
+        }
+    }
+}
+#endif

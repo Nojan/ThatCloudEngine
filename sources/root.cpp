@@ -313,11 +313,15 @@ void Root::Update()
             ImGui::Checkbox("auto spawn", &autoSpawnParticle);
             ImGui::SliderInt("spawn each frame", &autoSpawnParticleFrame, 10, 500);
         }
-        for (auto& renderer : mRendererList)
+        if (ImGui::CollapsingHeader("Renderer"))
         {
-            if (ImGui::CollapsingHeader(renderer->debug_name()))
-                renderer->debug_GUI();
+            for (auto& renderer : mRendererList)
+            {
+                if (ImGui::CollapsingHeader(renderer->debug_name()))
+                    renderer->debug_GUI();
+            }
         }
+        Global::gameSytem()->debug_GUI();
         if (ImGui::CollapsingHeader("Gameplay"))
         {
             mGameplayLoopManager->debug_GUI();
