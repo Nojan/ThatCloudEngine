@@ -1,7 +1,6 @@
 #include "loadlevel.hpp"
 
 #include "../types.hpp"
-#include "../camera.hpp"
 #include "../billboard_rendering_system.hpp"
 #include "../global.hpp"
 #include "../platform/platform.hpp"
@@ -15,7 +14,7 @@
 #include "../transform_system.hpp"
 #include "../tinyxml/tinyxml2.h"
 
-void loadlevel(const char * filepath, std::vector<GameEntity*>& entities)
+void loadlevel(const char * filepath, std::vector<GameEntity*>& entities, glm::vec3& boyPosition, glm::vec3& cameraOffset)
 {
     std::vector<std::shared_ptr<Texture2D>> cloudsTextures;
     cloudsTextures.reserve(7);
@@ -41,10 +40,15 @@ void loadlevel(const char * filepath, std::vector<GameEntity*>& entities)
         const float x = BoyElement->FloatAttribute("x");
         const float y = BoyElement->FloatAttribute("y");
         const float z = BoyElement->FloatAttribute("z");
-        const glm::vec3 boyPosition(x, y, z);
+        boyPosition = glm::vec3(x, y, z);
+    }
 
-        Camera* camera = Root::Instance().GetCamera();
-        camera->SetPosition(boyPosition);
+    if (const tinyxml2::XMLElement* CameraElement = CloudLevelElement->FirstChildElement("CameraStart"))
+    {
+        const float x = CameraElement->FloatAttribute("Distance");
+        const float y = CameraElement->FloatAttribute("HRot");
+        const float z = CameraElement->FloatAttribute("VRot");
+        cameraOffset = glm::vec3(x, y, z);
     }
 
     const tinyxml2::XMLElement* CloudsElement = CloudLevelElement->FirstChildElement("CloudLayer")->FirstChildElement("Clouds");

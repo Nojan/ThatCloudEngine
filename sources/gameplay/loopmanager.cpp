@@ -1,5 +1,6 @@
 #include "loopmanager.hpp"
 
+#include "boy.hpp"
 #include "loadlevel.hpp"
 #include "../root.hpp"
 #include "../camera.hpp"
@@ -26,6 +27,7 @@ namespace Gameplay {
 
 LoopManager::LoopManager()
 : mMusic(new MusicEntity())
+, mBoy(new Boy())
 {}
 
 LoopManager::~LoopManager()
@@ -34,6 +36,7 @@ LoopManager::~LoopManager()
 void LoopManager::Init()
 {
     mMusic->Init();
+    mBoy->Init();
 
     char filename[256];
     std::vector<std::shared_ptr<Texture2D>> waveTextures;
@@ -69,13 +72,22 @@ void LoopManager::Init()
         }
     }
 
+    glm::vec3 boyPosition, cameraOffset;
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
-    loadlevel(level_name, mEntities);
+    loadlevel(level_name, mEntities, boyPosition, cameraOffset);
+
+    mBoy->TeleportTo(boyPosition);
+    const float cameraDistance = cameraOffset.x;
+    Camera* camera = Root::Instance().GetCamera();
+    const glm::vec3 cameraPosition = boyPosition - (camera->Direction() * cameraDistance);
+    camera->SetPosition(cameraPosition);
+    
 }
 
 void LoopManager::Terminate()
 {
     mMusic->Terminate();
+    mBoy->Terminate();
     GameSystem* gameSystem = Global::gameSytem();
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
