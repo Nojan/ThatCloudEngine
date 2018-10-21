@@ -100,10 +100,10 @@ void BillboardRenderer::Render(const Billboard* billboard, const glm::vec3& dire
     const glm::vec2 size = billboard->mSize;
     const float alpha = billboard->mAlpha;
 
-    const glm::vec3 sizeX = size.x * up;
-    const glm::vec3 sizeY = size.y * ortoDirection;
+    const glm::vec3 sizeX = size.x * up * 0.5f;
+    const glm::vec3 sizeY = size.y * ortoDirection * 0.5f;
 
-    std::vector<glm::vec3> vertices = { glm::vec3(0), sizeX, sizeY, sizeX + sizeY};
+    std::vector<glm::vec3> vertices = { -sizeX -sizeY, sizeX -sizeY, -sizeX + sizeY, sizeX + sizeY};
     for (size_t idx = 0; idx < 4; ++idx)
     {
         vertices[idx] += position;
