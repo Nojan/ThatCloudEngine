@@ -37,15 +37,16 @@ Camera::Camera()
 , mMoveMask(MV_NONE)
 , mSpeed(0.1f)
 , mScreenSize(1, 1)
-, mMousePosition(0.f)
 , mMouseDirectionWorld(0.f)
-, mEulerAngle(0.f)
 , mPosition(-668.f, 44.f, 833.f)
 , mDirection(glm::normalize(glm::vec3(0.7f, -0.1f, 0.6f)))
 , mUp(0.f, 1.f, 0.f)
 , mOrthoDirection(glm::cross(mDirection, mUp))
 {
-    mEulerAngle = glm::vec2(glm::eulerAngles(glm::quat(forward, mDirection)));
+    OrbitCamera* freecam = new OrbitCamera();
+    freecam->mEulerAngle = glm::vec2(glm::eulerAngles(glm::quat(forward, mDirection)));
+    SetOrientation(glm::normalize(glm::quat(glm::vec3(freecam->mEulerAngle, 0.f))));
+    mMover.reset(freecam);
     
     mPerspective.fov = deg2rad(45.f);
     mPerspective.ratio = 4.f/3.f;
@@ -77,25 +78,10 @@ void Camera::Update(const float frameDuration)
 
 void Camera::Move(const float speed)
 {
-    if (MV_NONE != mMoveMask) {
-        if (MV_LEFT & mMoveMask)
-            mPosition -= mOrthoDirection*speed;
-        if (MV_RIGHT & mMoveMask)
-            mPosition += mOrthoDirection*speed;
-        if (MV_UP & mMoveMask)
-            mPosition += mDirection*speed;
-        if (MV_DOWN & mMoveMask)
-            mPosition -= mDirection*speed;
-        mUpdateView = true;
-    }
+    if(mMover)
+        mMover->Move(speed, this);
 
     if (mUpdateView) {
-        {
-            const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
-            mUp = r * up;
-            mOrthoDirection = r * right;
-            mDirection = r * forward;
-        }
         glm::vec3 center = mPosition + mDirection;
         mView = glm::lookAt(mPosition, center, mUp);
         mViewInv = glm::inverse(mView);
@@ -130,6 +116,12 @@ Camera::perspective const& Camera::Perspective() const
     return mPerspective;
 }
 
+void Camera::SetPerspective(Camera::perspective const& p)
+{
+    mPerspective = p;
+    mUpdateProjection = true;
+}
+
 glm::ivec2 const& Camera::ScreenSize() const
 {
     return mScreenSize;
@@ -144,6 +136,19 @@ void Camera::SetPosition(glm::vec3 const& position)
 {
     mPosition = position;
     mUpdateView = true;
+}
+
+void Camera::SetOrientation(const glm::quat& orientation)
+{
+    mUp = orientation * up;
+    mOrthoDirection = orientation * right;
+    mDirection = orientation * forward;
+    mUpdateView = true;
+}
+
+glm::vec3 const& Camera::OrthoDirection() const
+{
+    return mOrthoDirection;
 }
 
 glm::vec3 const& Camera::Direction() const
@@ -205,7 +210,60 @@ glm::mat4 const & Camera::ProjectionViewInv() const
     return mProjectionViewInv;
 }
 
+void Camera::SetCameraMover(std::unique_ptr<CameraMover>&& mover)
+{
+    mMover = std::move(mover);
+}
+
 void Camera::Event(const SDL_Event & e)
+{
+    if(mMover)
+        mMover->Event(e, this);
+
+    if (SDL_MOUSEMOTION == e.type)
+    {
+        const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
+        mMouseDirectionWorld = ProjectScreenCoordToWorld(newMousePosition);
+    }
+}
+
+void Camera::WindowResize(int width, int height)
+{
+    mScreenSize = glm::ivec2(max(1, width), max(1, height));
+    mPerspective.ratio = static_cast<float>(mScreenSize.x) / static_cast<float>(mScreenSize.y);
+    mUpdateProjection = true;
+}
+
+#ifdef IMGUI_ENABLE
+void Camera::debug_GUI()
+{
+    ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
+    ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
+    ImGui::SliderFloat("Move Speed", &mSpeed, 0.0005f, 0.5f, "%f", 5);
+
+}
+#endif
+
+void FreeCamera::Move(const float speed, Camera* camera)
+{
+    const glm::vec3 orthoDirection = camera->OrthoDirection();
+    const glm::vec3 direction = camera->Direction();
+    if (MV_NONE != mMoveMask) 
+    {
+        glm::vec3 position = camera->Position();
+        if (MV_LEFT & mMoveMask)
+            position -= orthoDirection*speed;
+        if (MV_RIGHT & mMoveMask)
+            position += orthoDirection*speed;
+        if (MV_UP & mMoveMask)
+            position += direction*speed;
+        if (MV_DOWN & mMoveMask)
+            position -= direction*speed;
+        camera->SetPosition(position);
+    }
+}
+
+void FreeCamera::Event(const SDL_Event& e, Camera* camera)
 {
 #ifdef FREE_CAM
     const bool pressKey = (SDL_KEYDOWN == e.type);
@@ -251,11 +309,12 @@ void Camera::Event(const SDL_Event & e)
     }
     if (SDL_MOUSEWHEEL == e.type)
     {
+        Camera::perspective p = camera->Perspective();
         if (e.wheel.y < 0)
-            mPerspective.fov += 0.1f;
+            p.fov += 0.1f;
         else if (e.wheel.y > 0)
-            mPerspective.fov -= 0.1f;
-        mUpdateProjection = true;
+            p.fov -= 0.1f;
+        camera->SetPerspective(p);
     }
 #endif
     if (SDL_MOUSEMOTION == e.type)
@@ -276,28 +335,99 @@ void Camera::Event(const SDL_Event & e)
             if(mEulerAngle.y > glm::pi<float>())
                 mEulerAngle.y -= 2.f * glm::pi<float>();
 
-            mUpdateView = true;
+            const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+            camera->SetOrientation(r);
         }
         mMousePosition = newMousePosition;
-        mMouseDirectionWorld = ProjectScreenCoordToWorld(mMousePosition);
     }
 }
 
-void Camera::WindowResize(int width, int height)
+//const bool orbitCam = false;
+//if (orbitCam)
+//{
+//    glm::vec3 center(-983.503845, 159.502747, -186.739639);
+//    const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+//    mUp = r * up;
+//    mOrthoDirection = r * right;
+//    mDirection = r * forward;
+//    mPosition = center - mDirection * 25.f;
+//    mDirection = glm::normalize(center - mPosition);
+//}
+//else
+//{
+//    const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+//    mUp = r * up;
+//    mOrthoDirection = r * right;
+//    mDirection = r * forward;
+//}
+
+void OrbitCamera::Move(const float speed, Camera* camera)
 {
-    mScreenSize = glm::ivec2(max(1, width), max(1, height));
-    mPerspective.ratio = static_cast<float>(mScreenSize.x) / static_cast<float>(mScreenSize.y);
-    mUpdateProjection = true;
+    const glm::vec3 orthoDirection = camera->OrthoDirection();
+    const glm::vec3 direction = camera->Direction();
+    if (MV_NONE != mMoveMask) 
+    {
+        glm::vec3 position = camera->Position();
+        if (MV_LEFT & mMoveMask)
+            position -= orthoDirection*speed;
+        if (MV_RIGHT & mMoveMask)
+            position += orthoDirection*speed;
+        if (MV_UP & mMoveMask)
+            position += direction*speed;
+        if (MV_DOWN & mMoveMask)
+            position -= direction*speed;
+        camera->SetPosition(position);
+    }
 }
 
-#ifdef IMGUI_ENABLE
-void Camera::debug_GUI()
+void OrbitCamera::Event(const SDL_Event& e, Camera* camera)
 {
-    ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
-    ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
-    ImGui::SliderFloat("Move Speed", &mSpeed, 0.0005f, 0.5f, "%f", 5);
-    ImGui::Text("Mouse Screen Position %s", glm::to_string(mMousePosition).c_str());
-    ImGui::Text("Mouse World Direction %s", glm::to_string(mMouseDirectionWorld).c_str());
+    if (SDL_MOUSEWHEEL == e.type)
+    {
+        if (e.wheel.y < 0)
+            mDistance += 0.5f;
+        else if (e.wheel.y > 0)
+            mDistance -= 0.5f;
+        mDistance = glm::clamp(mDistance, 5.f, 50.f);
+    }
+    if (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_RIGHT == e.button.button)
+    {
+        mMousePan = true;
+    }
+    else if (SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_RIGHT == e.button.button)
+    {
+        mMousePan = false;
+    }
+    if (SDL_MOUSEMOTION == e.type)
+    {
+        const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
+        if(mMousePan)
+        {
+            const float gain = 0.005f;
+            const glm::vec2 vec = (newMousePosition - mMousePosition)*gain;
+            mEulerAngle.x -= vec.y;
+            mEulerAngle.y += vec.x;
+            if(mEulerAngle.x < glm::pi<float>())
+                mEulerAngle.x += 2.f * glm::pi<float>();
+            if(mEulerAngle.x > glm::pi<float>())
+                mEulerAngle.x -= 2.f * glm::pi<float>();
+            if(mEulerAngle.y < glm::pi<float>())
+                mEulerAngle.y += 2.f * glm::pi<float>();
+            if(mEulerAngle.y > glm::pi<float>())
+                mEulerAngle.y -= 2.f * glm::pi<float>();
 
+            const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+            camera->SetOrientation(r);
+        }
+        mMousePosition = newMousePosition;
+    }
+
+    {
+        glm::vec3 position = camera->Position();
+        glm::vec3 center(-983.503845, 159.502747, -186.739639);
+        const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+        camera->SetOrientation(r);
+        position = center - camera->Direction() * mDistance;
+        camera->SetPosition(position);
+    }
 }
-#endif

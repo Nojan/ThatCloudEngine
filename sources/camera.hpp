@@ -6,8 +6,10 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <memory>
 
 union SDL_Event;
+class CameraMover;
 
 class Camera : public IUpdater {
 public:
@@ -40,11 +42,15 @@ public:
 
     static frustum ConvertTo(perspective const& perspective); 
     perspective const& Perspective() const;
+    void SetPerspective(perspective const& p);
     glm::ivec2 const& ScreenSize() const;
 
     glm::vec3 const& Position() const;
     void SetPosition(glm::vec3 const& position);
 
+    void SetOrientation(const glm::quat& orientation);
+
+    glm::vec3 const& OrthoDirection() const;
     glm::vec3 const& Direction() const;
     glm::vec3 const& Up() const;
 
@@ -57,6 +63,8 @@ public:
     glm::mat4 const& Projection() const;
     glm::mat4 const& ProjectionView() const;
     glm::mat4 const& ProjectionViewInv() const;
+
+    void SetCameraMover(std::unique_ptr<CameraMover>&& mover);
 
     void Event(const SDL_Event& e);
     
@@ -79,9 +87,7 @@ private:
 
     perspective mPerspective;
 
-    glm::vec2 mMousePosition;
     glm::vec3 mMouseDirectionWorld;
-    glm::vec2 mEulerAngle;
 
     glm::vec3 mPosition;
     glm::vec3 mDirection;
@@ -94,6 +100,41 @@ private:
     glm::mat4 mViewInv;
     glm::mat4 mProjectionInv;
     glm::mat4 mProjectionViewInv;
+
+    std::unique_ptr<CameraMover> mMover;
+};
+
+
+class CameraMover
+{
+public:
+    virtual void Move(const float speed, Camera* camera) {};
+    virtual void Event(const SDL_Event& e, Camera* camera) {};
+};
+
+class FreeCamera : public CameraMover
+{
+public:
+    void Move(const float speed, Camera* camera) override;
+    void Event(const SDL_Event& e, Camera* camera) override;
+
+    int mMoveMask = 0;
+    bool mMousePan = false;
+    glm::vec2 mMousePosition = glm::vec2(0,0);
+    glm::vec2 mEulerAngle = glm::vec2(0,0);
+};
+
+class OrbitCamera : public CameraMover
+{
+public:
+    void Move(const float speed, Camera* camera) override;
+    void Event(const SDL_Event& e, Camera* camera) override;
+
+    int mMoveMask = 0;
+    bool mMousePan = false;
+    glm::vec2 mMousePosition = glm::vec2(0,0);
+    glm::vec2 mEulerAngle = glm::vec2(0,0);
+    float mDistance = 5.f;
 };
 
 #endif
