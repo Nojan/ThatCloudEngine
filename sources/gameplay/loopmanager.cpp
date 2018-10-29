@@ -4,6 +4,7 @@
 #include "loadlevel.hpp"
 #include "../root.hpp"
 #include "../camera.hpp"
+#include "../physic_system.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
 #include "../global.hpp"
@@ -102,25 +103,51 @@ void LoopManager::FrameStep()
 void LoopManager::Update(const float deltaTime)
 {
     mMusic->Update(deltaTime);
-}
 
-void LoopManager::Event(const SDL_Event & e)
-{
-    if (SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button)
+    if (mClickLeft)
     {
         const Camera* camera = Root::Instance().GetCamera();
         const glm::vec3& mouseDirection = camera->MouseDirection();
-        const glm::vec3 planeNormal(0, 0, 1.f);
+        const glm::vec3 planeNormal(0, 1.f, 0);
         const float cosTheta = glm::dot(mouseDirection, planeNormal);
         if (0.f == cosTheta)
             return;
         const glm::vec3& cameraPosition = camera->Position();
-        const float planeDistance = 15.f;
-        const float t = -(glm::dot(cameraPosition, planeNormal) + planeDistance) / cosTheta;
+        const float t = glm::dot( (planeNormal * 160.f) - cameraPosition, planeNormal) / cosTheta;
         const Camera::perspective& parameter = camera->Perspective();
         if (t < parameter.zNear || parameter.zFar < t)
             return;
         const glm::vec3 intersect = cameraPosition + mouseDirection*t;
+        VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 5.f, {1.f, 0.f, 0.f, 1.f}));
+
+        for (auto& entity : mEntities)
+        {
+            PhysicComponent* physic = entity->getComponent<PhysicComponent>();
+            if(!physic)
+                continue;
+            const glm::vec3 position(physic->mTransformComponent->Position());
+            const glm::vec3 direction = intersect - position;
+            const float distanceSq = glm::dot(direction, direction);
+            const float limitSq = 4000.f;
+            if (0 < distanceSq && distanceSq < limitSq)
+            {
+                const float distance = sqrt(distanceSq);
+                const glm::vec4 normal(direction / distance, 0.f);
+                physic->SetLinearVelocity(physic->LinearVelocity() + normal * 10.f);
+            }
+        }
+    }
+}
+
+void LoopManager::Event(const SDL_Event & e)
+{
+    if (mClickLeft)
+    {
+        mClickLeft = !(SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button);
+    }
+    else
+    {
+        mClickLeft = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
     }
 }
 

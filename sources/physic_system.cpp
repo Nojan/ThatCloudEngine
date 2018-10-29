@@ -110,6 +110,31 @@ PhysicSystem::~PhysicSystem()
 void PhysicSystem::Update(const float deltaTime)
 {
     assert(0 <= deltaTime);
+    const size_t componentsSize = mComponents.size();
+    const float radius = 5.f;
+    const float radiusSq = radius * radius;
+    for (size_t idx = 0; idx < componentsSize; ++idx)
+    {
+        PhysicComponent& ci = mComponents[idx];
+        const glm::vec4& ciPosition = ci.mTransformComponent->mPosition;
+        glm::vec4 ciVelocity = ci.LinearVelocity() * 0.5f;
+        for (size_t ydx = idx + 1; ydx < componentsSize; ++ydx)
+        {
+            const PhysicComponent& cy = mComponents[ydx];
+            const glm::vec4& cyPosition = cy.mTransformComponent->mPosition;
+            const glm::vec4 diffP = ciPosition - cyPosition;
+            const float diffMagSq = glm::dot(diffP, diffP);
+            const float penetrationMagSq = diffMagSq - (4.f * radiusSq);
+            if( 0.f < penetrationMagSq)
+                continue; // no penetration
+            const float penetrationMag = sqrt(-penetrationMagSq);
+            const float diffMag = sqrt(diffMagSq);
+            const glm::vec4 diffNormal = diffP / diffMag;
+            ciVelocity += diffNormal * penetrationMag;
+        }
+        ci.SetLinearVelocity(ciVelocity);
+    }
+    
     for (auto& component : mComponents)
     {
         component.Integrate(deltaTime);

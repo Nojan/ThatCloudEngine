@@ -35,6 +35,7 @@ private:
     std::unique_ptr<MusicEntity> mMusic;
     std::unique_ptr<Boy> mBoy;
     std::vector< GameEntity* > mEntities;
+    bool mClickLeft = false;
 };
 
 } // namespace

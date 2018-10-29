@@ -6,6 +6,7 @@
 #include "../platform/platform.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
+#include "../physic_system.hpp"
 #include "../root.hpp"
 #include "../resourcemanager.hpp"
 #include "../rendering_system.hpp"
@@ -67,6 +68,8 @@ void loadlevel(const char * filepath, std::vector<GameEntity*>& entities, glm::v
         gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
         TransformComponent* transform = entity->getComponent<TransformComponent>();
         transform->SetPosition(position);
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+        PhysicComponent* physic = entity->getComponent<PhysicComponent>();
 
         gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
         BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
