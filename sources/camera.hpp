@@ -78,9 +78,7 @@ private:
     bool mUpdateFixedFrameRate;
     bool mUpdateView;
     bool mUpdateProjection;
-    bool mMousePan;
 
-    int mMoveMask;
     float mSpeed;
 
     glm::ivec2 mScreenSize;
@@ -103,38 +101,4 @@ private:
 
     std::unique_ptr<CameraMover> mMover;
 };
-
-
-class CameraMover
-{
-public:
-    virtual void Move(const float speed, Camera* camera) {};
-    virtual void Event(const SDL_Event& e, Camera* camera) {};
-};
-
-class FreeCamera : public CameraMover
-{
-public:
-    void Move(const float speed, Camera* camera) override;
-    void Event(const SDL_Event& e, Camera* camera) override;
-
-    int mMoveMask = 0;
-    bool mMousePan = false;
-    glm::vec2 mMousePosition = glm::vec2(0,0);
-    glm::vec2 mEulerAngle = glm::vec2(0,0);
-};
-
-class OrbitCamera : public CameraMover
-{
-public:
-    void Move(const float speed, Camera* camera) override;
-    void Event(const SDL_Event& e, Camera* camera) override;
-
-    int mMoveMask = 0;
-    bool mMousePan = false;
-    glm::vec2 mMousePosition = glm::vec2(0,0);
-    glm::vec2 mEulerAngle = glm::vec2(0,0);
-    float mDistance = 5.f;
-};
-
 #endif
