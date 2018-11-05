@@ -127,16 +127,18 @@ void LoopManager::Update(const float deltaTime)
     mBoy->MoveToward(intersect, deltaTime);
     mCursor->SetPosition(intersect, deltaTime);
     
-    // pull clouds toward the intersection
+    // pull clouds toward the boy
     if (mClickLeft)
     {
+        const glm::vec3 boyPosition = mBoy->Position();
+        
         for (auto& entity : mEntities)
         {
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
             if(!physic)
                 continue;
             const glm::vec3 position(physic->mTransformComponent->Position());
-            const glm::vec3 direction = intersect - position;
+            const glm::vec3 direction = boyPosition - position;
             const float distanceSq = glm::dot(direction, direction);
             const float limitSq = 4000.f;
             if (0 < distanceSq && distanceSq < limitSq)

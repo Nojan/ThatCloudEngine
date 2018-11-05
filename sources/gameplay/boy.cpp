@@ -68,3 +68,10 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
     const glm::quat r(glm::vec3(0.f, 0.f, -1.f), forward);
     physic->mTransformComponent->SetRotation(r);
 }
+
+glm::vec3 Boy::Position() const
+{
+    PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
+    const glm::vec3 position(physic->mTransformComponent->Position());
+    return position;
+}
