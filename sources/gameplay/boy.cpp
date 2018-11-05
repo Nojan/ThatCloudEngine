@@ -6,6 +6,7 @@
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
 
+#include "../physic_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
@@ -21,6 +22,8 @@ void Boy::Init()
 
     gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
     TransformComponent* transform = entity->getComponent<TransformComponent>();
+
+    gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
 
     gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
     GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
@@ -44,4 +47,24 @@ void Boy::TeleportTo(const glm::vec3 & position)
 {
     TransformComponent* transform = mEntity->getComponent<TransformComponent>();
     transform->SetPosition(glm::vec4(position, 1.f));
+}
+
+void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
+{
+    if(deltaTime == 0.f)
+        return;
+    
+    PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
+    const glm::vec3 currentPosition(physic->mTransformComponent->Position());
+    const glm::vec3 diff = position - currentPosition;
+    const glm::vec4 v(diff * 0.1f / deltaTime, 0.f);
+    physic->SetLinearVelocity(v);
+
+    const float diffLength = glm::length(diff);
+    if(diffLength <= 1.f)
+        return;
+    const glm::vec3 forward = diff / diffLength;
+
+    const glm::quat r(glm::vec3(0.f, 0.f, -1.f), forward);
+    physic->mTransformComponent->SetRotation(r);
 }

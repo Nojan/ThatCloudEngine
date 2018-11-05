@@ -104,22 +104,26 @@ void LoopManager::Update(const float deltaTime)
 {
     mMusic->Update(deltaTime);
 
+    const Camera* camera = Root::Instance().GetCamera();
+    const glm::vec3& mouseDirection = camera->MouseDirection();
+    const glm::vec3 planeNormal(0, 1.f, 0);
+    const float planeAltitude = 160.f;
+    const float cosTheta = glm::dot(mouseDirection, planeNormal);
+    if (0.f == cosTheta)
+        return;
+    const glm::vec3& cameraPosition = camera->Position();
+    const float t = glm::dot( (planeNormal * planeAltitude) - cameraPosition, planeNormal) / cosTheta;
+    const Camera::perspective& parameter = camera->Perspective();
+    if (t < parameter.zNear || parameter.zFar < t)
+        return;
+    const glm::vec3 intersect = cameraPosition + mouseDirection*t;
+    VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 0.25f, {1.f, 0.f, 0.f, 1.f}));
+
+    mBoy->MoveToward(intersect, deltaTime);
+    
+    // pull clouds toward the intersection
     if (mClickLeft)
     {
-        const Camera* camera = Root::Instance().GetCamera();
-        const glm::vec3& mouseDirection = camera->MouseDirection();
-        const glm::vec3 planeNormal(0, 1.f, 0);
-        const float cosTheta = glm::dot(mouseDirection, planeNormal);
-        if (0.f == cosTheta)
-            return;
-        const glm::vec3& cameraPosition = camera->Position();
-        const float t = glm::dot( (planeNormal * 160.f) - cameraPosition, planeNormal) / cosTheta;
-        const Camera::perspective& parameter = camera->Perspective();
-        if (t < parameter.zNear || parameter.zFar < t)
-            return;
-        const glm::vec3 intersect = cameraPosition + mouseDirection*t;
-        VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 5.f, {1.f, 0.f, 0.f, 1.f}));
-
         for (auto& entity : mEntities)
         {
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
