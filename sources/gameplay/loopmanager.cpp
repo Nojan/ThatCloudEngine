@@ -1,6 +1,7 @@
 #include "loopmanager.hpp"
 
 #include "boy.hpp"
+#include "cursor.hpp"
 #include "loadlevel.hpp"
 #include "../root.hpp"
 #include "../camera.hpp"
@@ -29,6 +30,7 @@ namespace Gameplay {
 LoopManager::LoopManager()
 : mMusic(new MusicEntity())
 , mBoy(new Boy())
+, mCursor(new Cursor())
 {}
 
 LoopManager::~LoopManager()
@@ -38,6 +40,7 @@ void LoopManager::Init()
 {
     mMusic->Init();
     mBoy->Init();
+    mCursor->Init();
 
     char filename[256];
     std::vector<std::shared_ptr<Texture2D>> waveTextures;
@@ -78,6 +81,7 @@ void LoopManager::Init()
     loadlevel(level_name, mEntities, boyPosition, cameraOffset);
 
     mBoy->TeleportTo(boyPosition);
+    mCursor->SetPosition(boyPosition, 0.f);
     const float cameraDistance = cameraOffset.x;
     Camera* camera = Root::Instance().GetCamera();
     const glm::vec3 cameraPosition = boyPosition - (camera->Direction() * cameraDistance);
@@ -89,6 +93,7 @@ void LoopManager::Terminate()
 {
     mMusic->Terminate();
     mBoy->Terminate();
+    mCursor->Terminate();
     GameSystem* gameSystem = Global::gameSytem();
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
@@ -117,9 +122,10 @@ void LoopManager::Update(const float deltaTime)
     if (t < parameter.zNear || parameter.zFar < t)
         return;
     const glm::vec3 intersect = cameraPosition + mouseDirection*t;
-    VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 0.25f, {1.f, 0.f, 0.f, 1.f}));
+    //VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 0.25f, {1.f, 0.f, 0.f, 1.f}));
 
     mBoy->MoveToward(intersect, deltaTime);
+    mCursor->SetPosition(intersect, deltaTime);
     
     // pull clouds toward the intersection
     if (mClickLeft)

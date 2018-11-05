@@ -13,7 +13,8 @@ rem FOR %%G IN (island_6,beach_2,tree_0,cityvolcano) DO (%ASSIMP% export %FROM%\
 FOR %%G IN (volcano.tga, volcano_beach.tga, city.tga, tree.tga, paw.tga, albino.tga, wet.tga, big.tga, pacman.tga, beach.tga, good.tga, ocean.tga, oceanbottom.tga, shallowwater.tga, cloud.tga, cloudboycloth.tga, cloudboyskin.tga) DO (%COPY% %FROM%\3D\%%G %TO%\3D\%%G)
 
 FOR /L %%G IN (0,1,59) DO (%COPY% %FROM%\3D\wave_5_%%G.tga %TO%\3D\wave_5_%%G.tga)
-FOR /L %%G IN (0,1,7) DO (%COPY% %FROM%\3D\cloud_1_%%G.tga %TO%\3D\cloud_1_%%G.tga)
+FOR /L %%G IN (1,1,7) DO (%COPY% %FROM%\3D\cloud_1_%%G.tga %TO%\3D\cloud_1_%%G.tga)
+FOR /L %%G IN (0,1,11) DO (%COPY% %FROM%\3D\CursorBillboard_1_%%G.tga %TO%\3D\CursorBillboard_1_%%G.tga)
 
 mkdir %TO%\Cloud\
 mkdir %TO%\Cloud\Levels

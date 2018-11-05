@@ -11,6 +11,7 @@ union SDL_Event;
 class MusicEntity;
 class GameEntity;
 class Boy;
+class Cursor;
 
 namespace Gameplay {
 
@@ -34,6 +35,7 @@ public:
 private:
     std::unique_ptr<MusicEntity> mMusic;
     std::unique_ptr<Boy> mBoy;
+    std::unique_ptr<Cursor> mCursor;
     std::vector< GameEntity* > mEntities;
     bool mClickLeft = false;
 };
