@@ -70,11 +70,8 @@ void OrbitCamera::Event(const SDL_Event& e, Camera* camera)
     bool positionChanged = false;
     if (SDL_MOUSEWHEEL == e.type)
     {
-        if (e.wheel.y < 0)
-            mDistance += 0.5f;
-        else if (e.wheel.y > 0)
-            mDistance -= 0.5f;
-        mDistance = glm::clamp(mDistance, 5.f, 50.f);
+        const float value(e.wheel.y);
+        mDistance = glm::clamp(mDistance - value, 5.f, 50.f);
         positionChanged = true;
     }
     bool orientationChanged = false;
