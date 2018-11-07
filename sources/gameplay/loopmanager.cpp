@@ -11,6 +11,7 @@
 #include "../global.hpp"
 #include "../music_entity.hpp"
 #include "../animated_texture_system.hpp"
+#include "../billboard_rendering_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
@@ -43,6 +44,12 @@ void LoopManager::Init()
     mCursor->Init();
 
     char filename[256];
+    mCloudsTextures.reserve(7);
+    for (int idx = 1; idx <= 7; ++idx)
+    {
+        sprintf(filename, "../assets/3D/cloud_1_%d.tga", idx);
+        mCloudsTextures.push_back( Global::resourceManager()->texture(filename) );
+    }
     std::vector<std::shared_ptr<Texture2D>> waveTextures;
     waveTextures.reserve(60);
     for (size_t i = 0; i < 60; ++i)
@@ -78,7 +85,12 @@ void LoopManager::Init()
 
     glm::vec3 boyPosition, cameraOffset;
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
-    loadlevel(level_name, mEntities, boyPosition, cameraOffset);
+    std::vector<glm::vec3> cloudPositions;
+    loadlevel(level_name, cloudPositions, boyPosition, cameraOffset);
+    for (auto& p : cloudPositions)
+    {
+        SpawnCloud(p);
+    }
 
     mBoy->TeleportTo(boyPosition);
     mCursor->SetPosition(boyPosition, 0.f);
@@ -131,9 +143,14 @@ void LoopManager::Update(const float deltaTime)
     if (mClickLeft)
     {
         const glm::vec3 boyPosition = mBoy->Position();
-        
-        for (auto& entity : mEntities)
+        if (mCtrlLeft && 0 < mStoredCloud)
         {
+            SpawnCloud(boyPosition);
+            mStoredCloud--;
+        }
+        for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
+        {
+            GameEntity* entity = mEntities[idx];
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
             if(!physic)
                 continue;
@@ -141,7 +158,17 @@ void LoopManager::Update(const float deltaTime)
             const glm::vec3 direction = boyPosition - position;
             const float distanceSq = glm::dot(direction, direction);
             const float limitSq = 4000.f;
-            if (0 < distanceSq && distanceSq < limitSq)
+            if (mShiftLeft && distanceSq < 25.f)
+            {
+                // absorb cloud
+                GameSystem* gameSystem = Global::gameSytem();
+                gameSystem->removeEntity(entity);
+                mStoredCloud++;
+                const size_t lastIdx = mEntities.size() - 1;
+                std::swap(mEntities[idx], mEntities[lastIdx]);
+                mEntities.resize(lastIdx);
+            }
+            else if (0 < distanceSq && distanceSq < limitSq)
             {
                 const float distance = sqrt(distanceSq);
                 const glm::vec4 normal(direction / distance, 0.f);
@@ -149,6 +176,26 @@ void LoopManager::Update(const float deltaTime)
             }
         }
     }
+}
+
+void LoopManager::SpawnCloud(const glm::vec3 position)
+{
+    GameSystem* gameSystem = Global::gameSytem();
+    GameEntity* entity = gameSystem->createEntity();
+    mEntities.push_back(entity);
+    gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+    TransformComponent* transform = entity->getComponent<TransformComponent>();
+    transform->SetPosition(glm::vec4(position, 1.f));
+    gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+    PhysicComponent* physic = entity->getComponent<PhysicComponent>();
+
+    gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
+    BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+    billboardComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+    mCloudTextureIdx = (mCloudTextureIdx + 1) % mCloudsTextures.size();
+    billboardComponent->mBillboard.mTexture = mCloudsTextures[mCloudTextureIdx];
+    billboardComponent->mBillboard.mSize = glm::vec2(25.f);
+    billboardComponent->mBillboard.mAlpha = 1.f;
 }
 
 void LoopManager::Event(const SDL_Event & e)
@@ -160,6 +207,24 @@ void LoopManager::Event(const SDL_Event & e)
     else
     {
         mClickLeft = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
+    }
+
+    if (mShiftLeft)
+    {
+        mShiftLeft = !(SDL_KEYUP == e.type && SDLK_LSHIFT == e.key.keysym.sym);
+    }
+    else
+    {
+        mShiftLeft = (SDL_KEYDOWN == e.type && SDLK_LSHIFT == e.key.keysym.sym);
+    }
+
+    if (mCtrlLeft)
+    {
+        mCtrlLeft = !(SDL_KEYUP == e.type && SDLK_LCTRL == e.key.keysym.sym);
+    }
+    else
+    {
+        mCtrlLeft = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
     }
 }
 

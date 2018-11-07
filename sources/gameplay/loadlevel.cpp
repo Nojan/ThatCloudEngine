@@ -1,7 +1,6 @@
 #include "loadlevel.hpp"
 
 #include "../types.hpp"
-#include "../billboard_rendering_system.hpp"
 #include "../global.hpp"
 #include "../platform/platform.hpp"
 #include "../game_entity.hpp"
@@ -11,11 +10,10 @@
 #include "../resourcemanager.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
-#include "../texture.hpp"
 #include "../transform_system.hpp"
 #include "../tinyxml/tinyxml2.h"
 
-void loadlevel(const char * filepath, std::vector<GameEntity*>& entities, glm::vec3& boyPosition, glm::vec3& cameraOffset)
+void loadlevel(const char * filepath, std::vector<glm::vec3>& cloudPosition, glm::vec3& boyPosition, glm::vec3& cameraOffset)
 {
     std::vector<std::shared_ptr<Texture2D>> cloudsTextures;
     cloudsTextures.reserve(7);
@@ -61,21 +59,7 @@ void loadlevel(const char * filepath, std::vector<GameEntity*>& entities, glm::v
     {
         const float x = cloudElement->FloatAttribute("x") * scale;
         const float z = -cloudElement->FloatAttribute("y") * scale;
-        const glm::vec4 position(x, defaultAltitude, z, 1.f);
-
-        GameEntity* entity = gameSystem->createEntity();
-        entities.push_back(entity);
-        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
-        TransformComponent* transform = entity->getComponent<TransformComponent>();
-        transform->SetPosition(position);
-        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
-        PhysicComponent* physic = entity->getComponent<PhysicComponent>();
-
-        gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
-        BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
-        billboardComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        billboardComponent->mBillboard.mTexture = cloudsTextures[++idx % 7];
-        billboardComponent->mBillboard.mSize = glm::vec2(25.f);
-        billboardComponent->mBillboard.mAlpha = 1.f;
+        const glm::vec3 position(x, defaultAltitude, z);
+        cloudPosition.push_back(position);
     }
 }
