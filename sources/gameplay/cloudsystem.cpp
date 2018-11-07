@@ -1,0 +1,23 @@
+#include "cloudsystem.hpp"
+
+#include "../game_entity.hpp"
+
+#include <cassert>
+
+void CloudComponent::Update(const float deltaTime)
+{
+}
+
+void CloudSystem::Update(const float deltaTime)
+{
+}
+
+void CloudSystem::attachEntity(GameEntity * entity)
+{
+    CloudComponent& component = IComponentSystem::attachComponent<CloudComponent>(entity, mComponents);
+}
+
+void CloudSystem::detachEntity(GameEntity * entity)
+{
+    IComponentSystem::detachComponent<CloudComponent>(entity, mComponents);
+}

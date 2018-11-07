@@ -1,6 +1,7 @@
 #include "loopmanager.hpp"
 
 #include "boy.hpp"
+#include "cloudsystem.hpp"
 #include "cursor.hpp"
 #include "loadlevel.hpp"
 #include "../root.hpp"
@@ -39,6 +40,12 @@ LoopManager::~LoopManager()
 
 void LoopManager::Init()
 {
+    GameSystem* gameSystem = Global::gameSytem();
+    {
+        std::unique_ptr<CloudSystem> system(new CloudSystem()); 
+        gameSystem->addSystem<CloudSystem>(std::move(system));
+    }
+    
     mMusic->Init();
     mBoy->Init();
     mCursor->Init();
@@ -58,7 +65,7 @@ void LoopManager::Init()
         waveTextures.push_back( Global::resourceManager()->texture(filename) );
     }
 
-    GameSystem* gameSystem = Global::gameSytem();
+    
     const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" }; 
 
     for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
@@ -196,6 +203,8 @@ void LoopManager::SpawnCloud(const glm::vec3 position)
     billboardComponent->mBillboard.mTexture = mCloudsTextures[mCloudTextureIdx];
     billboardComponent->mBillboard.mSize = glm::vec2(25.f);
     billboardComponent->mBillboard.mAlpha = 1.f;
+
+    gameSystem->getSystem<CloudSystem>()->attachEntity(entity);
 }
 
 void LoopManager::Event(const SDL_Event & e)
