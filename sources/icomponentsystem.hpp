@@ -75,7 +75,10 @@ protected:
         for (i = 0; i < componentListSize; ++i)
         {
             if (!Component::Initialized(componentList[i]))
+            {
                 componentList[i] = T();
+                break;
+            }
         }
         if (componentListSize == i)
             componentList.push_back(T());
@@ -89,19 +92,10 @@ protected:
     void detachComponent(GameEntity* entity, std::vector<T>& componentList)
     {
         assert(nullptr != entity);
-        const T* entityComponent = entity->getComponent<T>();
+        T* entityComponent = entity->getComponent<T>();
         if (nullptr == entityComponent)
             return;
-        const size_t componentsCount = componentList.size();
-        for (size_t i = 0; i<componentsCount; ++i)
-        {
-            T& component = componentList[i];
-            if (entityComponent == &component)
-            {
-                componentList[i] = Component::UnitializedValue<T>();
-                break;
-            }
-        }
+        *entityComponent = Component::UnitializedValue<T>();
         entity->removeComponent<T>();
     }
 };
