@@ -14,6 +14,8 @@ public:
     PhysicComponent();
     PhysicComponent(const PhysicComponent& ref);
 
+    bool IsValid() const;
+
     bool HasFiniteMass() const;
     void SetMass(const float mass);
 

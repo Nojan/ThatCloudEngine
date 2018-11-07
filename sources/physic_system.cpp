@@ -22,6 +22,11 @@ PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 , mLinearAcceleration(ref.mLinearAcceleration)
 {}
 
+bool PhysicComponent::IsValid() const
+{
+    return nullptr != mTransformComponent;
+}
+
 bool PhysicComponent::HasFiniteMass() const
 {
     return 0.f != mInvMass;
@@ -46,7 +51,7 @@ void PhysicComponent::Reset()
 
 void PhysicComponent::Integrate(const float deltaTime)
 {
-    if (!HasFiniteMass())
+    if (!IsValid() || !HasFiniteMass())
         return;
 
     const glm::vec4 force(mForceAccum, 0.f);
@@ -116,14 +121,20 @@ void PhysicSystem::Update(const float deltaTime)
     for (size_t idx = 0; idx < componentsSize; ++idx)
     {
         PhysicComponent& ci = mComponents[idx];
+        if (!ci.IsValid() || !ci.HasFiniteMass())
+            continue;
         const glm::vec4& ciPosition = ci.mTransformComponent->mPosition;
         glm::vec4 ciVelocity = ci.LinearVelocity() * 0.5f;
         for (size_t ydx = idx + 1; ydx < componentsSize; ++ydx)
         {
             const PhysicComponent& cy = mComponents[ydx];
+            if (!cy.IsValid())
+                continue;
             const glm::vec4& cyPosition = cy.mTransformComponent->mPosition;
             const glm::vec4 diffP = ciPosition - cyPosition;
             const float diffMagSq = glm::dot(diffP, diffP);
+            if( 0.f == diffMagSq)
+                continue; // superposition
             const float penetrationMagSq = diffMagSq - (4.f * radiusSq);
             if( 0.f < penetrationMagSq)
                 continue; // no penetration
