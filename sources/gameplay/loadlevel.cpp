@@ -13,7 +13,7 @@
 #include "../transform_system.hpp"
 #include "../tinyxml/tinyxml2.h"
 
-void loadlevel(const char * filepath, std::vector<glm::vec3>& cloudPosition, glm::vec3& boyPosition, glm::vec3& cameraOffset)
+void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gridSpawner, glm::vec3& boyPosition, glm::vec3& cameraOffset)
 {
     std::vector<std::shared_ptr<Texture2D>> cloudsTextures;
     cloudsTextures.reserve(7);
@@ -59,7 +59,21 @@ void loadlevel(const char * filepath, std::vector<glm::vec3>& cloudPosition, glm
     {
         const float x = cloudElement->FloatAttribute("x") * scale;
         const float z = -cloudElement->FloatAttribute("y") * scale;
+        const int color = cloudElement->IntAttribute("color");
+        const float power = cloudElement->FloatAttribute("power");
         const glm::vec3 position(x, defaultAltitude, z);
-        cloudPosition.push_back(position);
+        cloudSpawner(position, color, power);
+    }
+
+    const tinyxml2::XMLElement* gridElement = CloudLevelElement->FirstChildElement("Grid");
+    for (const tinyxml2::XMLElement* gridsetElement = gridElement->FirstChildElement("GridSet"); gridsetElement != nullptr; gridsetElement = gridsetElement->NextSiblingElement("GridSet"))
+    {
+        const char* gridsetName = gridsetElement->Attribute("name");
+        for (const tinyxml2::XMLElement* gridcellElement = gridsetElement->FirstChildElement("GridCell"); gridcellElement != nullptr; gridcellElement = gridcellElement->NextSiblingElement("GridCell"))
+        {
+            const float x = gridcellElement->IntAttribute("x");
+            const float y = gridcellElement->IntAttribute("y");
+            gridSpawner(gridsetName, x, y);
+        }
     }
 }

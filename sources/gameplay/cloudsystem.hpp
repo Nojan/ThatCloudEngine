@@ -12,7 +12,7 @@ public:
 
     void Update(const float deltaTime);
 
-    bool mColor = false;
+    int mColor = 0;
     float mPower = -1.f;
 };
 

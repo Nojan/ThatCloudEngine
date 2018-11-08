@@ -2,8 +2,12 @@
 
 #include "../types.hpp"
 #include <glm/glm.hpp>
+#include <functional>
 #include <vector>
 
 class GameEntity;
 
-void loadlevel(const char* filepath, std::vector<glm::vec3>& cloudPosition, glm::vec3& boyPosition, glm::vec3& cameraOffset);
+using CloudSpawner = std::function<void (const glm::vec3&, const int, const float)>;
+using GridSpawner = std::function<void (const char*, const int, const int)>;
+
+void loadlevel(const char* filepath, CloudSpawner cloudSpawner, GridSpawner gridSpawner, glm::vec3& boyPosition, glm::vec3& cameraOffset);

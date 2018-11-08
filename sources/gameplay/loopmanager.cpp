@@ -42,8 +42,7 @@ void LoopManager::Init()
 {
     GameSystem* gameSystem = Global::gameSytem();
     {
-        std::unique_ptr<CloudSystem> system(new CloudSystem()); 
-        gameSystem->addSystem<CloudSystem>(std::move(system));
+        gameSystem->createSystem<CloudSystem>();
     }
     
     mMusic->Init();
@@ -92,12 +91,12 @@ void LoopManager::Init()
 
     glm::vec3 boyPosition, cameraOffset;
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
-    std::vector<glm::vec3> cloudPositions;
-    loadlevel(level_name, cloudPositions, boyPosition, cameraOffset);
-    for (auto& p : cloudPositions)
+    CloudSpawner cloudSpawner = [this](const glm::vec3& cloudPosition, const int cloudColor, const float cloudPower)
     {
-        SpawnCloud(p);
-    }
+        this->SpawnCloud(cloudPosition, cloudColor, cloudPower);
+    };
+    GridSpawner gridSpawner = [this](const char* name, const int x, const int y){};
+    loadlevel(level_name, cloudSpawner, gridSpawner, boyPosition, cameraOffset);
 
     mBoy->TeleportTo(boyPosition);
     mCursor->SetPosition(boyPosition, 0.f);
@@ -152,7 +151,7 @@ void LoopManager::Update(const float deltaTime)
         const glm::vec3 boyPosition = mBoy->Position();
         if (mCtrlLeft && 0 < mStoredCloud)
         {
-            SpawnCloud(boyPosition);
+            SpawnCloud(boyPosition, 1, 1.f);
             mStoredCloud--;
         }
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
@@ -185,7 +184,7 @@ void LoopManager::Update(const float deltaTime)
     }
 }
 
-void LoopManager::SpawnCloud(const glm::vec3 position)
+void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const float power)
 {
     GameSystem* gameSystem = Global::gameSytem();
     GameEntity* entity = gameSystem->createEntity();
@@ -205,6 +204,12 @@ void LoopManager::SpawnCloud(const glm::vec3 position)
     billboardComponent->mBillboard.mAlpha = 1.f;
 
     gameSystem->getSystem<CloudSystem>()->attachEntity(entity);
+    CloudComponent* cloudComponent = entity->getComponent<CloudComponent>();
+    cloudComponent->mColor = color;
+    cloudComponent->mPower = power;
+
+    if(0 < color)
+        billboardComponent->mBillboard.mAlpha = 2.f;
 }
 
 void LoopManager::Event(const SDL_Event & e)

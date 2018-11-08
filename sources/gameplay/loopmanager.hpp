@@ -28,7 +28,7 @@ public:
     void FrameStep() override;
     void Update(const float deltaTime) override;
 
-    void SpawnCloud(const glm::vec3 position);
+    void SpawnCloud(const glm::vec3& position, const int color, const float power);
 
     void Event(const SDL_Event& e);
 
