@@ -28,6 +28,11 @@ public:
         addUntypedSystem(index, pointer);
         mSystems.push_back(std::move(systemPointer));
     };
+    template <typename T, class... Args>
+    void createSystem(Args&&... args)
+    {
+        addSystem(std::move(std::make_unique<T>(std::forward<Args>(args)...)));
+    };
     template <typename T>
     T* getSystem()
     {
