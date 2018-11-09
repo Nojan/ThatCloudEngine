@@ -71,8 +71,8 @@ void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gri
         const char* gridsetName = gridsetElement->Attribute("name");
         for (const tinyxml2::XMLElement* gridcellElement = gridsetElement->FirstChildElement("GridCell"); gridcellElement != nullptr; gridcellElement = gridcellElement->NextSiblingElement("GridCell"))
         {
-            const float x = gridcellElement->IntAttribute("x");
-            const float y = gridcellElement->IntAttribute("y");
+            const int x = (-gridcellElement->IntAttribute("x") - 7) * 30;
+            const int y = (-gridcellElement->IntAttribute("y") + 57) * 30;
             gridSpawner(gridsetName, x, y);
         }
     }
