@@ -1,0 +1,53 @@
+#include "gridsystem.hpp"
+
+#include "../transform_system.hpp"
+#include "../game_entity.hpp"
+#include "../visualdebug.hpp"
+
+void GridCellComponent::Update(const float deltaTime)
+{
+    const glm::vec3 center(mTransform->mPosition);
+
+    const glm::vec3 offset[] = {
+        glm::vec3(-1.f, 0.f, -1.f),
+        glm::vec3(-1.f, 0.f, 1.f),
+        glm::vec3(1.f, 0.f, 1.f),
+        glm::vec3(1.f, 0.f, -1.f),
+        glm::vec3(-1.f, 0.f, -1.f),
+    };
+
+    const float scale = 15.f;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        VisualDebugSegmentCommand command(center + offset[i] * scale, center + offset[i+1] * scale, {1.f, 1.f, 1.f, 1.f});
+        VisualDebug()->PushCommand(command);
+    }
+    
+}
+
+GridCellSystem::GridCellSystem()
+{
+    mComponents.reserve(GameEntity::Max);
+}
+
+void GridCellSystem::Update(const float deltaTime)
+{
+    for (auto& component : mComponents)
+    {
+        component.Update(deltaTime);
+    }
+}
+
+void GridCellSystem::attachEntity(GameEntity * entity)
+{
+    GridCellComponent& component = IComponentSystem::attachComponent<GridCellComponent>(entity, mComponents);
+    TransformComponent* tranform = entity->getComponent<TransformComponent>();
+    assert(tranform);
+    component.mTransform = tranform;
+}
+
+void GridCellSystem::detachEntity(GameEntity * entity)
+{
+    IComponentSystem::detachComponent<GridCellComponent>(entity, mComponents);
+}

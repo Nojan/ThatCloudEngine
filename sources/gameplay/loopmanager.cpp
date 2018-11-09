@@ -2,6 +2,7 @@
 
 #include "boy.hpp"
 #include "cloudsystem.hpp"
+#include "gridsystem.hpp"
 #include "cursor.hpp"
 #include "loadlevel.hpp"
 #include "../root.hpp"
@@ -43,6 +44,7 @@ void LoopManager::Init()
     GameSystem* gameSystem = Global::gameSytem();
     {
         gameSystem->createSystem<CloudSystem>();
+        gameSystem->createSystem<GridCellSystem>();
     }
     
     mMusic->Init();
@@ -93,9 +95,21 @@ void LoopManager::Init()
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
     CloudSpawner cloudSpawner = [this](const glm::vec3& cloudPosition, const int cloudColor, const float cloudPower)
     {
-        this->SpawnCloud(cloudPosition, cloudColor, cloudPower);
+        SpawnCloud(cloudPosition, cloudColor, cloudPower);
     };
-    GridSpawner gridSpawner = [this](const char* name, const int x, const int y){};
+    GridSpawner gridSpawner = [this, gameSystem](const char* name, const int x, const int y)
+    {
+        glm::vec3 position(x, 160.f, y);
+        
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(position, 1.f));
+
+        gameSystem->getSystem<GridCellSystem>()->attachEntity(entity);
+    };
+
     loadlevel(level_name, cloudSpawner, gridSpawner, boyPosition, cameraOffset);
 
     mBoy->TeleportTo(boyPosition);
