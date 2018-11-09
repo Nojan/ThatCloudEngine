@@ -23,6 +23,9 @@ void GameEntity::removeUntypedComponent(std::type_index index)
 
 void* GameEntity::getUntypedComponent(std::type_index index)
 {
-    return components[index];
+    auto it = components.find(index);
+    if(components.end() == it)
+        return nullptr;
+    return it->second;
 }
 
