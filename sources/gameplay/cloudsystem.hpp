@@ -34,7 +34,7 @@ namespace Component{
 
 class CloudSystem : public IComponentSystem {
 public:
-    CloudSystem() = default;
+    CloudSystem();
     ~CloudSystem() = default;
 
     void Update(const float deltaTime) override;

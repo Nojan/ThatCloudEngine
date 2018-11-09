@@ -8,8 +8,14 @@ void CloudComponent::Update(const float deltaTime)
 {
 }
 
+CloudSystem::CloudSystem()
+{
+    mComponents.reserve(GameEntity::Max);
+}
+
 void CloudSystem::Update(const float deltaTime)
 {
+
 }
 
 void CloudSystem::attachEntity(GameEntity * entity)
