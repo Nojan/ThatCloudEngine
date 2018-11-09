@@ -5,7 +5,7 @@
 #include <cassert>
 
 TransformComponent::TransformComponent()
-: mPosition(0.f, 0.f, 0.f, 1.f)
+: mPosition(0.f, 0.f, 0.f, std::numeric_limits<float>::quiet_NaN())
 , mScale(1.f)
 , mRotation(1,0,0,0)
 {}
@@ -24,7 +24,7 @@ const glm::vec4& TransformComponent::Position() const
 
 bool TransformComponent::Invalid() const
 {
-    return 0.f == mPosition.w;
+    return std::isnan(mPosition.w);
 }
 
 void TransformComponent::SetPosition(const glm::vec4& position)
@@ -64,7 +64,8 @@ void TransformSystem::Update(const float deltaTime)
 
 void TransformSystem::attachEntity(GameEntity* entity) 
 {
-    IComponentSystem::attachComponent<TransformComponent>(entity, mComponents);
+    TransformComponent& component = IComponentSystem::attachComponent<TransformComponent>(entity, mComponents);
+    component.mPosition = glm::vec4(0.f, 0.f, 0.f, 1.f);
 }
 
 void TransformSystem::detachEntity(GameEntity* entity) 
