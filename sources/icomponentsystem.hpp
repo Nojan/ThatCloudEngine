@@ -81,7 +81,10 @@ protected:
             }
         }
         if (componentListSize == i)
+        {
+            assert(componentList.size() < componentList.capacity()); // do not move component to another memory location
             componentList.push_back(T());
+        }
 
         T& component = componentList[i];
         entity->addComponent<T>(&component);
