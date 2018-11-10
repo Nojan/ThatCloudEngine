@@ -213,17 +213,17 @@ void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const f
     BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
     billboardComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
     mCloudTextureIdx = (mCloudTextureIdx + 1) % mCloudsTextures.size();
-    billboardComponent->mBillboard.mTexture = mCloudsTextures[mCloudTextureIdx];
-    billboardComponent->mBillboard.mSize = glm::vec2(25.f);
-    billboardComponent->mBillboard.mAlpha = 1.f;
+    Billboard billboard;
+    billboard.mPosition = glm::vec3(0.f);
+    billboard.mTexture = mCloudsTextures[mCloudTextureIdx];
+    billboard.mSize = glm::vec2(25.f);
+    billboard.mAlpha = (0 < color) ? 2.f : 1.f;
+    billboardComponent->mBillboards.push_back(billboard);
 
     gameSystem->getSystem<CloudSystem>()->attachEntity(entity);
     CloudComponent* cloudComponent = entity->getComponent<CloudComponent>();
     cloudComponent->mColor = color;
     cloudComponent->mPower = power;
-
-    if(0 < color)
-        billboardComponent->mBillboard.mAlpha = 2.f;
 }
 
 void LoopManager::Event(const SDL_Event & e)

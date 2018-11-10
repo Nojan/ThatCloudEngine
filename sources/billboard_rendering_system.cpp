@@ -9,13 +9,19 @@
 
 #include <glm/gtc/quaternion.hpp>
 
-void BillboardComponent::draw(BillboardRenderer * renderer, const glm::vec3& normal)
+void BillboardComponent::draw(BillboardRenderer * renderer)
 {
-    if(!mEnable || mBillboard.mAlpha <= 0)
+    if(!mEnable)
         return;
-    mBillboard.mPosition = glm::vec3(mTransformComponent->Position());
-    mBillboard.mNormal = normal;
-    renderer->PushToRenderQueue(&mBillboard);
+    const glm::vec3 worldPosition(mTransformComponent->Position());
+    for (const Billboard& b : mBillboards)
+    {
+        if(b.mAlpha <= 0)
+            continue;
+        Billboard billboard = b;
+        billboard.mPosition += worldPosition;
+        renderer->PushToRenderQueue(billboard);
+    }
 }
 
 void BillboardRenderingSystem::FrameStep()
@@ -23,11 +29,9 @@ void BillboardRenderingSystem::FrameStep()
     if (!mRenderer)
         mRenderer = Global::rendererList()->getRenderer<BillboardRenderer>();
     assert(mRenderer);
-    const Camera* camera = Root::Instance().GetCamera();
-    const glm::vec3 normal = glm::normalize(camera->Direction() * -1.f);
     for (auto& component : mComponents)
     {
-        component->draw(mRenderer, normal);
+        component->draw(mRenderer);
     }
 }
 

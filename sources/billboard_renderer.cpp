@@ -1,6 +1,5 @@
 #include "billboard_renderer.hpp"
 
-#include "billboard.hpp"
 #include "camera.hpp"
 #include "global.hpp"
 #include "opengl_helpers.hpp"
@@ -46,9 +45,8 @@ BillboardRenderer::~BillboardRenderer()
     glDeleteTextures(1, &mTextureId);
 }
 
-void BillboardRenderer::PushToRenderQueue(const Billboard* billboard)
+void BillboardRenderer::PushToRenderQueue(const Billboard& billboard)
 {
-    assert(billboard);
     mRenderQueue.push_back(billboard);
 }
 
@@ -68,7 +66,7 @@ void BillboardRenderer::Render(const Scene * scene)
     const glm::vec3& up = camera->Up();
     const glm::vec3 ortoDirection = glm::cross(direction, up);
 
-	for (const Billboard* billboard: mRenderQueue)
+	for (const Billboard& billboard: mRenderQueue)
     {
         Render(billboard, direction, up, ortoDirection);
     }
@@ -85,20 +83,20 @@ void BillboardRenderer::SortQueue()
     const glm::vec3& normal = camera->Direction();
     
     std::sort(mRenderQueue.begin(), mRenderQueue.end(),
-        [&position, &normal](const Billboard * a, const Billboard * b) -> bool
+        [&position, &normal](const Billboard& a, const Billboard& b) -> bool
     {
-        const float dst_a = glm::dot(normal, position - a->mPosition);
-        const float dst_b = glm::dot(normal, position - b->mPosition);
+        const float dst_a = glm::dot(normal, position - a.mPosition);
+        const float dst_b = glm::dot(normal, position - b.mPosition);
         return dst_a < dst_b;
     });
 }
 
-void BillboardRenderer::Render(const Billboard* billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection)
+void BillboardRenderer::Render(const Billboard& billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection)
 {
-    const glm::vec3 position = billboard->mPosition;
+    const glm::vec3 position = billboard.mPosition;
     const glm::vec3 normal = direction;
-    const glm::vec2 size = billboard->mSize;
-    const float alpha = billboard->mAlpha;
+    const glm::vec2 size = billboard.mSize;
+    const float alpha = billboard.mAlpha;
 
     const glm::vec3 sizeX = size.x * up * 0.5f;
     const glm::vec3 sizeY = size.y * ortoDirection * 0.5f;
@@ -137,7 +135,7 @@ void BillboardRenderer::Render(const Billboard* billboard, const glm::vec3& dire
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     }
-    const std::shared_ptr< Texture2D >& texture = billboard->mTexture;
+    const std::shared_ptr< Texture2D >& texture = billboard.mTexture;
     GPUBufferHandle& bufferHandle = texture->BufferHandle();
     glActiveTexture(GL_TEXTURE0);
     if (bufferHandle.valid())

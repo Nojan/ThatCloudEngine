@@ -14,9 +14,9 @@ class BillboardComponent : public IGraphicComponent<BillboardRenderer>
 {
 public:
     ~BillboardComponent() = default;
-    void draw(BillboardRenderer* renderer, const glm::vec3& normal);
+    void draw(BillboardRenderer* renderer);
 
-    Billboard mBillboard;
+    std::vector<Billboard> mBillboards;
 };
 
 class BillboardRenderingSystem : public IComponentSystem {

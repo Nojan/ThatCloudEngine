@@ -34,10 +34,13 @@ void Cursor::Init()
     gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
     gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
     BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+    Billboard billboard;
+    billboard.mPosition = glm::vec3(0.f);
+    billboard.mSize = glm::vec2(5.f);
+    billboard.mAlpha = 1.f;
+    billboard.mTexture = mTextures[0];
+    billboardComponent->mBillboards.push_back(billboard);
     billboardComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-    billboardComponent->mBillboard.mTexture = mTextures[mIdx];
-    billboardComponent->mBillboard.mSize = glm::vec2(5.f);
-    billboardComponent->mBillboard.mAlpha = 1.f;
 
     mTimer = Constant::Gameplay::textureTimer;
 }
@@ -62,6 +65,6 @@ void Cursor::SetPosition(const glm::vec3 & position, const float deltaTime)
         mTimer = Constant::Gameplay::textureTimer;
         mIdx = (mIdx + 1) % mTextures.size();
         BillboardComponent* billboardComponent = mEntity->getComponent<BillboardComponent>();
-        billboardComponent->mBillboard.mTexture = mTextures[mIdx];
+        billboardComponent->mBillboards.front().mTexture = mTextures[mIdx];
     }
 }

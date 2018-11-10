@@ -1,5 +1,6 @@
 #pragma once
 
+#include "billboard.hpp"
 #include "config.hpp"
 #include "color.hpp"
 #include "irenderer.hpp"
@@ -8,7 +9,6 @@
 #include <memory>
 #include <vector>
 
-class Billboard;
 class ShaderProgram;
 class Texture2D;
 
@@ -20,7 +20,7 @@ public:
     BillboardRenderer();
     ~BillboardRenderer();
 
-    void PushToRenderQueue(const Billboard* billboard);
+    void PushToRenderQueue(const Billboard& billboard);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
@@ -28,12 +28,12 @@ public:
     const char* debug_name() const override { return "Billboard Renderer"; }
 
 private:
-    void Render(const Billboard* billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection);
+    void Render(const Billboard& billboard, const glm::vec3& direction, const glm::vec3& up, const glm::vec3& ortoDirection);
     void SortQueue();
 
 private:
     std::shared_ptr<ShaderProgram> mShaderProgram;
-    std::vector<const Billboard*> mRenderQueue;
+    std::vector<Billboard> mRenderQueue;
 
     GLuint mVboVerticesId;
     GLuint mVboNormalId;
