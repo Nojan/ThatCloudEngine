@@ -163,14 +163,17 @@ void LoopManager::Update(const float deltaTime)
     if (mClickLeft)
     {
         const glm::vec3 boyPosition = mBoy->Position();
-        if (mCtrlLeft && 0 < mStoredCloud)
+        if (mCtrlLeft && 0.f < mStoredCloud)
         {
             SpawnCloud(boyPosition, 1, 1.f);
-            mStoredCloud--;
+            mStoredCloud-= 1.f;
         }
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
             GameEntity* entity = mEntities[idx];
+            CloudComponent* cloud = entity->getComponent<CloudComponent>();
+            if(!cloud)
+                continue;
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
             if(!physic)
                 continue;
@@ -181,9 +184,9 @@ void LoopManager::Update(const float deltaTime)
             if (mShiftLeft && distanceSq < 25.f)
             {
                 // absorb cloud
+                mStoredCloud += cloud->mPower;
                 GameSystem* gameSystem = Global::gameSytem();
                 gameSystem->removeEntity(entity);
-                mStoredCloud++;
                 const size_t lastIdx = mEntities.size() - 1;
                 std::swap(mEntities[idx], mEntities[lastIdx]);
                 mEntities.resize(lastIdx);
