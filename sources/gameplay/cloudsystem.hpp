@@ -27,7 +27,7 @@ namespace Component{
     template <>
     inline bool Initialized(const CloudComponent& component)
     {
-        return component.mPower < 0.f;
+        return 0.f < component.mPower;
     }
 
 }
