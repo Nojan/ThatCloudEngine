@@ -43,6 +43,8 @@ private:
     std::vector< GameEntity* > mEntities;
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
     int mCloudTextureIdx = 0;
+    int mGridCount = 0;
+    int mGridUpdateIdx = 0;
     float mStoredCloud = 0.f;
     bool mClickLeft = false;
     bool mShiftLeft = false;

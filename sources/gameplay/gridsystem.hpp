@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../icomponentsystem.hpp"
+#include "../boundingbox.hpp"
 
 #include <vector>
 
@@ -13,8 +14,10 @@ public:
     ~GridCellComponent() = default;
 
     void Update(const float deltaTime);
+    BoundingBox3D GetBoundingBox() const;
 
     TransformComponent* mTransform = nullptr;
+    bool mIsFilled = false;
 };
 
 namespace Component{

@@ -6,6 +6,8 @@
 
 void GridCellComponent::Update(const float deltaTime)
 {
+    if(mIsFilled)
+        return;
     const glm::vec3 center(mTransform->mPosition);
 
     const glm::vec3 offset[] = {
@@ -24,6 +26,28 @@ void GridCellComponent::Update(const float deltaTime)
         VisualDebug()->PushCommand(command);
     }
     
+}
+
+BoundingBox3D GridCellComponent::GetBoundingBox() const
+{
+    BoundingBox3D bbox;
+    const glm::vec3 center(mTransform->mPosition);
+
+    const glm::vec3 offset[] = {
+        glm::vec3(-1.f, -FLT_MAX, -1.f),
+        glm::vec3(-1.f, 0.f, 1.f),
+        glm::vec3(1.f, FLT_MAX, 1.f),
+        glm::vec3(1.f, 0.f, -1.f),
+    };
+
+    const float scale = 15.f;
+    
+    for (int i = 0; i < 4; ++i)
+    {
+        bbox.Add(center + offset[i] * scale);
+    }
+    
+    return bbox;
 }
 
 GridCellSystem::GridCellSystem()

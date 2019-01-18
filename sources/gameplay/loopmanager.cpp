@@ -99,6 +99,7 @@ void LoopManager::Init()
     };
     GridSpawner gridSpawner = [this, gameSystem](const char* name, const int x, const int y)
     {
+        ++mGridCount;
         glm::vec3 position(x, 160.f, y);
         
         GameEntity* entity = gameSystem->createEntity();
@@ -141,6 +142,25 @@ void LoopManager::Update(const float deltaTime)
 {
     mMusic->Update(deltaTime);
 
+    // update the grid
+    mGridUpdateIdx = (mGridUpdateIdx + 1) % mGridCount;
+    GridCellComponent* activeGrid = nullptr;
+    int gridCloudCount = 0;
+    for(int idx = numeric_cast<int>(mEntities.size()) - 1, gridIdx = 0; 0 <= idx; --idx)
+    {
+        GameEntity* entity = mEntities[idx];
+        GridCellComponent* grid = entity->getComponent<GridCellComponent>();
+        if(!grid)
+            continue;
+        if (gridIdx == mGridUpdateIdx)
+        {
+            activeGrid = grid;
+            break;
+        }
+        ++gridIdx;
+    }
+    const BoundingBox3D gridBoundingBox = activeGrid ? activeGrid->GetBoundingBox() : BoundingBox3D();
+
     const Camera* camera = Root::Instance().GetCamera();
     const glm::vec3& mouseDirection = camera->MouseDirection();
     const glm::vec3 planeNormal(0, 1.f, 0);
@@ -159,8 +179,7 @@ void LoopManager::Update(const float deltaTime)
     mBoy->MoveToward(intersect, deltaTime);
     mCursor->SetPosition(intersect, deltaTime);
     
-    // pull clouds toward the boy
-    if (mClickLeft)
+    // Game update
     {
         GameEntity* closestCloud = nullptr;
         float closestCloudDistanceSq = FLT_MAX;
@@ -176,34 +195,43 @@ void LoopManager::Update(const float deltaTime)
             if(!physic)
                 continue;
             const glm::vec3 position(physic->mTransformComponent->Position());
-            assert(0.f < cloud->mPower);
-            const glm::vec3 direction = boyPosition - position;
-            const float distanceSq = glm::dot(direction, direction);
-            const float limitSq = 4000.f;
-            if (distanceSq < closestCloudDistanceSq)
+            if (gridBoundingBox.Inside(position))
             {
-                closestCloudDistanceSq = distanceSq;
-                closestCloud = entity;
+                ++gridCloudCount;
             }
-            if (mShiftLeft && distanceSq <= touchDistance)
+            // pull clouds toward the boy
+            if (mClickLeft)
             {
-                // absorb cloud
                 assert(0.f < cloud->mPower);
-                mStoredCloud += cloud->mPower;
-                GameSystem* gameSystem = Global::gameSytem();
-                gameSystem->removeEntity(entity);
-                const size_t lastIdx = mEntities.size() - 1;
-                std::swap(mEntities[idx], mEntities[lastIdx]);
-                mEntities.resize(lastIdx);
-            }
-            else if (touchDistance < distanceSq && distanceSq < limitSq)
-            {
-                const float distance = sqrt(distanceSq);
-                const glm::vec4 normal(direction / distance, 0.f);
-                physic->SetLinearVelocity(physic->LinearVelocity() + normal * 10.f);
+                const glm::vec3 direction = boyPosition - position;
+                const float distanceSq = glm::dot(direction, direction);
+                const float limitSq = 4000.f;
+                if (distanceSq < closestCloudDistanceSq)
+                {
+                    closestCloudDistanceSq = distanceSq;
+                    closestCloud = entity;
+                }
+                if (mShiftLeft && distanceSq <= touchDistance)
+                {
+                    // absorb cloud
+                    assert(0.f < cloud->mPower);
+                    mStoredCloud += cloud->mPower;
+                    GameSystem* gameSystem = Global::gameSytem();
+                    gameSystem->removeEntity(entity);
+                    const size_t lastIdx = mEntities.size() - 1;
+                    std::swap(mEntities[idx], mEntities[lastIdx]);
+                    mEntities.resize(lastIdx);
+                }
+                else if (touchDistance < distanceSq && distanceSq < limitSq)
+                {
+                    const float distance = sqrt(distanceSq);
+                    const glm::vec4 normal(direction / distance, 0.f);
+                    physic->SetLinearVelocity(physic->LinearVelocity() + normal * 10.f);
+                }
             }
         }
-        if (mCtrlLeft && 1.f <= mStoredCloud)
+        // Spawn cloud
+        if (mClickLeft && mCtrlLeft && 1.f <= mStoredCloud)
         {
             if (closestCloudDistanceSq < touchDistance && nullptr != closestCloud)
             {
@@ -239,6 +267,11 @@ void LoopManager::Update(const float deltaTime)
                 mStoredCloud-= 1.f;
             }
         }
+    }
+
+    if (activeGrid)
+    {
+        activeGrid->mIsFilled = 0 < gridCloudCount;
     }
 }
 
