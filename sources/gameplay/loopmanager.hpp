@@ -33,7 +33,7 @@ public:
     void Event(const SDL_Event& e);
 
 #ifdef IMGUI_ENABLE
-    void debug_GUI() const;
+    void debug_GUI();
 #endif
 
 private:

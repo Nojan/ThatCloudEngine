@@ -162,12 +162,10 @@ void LoopManager::Update(const float deltaTime)
     // pull clouds toward the boy
     if (mClickLeft)
     {
+        GameEntity* closestCloud = nullptr;
+        float closestCloudDistanceSq = FLT_MAX;
         const glm::vec3 boyPosition = mBoy->Position();
-        if (mCtrlLeft && 0.f < mStoredCloud)
-        {
-            SpawnCloud(boyPosition, 1, 1.f);
-            mStoredCloud-= 1.f;
-        }
+        const float touchDistance = 25.f;
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
             GameEntity* entity = mEntities[idx];
@@ -178,12 +176,19 @@ void LoopManager::Update(const float deltaTime)
             if(!physic)
                 continue;
             const glm::vec3 position(physic->mTransformComponent->Position());
+            assert(0.f < cloud->mPower);
             const glm::vec3 direction = boyPosition - position;
             const float distanceSq = glm::dot(direction, direction);
             const float limitSq = 4000.f;
-            if (mShiftLeft && distanceSq < 25.f)
+            if (distanceSq < closestCloudDistanceSq)
+            {
+                closestCloudDistanceSq = distanceSq;
+                closestCloud = entity;
+            }
+            if (mShiftLeft && distanceSq <= touchDistance)
             {
                 // absorb cloud
+                assert(0.f < cloud->mPower);
                 mStoredCloud += cloud->mPower;
                 GameSystem* gameSystem = Global::gameSytem();
                 gameSystem->removeEntity(entity);
@@ -191,11 +196,47 @@ void LoopManager::Update(const float deltaTime)
                 std::swap(mEntities[idx], mEntities[lastIdx]);
                 mEntities.resize(lastIdx);
             }
-            else if (0 < distanceSq && distanceSq < limitSq)
+            else if (touchDistance < distanceSq && distanceSq < limitSq)
             {
                 const float distance = sqrt(distanceSq);
                 const glm::vec4 normal(direction / distance, 0.f);
                 physic->SetLinearVelocity(physic->LinearVelocity() + normal * 10.f);
+            }
+        }
+        if (mCtrlLeft && 1.f <= mStoredCloud)
+        {
+            if (closestCloudDistanceSq < touchDistance && nullptr != closestCloud)
+            {
+                const float addedPower = deltaTime;
+                CloudComponent* cloud = closestCloud->getComponent<CloudComponent>();
+                assert(cloud);
+                BillboardComponent* billboardComponent = closestCloud->getComponent<BillboardComponent>();
+                assert(billboardComponent);
+                const int cloudCount = numeric_cast<int>(billboardComponent->mBillboards.size());
+                Billboard& lastBillboard = billboardComponent->mBillboards.back();
+                if (lastBillboard.mAlpha < 2.f)
+                {
+                    lastBillboard.mAlpha += addedPower;
+                    cloud->mPower += addedPower;
+                    mStoredCloud-= addedPower;
+                }
+                else
+                {
+                    mCloudTextureIdx = (mCloudTextureIdx + 1) % mCloudsTextures.size();
+                    Billboard billboard;
+                    billboard.mPosition = glm::vec3(0.f, float(cloudCount) * 5.f, 0.f);
+                    billboard.mTexture = mCloudsTextures[mCloudTextureIdx];
+                    billboard.mSize = glm::vec2(25.f);
+                    billboard.mAlpha = addedPower;
+                    billboardComponent->mBillboards.push_back(billboard);
+                    cloud->mPower += addedPower;
+                    mStoredCloud-= addedPower;
+                }
+            }
+            else
+            {
+                SpawnCloud(boyPosition, 1, 1.f);
+                mStoredCloud-= 1.f;
             }
         }
     }
@@ -260,8 +301,10 @@ void LoopManager::Event(const SDL_Event & e)
 }
 
 #ifdef IMGUI_ENABLE
-void LoopManager::debug_GUI() const
-{}
+void LoopManager::debug_GUI()
+{
+    ImGui::InputFloat("StoredCloud", &mStoredCloud, -100.f, 100.f);
+}
 #endif
 
 } //namespace Gameplay
