@@ -28,7 +28,7 @@ void VisualDebugBone::ApplyCommand(std::vector<glm::vec3>& vertexFill, std::vect
     const glm::vec3 boneTranslateNormalized = boneTranslate / boneTranslateLength;
     size_t idxMin = -1;
     float valueMin = FLT_MAX;
-    for (size_t idx = 0; idx < boneTranslate.length(); ++idx)
+    for (int idx = 0; idx < boneTranslate.length(); ++idx)
     {
         const float boneTranslateMagnitude = glm::abs(boneTranslate[idx]);
         if (boneTranslateMagnitude < valueMin)
