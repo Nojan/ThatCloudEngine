@@ -271,7 +271,15 @@ void LoopManager::Update(const float deltaTime)
 
     if (activeGrid)
     {
-        activeGrid->mIsFilled = 0 < gridCloudCount;
+        const bool isFilled = 0 < gridCloudCount;
+        if (isFilled != activeGrid->mIsFilled)
+        {
+            if(isFilled)
+                mGridFilled++;
+            else
+                mGridFilled--;
+            activeGrid->mIsFilled = isFilled;
+        }
     }
 }
 
@@ -337,6 +345,7 @@ void LoopManager::Event(const SDL_Event & e)
 void LoopManager::debug_GUI()
 {
     ImGui::InputFloat("StoredCloud", &mStoredCloud, -100.f, 100.f);
+    ImGui::Text("Grid %d/%d", mGridFilled, mGridCount);
 }
 #endif
 

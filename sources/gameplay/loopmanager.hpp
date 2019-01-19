@@ -44,6 +44,7 @@ private:
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
     int mCloudTextureIdx = 0;
     int mGridCount = 0;
+    int mGridFilled = 0;
     int mGridUpdateIdx = 0;
     float mStoredCloud = 0.f;
     bool mClickLeft = false;
