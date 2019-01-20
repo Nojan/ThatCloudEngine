@@ -45,6 +45,7 @@ void LoopManager::Init()
     {
         gameSystem->createSystem<CloudSystem>();
         gameSystem->createSystem<GridCellSystem>();
+        gameSystem->getSystem<PhysicSystem>()->m_listener = this;
     }
     
     mMusic->Init();
@@ -282,6 +283,9 @@ void LoopManager::Update(const float deltaTime)
         }
     }
 }
+
+void LoopManager::OnPhysicsEvent(PhysicEvent & e)
+{ }
 
 void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const float power)
 {

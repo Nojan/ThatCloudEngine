@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../iupdater.hpp"
+#include "../physics_event.hpp"
 #include "../imgui/imgui_header.hpp"
 
 #include <glm/glm.hpp>
@@ -18,7 +19,7 @@ class Cursor;
 namespace Gameplay {
 
 
-class LoopManager : public IUpdater {
+class LoopManager : public IUpdater, PhysicsListener {
 public:
     LoopManager();
     ~LoopManager();
@@ -27,6 +28,7 @@ public:
     void Terminate();
     void FrameStep() override;
     void Update(const float deltaTime) override;
+    void OnPhysicsEvent(PhysicEvent& e) override;
 
     void SpawnCloud(const glm::vec3& position, const int color, const float power);
 

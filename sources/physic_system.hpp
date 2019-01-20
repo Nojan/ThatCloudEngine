@@ -1,6 +1,7 @@
 #pragma once
 
 #include "icomponentsystem.hpp"
+#include "physics_event.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -32,12 +33,14 @@ public:
 
     TransformComponent* mTransformComponent;
 private:
+    GameEntity* mEntity; 
     float mInvMass;
     glm::vec4 mLinearVelocity;
     glm::vec4 mLinearAcceleration;
     glm::vec4 mAngularVelocity;
     glm::vec3 mForceAccum;
 
+    friend class PhysicSystem;
 };
 
 namespace Component{
@@ -66,6 +69,8 @@ public:
 
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
+
+    PhysicsListener* m_listener = nullptr;
 
     const char* debug_name() const override { return "Physics"; }
 

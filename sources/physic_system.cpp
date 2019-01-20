@@ -7,6 +7,7 @@
 
 PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
+, mEntity(nullptr)
 , mInvMass(1)
 , mForceAccum(0)
 , mLinearVelocity(0,0,0,0)
@@ -16,6 +17,7 @@ PhysicComponent::PhysicComponent()
 
 PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 : mTransformComponent(ref.mTransformComponent)
+, mEntity(ref.mEntity)
 , mInvMass(ref.mInvMass)
 , mForceAccum(ref.mForceAccum)
 , mLinearVelocity(ref.mLinearVelocity)
@@ -142,6 +144,11 @@ void PhysicSystem::Update(const float deltaTime)
             const float diffMag = sqrt(diffMagSq);
             const glm::vec4 diffNormal = diffP / diffMag;
             ciVelocity += diffNormal * penetrationMag;
+            if (m_listener)
+            {
+                PhysicEvent e = {ci.mEntity, cy.mEntity};
+                m_listener->OnPhysicsEvent(e);
+            }
         }
         ci.SetLinearVelocity(ciVelocity);
     }
@@ -158,6 +165,7 @@ void PhysicSystem::attachEntity(GameEntity* entity)
     TransformComponent* tranform = entity->getComponent<TransformComponent>();
     assert(tranform);
     component.mTransformComponent = tranform;
+    component.mEntity = entity;
 }
 
 void PhysicSystem::detachEntity(GameEntity* entity)
