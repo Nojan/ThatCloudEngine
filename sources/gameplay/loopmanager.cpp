@@ -192,6 +192,8 @@ void LoopManager::Update(const float deltaTime)
             CloudComponent* cloud = entity->getComponent<CloudComponent>();
             if(!cloud)
                 continue;
+            if(0 == cloud->mColor)
+                continue;
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
             if(!physic)
                 continue;
@@ -285,7 +287,31 @@ void LoopManager::Update(const float deltaTime)
 }
 
 void LoopManager::OnPhysicsEvent(PhysicEvent & e)
-{ }
+{
+    CloudComponent* aCloud = e.a->getComponent<CloudComponent>();
+    CloudComponent* bCloud = e.b->getComponent<CloudComponent>();
+    if(nullptr == aCloud)
+        return;
+    if(nullptr == bCloud)
+        return;
+    if (aCloud->mColor != bCloud->mColor)
+    {
+        if(aCloud->mColor != 0)
+        {
+            std::swap(aCloud, bCloud);
+            std::swap(e.a, e.b);
+        }
+        if(aCloud->mPower < bCloud->mPower)
+        {
+            aCloud->mColor = 1;
+            BillboardComponent* billboard = e.a->getComponent<BillboardComponent>();
+            for (int idx = billboard->mBillboards.size() - 1; 0 <= idx; idx--)
+            {
+                billboard->mBillboards[idx].mAlpha *= 2.f;
+            }
+        }
+    }
+}
 
 void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const float power)
 {
