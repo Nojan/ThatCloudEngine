@@ -32,6 +32,9 @@ void GraphicMeshComponent::draw(MeshRenderer* renderer)
 
 void GraphicMeshComponent::setupResource(std::shared_ptr<MeshResourceList>& resource)
 {
+    if(mResource == resource)
+        return;
+    
     mResource = resource;
     mRenderable.clear();
 
