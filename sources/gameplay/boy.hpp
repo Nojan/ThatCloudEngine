@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../types.hpp"
+#include "../mesh_resource.hpp"
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 class GameEntity;
 
 class Boy {
@@ -20,4 +22,5 @@ public:
 
 private:
     std::unique_ptr<GameEntity> mEntity;
+    std::vector<std::shared_ptr<MeshResourceList>> mMeshResourceList;
 };

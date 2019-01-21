@@ -30,8 +30,13 @@ void Boy::Init()
     renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
 
     char filename[256];
+    sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_slow");
+    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
     sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_normal");
-    renderingComponent->setupResource( Global::resourceManager()->meshResource(filename) );
+    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
+    sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_fast");
+    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
+    renderingComponent->setupResource( mMeshResourceList.front() );
 }
 
 void Boy::Terminate()
@@ -54,12 +59,30 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
     if(deltaTime == 0.f)
         return;
     
+    // Compute velocity
     PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
     const glm::vec3 currentPosition(physic->mTransformComponent->Position());
     const glm::vec3 diff = position - currentPosition;
     const glm::vec4 v(diff * 0.1f / deltaTime, 0.f);
     physic->SetLinearVelocity(v);
 
+    // Set model
+    {
+        const float speed = glm::length(glm::vec3(v));
+        int idx = mMeshResourceList.size() - 1;
+        if (speed < 5.f)
+        {
+            idx = 0;
+        }
+        else if (speed < 10.f)
+        {
+            idx = 1;
+        }
+        GraphicMeshComponent* renderingComponent = mEntity->getComponent<GraphicMeshComponent>();
+        renderingComponent->setupResource(mMeshResourceList[idx]);
+    }   
+
+    // Update rotation
     const float diffLength = glm::length(diff);
     if(diffLength <= 1.f)
         return;
