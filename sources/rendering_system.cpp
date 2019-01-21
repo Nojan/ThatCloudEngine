@@ -18,13 +18,14 @@ void GraphicMeshComponent::draw(MeshRenderer* renderer)
 {
     if(mRenderable.empty() || !mEnable)
         return;
-    for (std::unique_ptr<RenderableMesh>& renderable: mRenderable)
+
+    for (std::shared_ptr<RenderableMesh>& renderable: mRenderable)
     {
         renderable->mTransform = mTransformComponent->Transform();
         renderable->mScale = mTransformComponent->mScale;
         //renderable->mScale = glm::mat4(5.f);
         renderable->mScale[3][3] = 1.f;
-        renderer->PushToRenderQueue(renderable.get());
+        renderer->PushToRenderQueue(renderable);
     }
 
 }

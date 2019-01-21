@@ -30,7 +30,7 @@ void AnimatedTextureComponent::Update(const float deltaTime)
         return;
     mTimer = Constant::AnimatedTextureTimer;
     const size_t nextIdx = (mIdx + 1) % mTexture.size();
-    for (std::unique_ptr<RenderableMesh>& renderable : mGraphicComponent->mRenderable)
+    for (std::shared_ptr<RenderableMesh>& renderable : mGraphicComponent->mRenderable)
     {
         if (renderable->mMaterial.Texture() == mTexture[mIdx])
         {

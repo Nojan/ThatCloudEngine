@@ -24,7 +24,7 @@ public:
 
     void setupResource(std::shared_ptr<MeshResourceList>& resource);
 
-    std::vector<std::unique_ptr<RenderableMesh>> mRenderable;
+    std::vector<std::shared_ptr<RenderableMesh>> mRenderable;
     std::shared_ptr<MeshResourceList> mResource;
 };
 

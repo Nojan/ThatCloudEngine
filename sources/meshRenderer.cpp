@@ -66,7 +66,7 @@ void MeshRenderer::Render(const Scene* scene)
     glEnable(GL_DEPTH_TEST);
     mShaderProgram->Bind();
 
-    for (const RenderableMesh* renderable: mRenderQueue)
+    for (const std::shared_ptr<RenderableMesh>& renderable: mRenderQueue)
     {
         assert(renderable);
         Render(*renderable, scene);
@@ -82,7 +82,7 @@ void MeshRenderer::Render(const Scene* scene)
 
     //std::sort(mRenderAlphaQueue.begin(), mRenderAlphaQueue.end(), altitudeSort);
 
-    for (const RenderableMesh* renderable: mRenderAlphaQueue)
+    for (const std::shared_ptr<RenderableMesh>& renderable: mRenderAlphaQueue)
     {
         assert(renderable);
         Render(*renderable, scene);
@@ -165,7 +165,7 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
     GenericMeshRenderer::Render(renderable.mMeshBuffer.get());
 }
 
-void MeshRenderer::PushToRenderQueue(RenderableMesh* renderable)
+void MeshRenderer::PushToRenderQueue(std::shared_ptr<RenderableMesh>& renderable)
 {
     assert(renderable->mMesh->Valid());
     MeshBufferGpu* meshBuffer = dynamic_cast<MeshBufferGpu*>(renderable->mMeshBuffer.get());

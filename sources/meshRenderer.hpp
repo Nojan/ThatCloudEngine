@@ -24,7 +24,7 @@ public:
 
     MeshBuffer* RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount = 0) override;
 
-    void PushToRenderQueue(RenderableMesh* renderable);
+    void PushToRenderQueue(std::shared_ptr<RenderableMesh>& renderable);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
@@ -35,6 +35,6 @@ private:
     void Render(const RenderableMesh& renderable, const Scene* scene);
 
 private:
-    std::vector<RenderableMesh*> mRenderQueue;
-    std::vector<RenderableMesh*> mRenderAlphaQueue;
+    std::vector<std::shared_ptr<RenderableMesh>> mRenderQueue;
+    std::vector<std::shared_ptr<RenderableMesh>> mRenderAlphaQueue;
 };
