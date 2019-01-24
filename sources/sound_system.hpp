@@ -87,6 +87,7 @@ public:
 
     ~SoundComponent();
 
+    uint16_t AddResource(std::shared_ptr<SoundStream>& resource);
     uint16_t AddResource(const std::shared_ptr<SoundStreamVariation>& resource);
     const std::shared_ptr<SoundStreamVariation>& GetResource(uint16_t index) const;
     SoundEffect* Play(uint16_t soundIdx);
