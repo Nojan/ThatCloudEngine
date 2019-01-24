@@ -67,8 +67,8 @@ struct SoundEffect {
     uint16_t mVariationIndex;
     int32_t mSampleIndex;
     std::atomic_int mQueuedSampleCount;
-    glm::vec4 mPosition;
-    glm::vec4 mVelocity;
+    glm::vec4 mPosition = glm::vec4(0.f);
+    glm::vec4 mVelocity = glm::vec4(0.f);
     SoundEffect* mNext;
 };
 

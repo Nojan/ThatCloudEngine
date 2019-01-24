@@ -97,10 +97,11 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         if (sampleCount <= sampleIdx)
             continue;
         // panning
-        const glm::vec3 toSource = glm::vec3(effect.mPosition) - glm::vec3(listener.mPosition);
+        const bool hasPosition = effect.mPosition.w != 0.f;
+        const glm::vec3 toSource = hasPosition ? glm::vec3(effect.mPosition) - glm::vec3(listener.mPosition) : glm::vec3(0.f);
         const float distance = glm::length(toSource);
         const glm::vec3 toSourceNormalized = toSource / distance;
-        const float pan = glm::dot(right, toSourceNormalized);
+        const float pan = hasPosition ? glm::dot(right, toSourceNormalized) : 0.f;
         // distance attenuation
         const float minDistance = 0.f;
         const float maxDistance = 50.f;
