@@ -440,7 +440,7 @@ void SoundSystem::Update(const float deltaTime)
     const Camera* camera = Root::Instance().GetCamera();
     const SoundListener listener = { 
         glm::vec4(camera->Position(), 1.f), 
-        glm::vec4(camera->Direction(), 0.f), 
+        glm::vec4(0.f), 
         glm::vec4(camera->Direction(), 0.f), 
         glm::vec4(camera->Up(), 0.f),
     };
