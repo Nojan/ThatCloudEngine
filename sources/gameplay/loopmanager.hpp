@@ -34,12 +34,19 @@ public:
 
     void Event(const SDL_Event& e);
 
+    enum soundEffectIdx {
+        CloudRelease,
+        CloudConsume,
+    };
+    void PlaySoundEffect(soundEffectIdx idx);
+
 #ifdef IMGUI_ENABLE
     void debug_GUI();
 #endif
 
 private:
     std::unique_ptr<MusicEntity> mMusic;
+    std::unique_ptr<GameEntity> mSoundEffects;
     std::unique_ptr<Boy> mBoy;
     std::unique_ptr<Cursor> mCursor;
     std::vector< GameEntity* > mEntities;

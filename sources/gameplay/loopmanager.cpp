@@ -17,6 +17,7 @@
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
+#include "../sound_system.hpp"
 #include "../texture.hpp"
 #include "../transform_system.hpp"
 
@@ -120,15 +121,27 @@ void LoopManager::Init()
     Camera* camera = Root::Instance().GetCamera();
     const glm::vec3 cameraPosition = boyPosition - (camera->Direction() * cameraDistance);
     camera->SetPosition(cameraPosition);
-    
+
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mSoundEffects.reset(entity);
+        gameSystem->getSystem<SoundSystem>()->attachEntity(entity);
+        SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
+        int soundEffectIdx;
+        soundEffectIdx = soundComponent->AddResource( Global::resourceManager()->soundStream("../assets/Sounds/cloud_release.ogg") );
+        assert(CloudRelease == soundEffectIdx);
+        soundEffectIdx = soundComponent->AddResource( Global::resourceManager()->soundStream("../assets/Sounds/cloud_consume.ogg") );
+        assert(CloudConsume == soundEffectIdx);
+    }
 }
 
 void LoopManager::Terminate()
 {
+    GameSystem* gameSystem = Global::gameSytem();
     mMusic->Terminate();
+    gameSystem->removeEntity(mSoundEffects.release());
     mBoy->Terminate();
     mCursor->Terminate();
-    GameSystem* gameSystem = Global::gameSytem();
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
         gameSystem->removeEntity(mEntities[idx]);
@@ -224,6 +237,7 @@ void LoopManager::Update(const float deltaTime)
                     const size_t lastIdx = mEntities.size() - 1;
                     std::swap(mEntities[idx], mEntities[lastIdx]);
                     mEntities.resize(lastIdx);
+                    PlaySoundEffect(CloudConsume);
                 }
                 else if (touchDistance < distanceSq && distanceSq < limitSq)
                 {
@@ -266,6 +280,7 @@ void LoopManager::Update(const float deltaTime)
             }
             else
             {
+                PlaySoundEffect(CloudRelease);
                 SpawnCloud(boyPosition, 1, 1.f);
                 mStoredCloud-= 1.f;
             }
@@ -339,6 +354,12 @@ void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const f
     CloudComponent* cloudComponent = entity->getComponent<CloudComponent>();
     cloudComponent->mColor = color;
     cloudComponent->mPower = power;
+}
+
+void LoopManager::PlaySoundEffect(soundEffectIdx idx)
+{
+    SoundComponent* soundComponent = mSoundEffects->getComponent<SoundComponent>();
+    SoundEffect* request = soundComponent->Play(idx);
 }
 
 void LoopManager::Event(const SDL_Event & e)
