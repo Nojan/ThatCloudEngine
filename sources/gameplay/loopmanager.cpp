@@ -2,6 +2,7 @@
 
 #include "boy.hpp"
 #include "cloudsystem.hpp"
+#include "gamecamera.hpp"
 #include "gridsystem.hpp"
 #include "cursor.hpp"
 #include "loadlevel.hpp"
@@ -121,6 +122,9 @@ void LoopManager::Init()
     Camera* camera = Root::Instance().GetCamera();
     const glm::vec3 cameraPosition = boyPosition - (camera->Direction() * cameraDistance);
     camera->SetPosition(cameraPosition);
+    std::unique_ptr<BoyCamera> cameraMover = std::make_unique<BoyCamera>();
+    cameraMover->mBoy = mBoy.get();
+    camera->SetCameraMover(std::move(cameraMover));
 
     {
         GameEntity* entity = gameSystem->createEntity();
