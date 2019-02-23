@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.hpp"
 #include "game_entity.hpp"
 
 #include <atomic>
@@ -15,6 +16,10 @@ public:
     void Terminate();
     void Update(const float deltaTime);
 
+#ifdef IMGUI_ENABLE
+    void debug_GUI();
+#endif
+
 private:
     GameEntity* mEntity;
     FILE* mFile;
@@ -22,5 +27,6 @@ private:
     float** mVorbisFrame;
     int mVorbisCount;
     int mVorbisIdx;
+    float mVolume = 1.f;
     std::atomic_int mSubmittedFrame;
 };

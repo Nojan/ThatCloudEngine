@@ -5,6 +5,7 @@
 #include "sound_system.hpp"
 #include "platform/platform.hpp"
 #include "vorbis.h"
+#include "imgui/imgui_header.hpp"
 
 #include <cassert>
 
@@ -73,7 +74,7 @@ void MusicEntity::Update(const float deltaTime)
             for (; mVorbisIdx < mVorbisCount && idx < soundFrame->mSample.max_size(); ++mVorbisIdx, ++idx)
             {
                 const float value = mVorbisFrame[0][mVorbisIdx];
-                soundFrame->mSample[idx] = value;
+                soundFrame->mSample[idx] = value * mVolume;
             }
         }
         if (0 < idx)
@@ -91,3 +92,9 @@ void MusicEntity::Update(const float deltaTime)
 
     }
 }
+#ifdef IMGUI_ENABLE
+void MusicEntity::debug_GUI()
+{
+    ImGui::SliderFloat("Volume", &mVolume, 0.f, 1.f);
+}
+#endif

@@ -401,6 +401,7 @@ void LoopManager::debug_GUI()
 {
     ImGui::InputFloat("StoredCloud", &mStoredCloud, -100.f, 100.f);
     ImGui::Text("Grid %d/%d", mGridFilled, mGridCount);
+    mMusic->debug_GUI();
 }
 #endif
 
