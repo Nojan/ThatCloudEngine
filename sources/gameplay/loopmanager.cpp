@@ -136,6 +136,8 @@ void LoopManager::Init()
         assert(CloudRelease == soundEffectIdx);
         soundEffectIdx = soundComponent->AddResource( Global::resourceManager()->soundStream("../assets/Sounds/cloud_consume.ogg") );
         assert(CloudConsume == soundEffectIdx);
+        soundEffectIdx = soundComponent->AddResource( Global::resourceManager()->soundStream("../assets/Sounds/cloud_normaltopurified.ogg") );
+        assert(CloudNormalPurified == soundEffectIdx);
     }
 }
 
@@ -328,6 +330,7 @@ void LoopManager::OnPhysicsEvent(PhysicEvent & e)
             {
                 billboard->mBillboards[idx].mAlpha *= 2.f;
             }
+            PlaySoundEffect(CloudNormalPurified);
         }
     }
 }

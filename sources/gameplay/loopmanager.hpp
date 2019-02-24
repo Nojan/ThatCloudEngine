@@ -37,6 +37,7 @@ public:
     enum soundEffectIdx {
         CloudRelease,
         CloudConsume,
+        CloudNormalPurified,
     };
     void PlaySoundEffect(soundEffectIdx idx);
 
