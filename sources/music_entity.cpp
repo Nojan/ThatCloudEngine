@@ -13,6 +13,7 @@ MusicEntity::MusicEntity()
 : mEntity(nullptr)
 , mVorbis(nullptr)
 , mSubmittedFrame(0)
+, mVolume(1.f)
 {}
 
 MusicEntity::~MusicEntity()

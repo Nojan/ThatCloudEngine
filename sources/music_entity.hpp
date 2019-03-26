@@ -27,6 +27,6 @@ private:
     float** mVorbisFrame;
     int mVorbisCount;
     int mVorbisIdx;
-    float mVolume = 1.f;
+    float mVolume;
     std::atomic_int mSubmittedFrame;
 };
