@@ -405,6 +405,19 @@ void LoopManager::debug_GUI()
     ImGui::InputFloat("StoredCloud", &mStoredCloud, -100.f, 100.f);
     ImGui::Text("Grid %d/%d", mGridFilled, mGridCount);
     mMusic->debug_GUI();
+#define ButtonSoundEffect(x)     \
+if(ImGui::Button(#x))            \
+{                                \
+    PlaySoundEffect(x);          \
+}                              
+
+    if (ImGui::CollapsingHeader("Sound Effects"))
+    {
+        ButtonSoundEffect(CloudRelease);
+        ButtonSoundEffect(CloudConsume);
+        ButtonSoundEffect(CloudNormalPurified);
+    }
+#undef ButtonSoundEffect
 }
 #endif
 
