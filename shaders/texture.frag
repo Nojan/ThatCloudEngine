@@ -32,6 +32,6 @@ void main() {
     vec3 lightDirectionNormalized = normalize(lightDirection);
     vec3 eye_normalized = normalize(eye);
     vec4 color = blinn_phong(vertexNormal_eyespace_normalized, lightDirectionNormalized, eye_normalized);
-    color = color * texture2D( textureSampler, fract(UV) );
+    color = color * texture2D( textureSampler, fract(vec2(UV.x, 1. - UV.y)) ); // 1. - UV.y seems to be specific to Cloud
     gl_FragColor = color;
 }
