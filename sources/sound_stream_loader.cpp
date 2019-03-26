@@ -4,9 +4,9 @@
 #include "platform/platform.hpp"
 
 void LoadSoundStream(SoundStream* stream, const char * file_path) {
-    FILE *file = Global::platform()->OpenFile(file_path, "rb");
+    FileHandle file(Global::platform()->OpenFile(file_path, "rb"));
     int error;
-    stb_vorbis *v = stb_vorbis_open_file(file, false, &error, nullptr);
+    stb_vorbis *v = stb_vorbis_open_file(file.get(), false, &error, nullptr);
     if (v == nullptr) return;
     stb_vorbis_info info = stb_vorbis_get_info(v);
     stream->mChannels = info.channels;
