@@ -37,7 +37,7 @@ SoundComponent::~SoundComponent()
     mValid = false;
 }
 
-uint16_t SoundComponent::AddResource(std::shared_ptr<SoundStream>& resource)
+uint16_t SoundComponent::AddResource(std::shared_ptr<SoundStream> resource)
 {
     std::shared_ptr<SoundStreamVariation> variation = std::make_shared<SoundStreamVariation>();
     variation->m_soundStream.push_back(resource);

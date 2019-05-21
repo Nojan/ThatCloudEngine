@@ -22,7 +22,7 @@ public:
     ~GraphicMeshComponent() = default;
     void draw(MeshRenderer* renderer);
 
-    void setupResource(std::shared_ptr<MeshResourceList>& resource);
+    void setupResource(std::shared_ptr<MeshResourceList> resource);
 
     std::vector<std::shared_ptr<RenderableMesh>> mRenderable;
     std::shared_ptr<MeshResourceList> mResource;

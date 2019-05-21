@@ -38,7 +38,7 @@ public:
     static std::unique_ptr<Texture2D> generateUniform(uint height, uint width, Color::rgb color);
     static std::unique_ptr<Texture2D> generateCheckeredBoard(uint count, uint height, uint width, Color::rgb color1, Color::rgb color2);
 
-    void setTexture(std::unique_ptr<Color::rgb[]>& data, uint height, uint width);
+    void setTexture(const std::unique_ptr<Color::rgb[]>& data, uint height, uint width);
 
     uint8_t const * const getData() const;
     uint getHeight() const;

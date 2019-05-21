@@ -14,7 +14,7 @@ constexpr bool is_power_of_two(uint x)
     return x && ((x & (x - 1)) == 0);
 }
 
-void Texture2D::setTexture(std::unique_ptr<Color::rgb[]>& data, uint height, uint width)
+void Texture2D::setTexture(const std::unique_ptr<Color::rgb[]>& data, uint height, uint width)
 {
     // TODO avoid copy, or remove this method
     std::unique_ptr<uint8_t[]> d(new uint8_t[3*height*width]);
