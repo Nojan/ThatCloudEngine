@@ -27,7 +27,7 @@ void MusicEntity::Init()
     GameSystem* gameSystem = Global::gameSytem();
     mEntity = gameSystem->createEntity();
     gameSystem->getSystem<SoundSystem>()->attachEntity(mEntity);
-    mFile = Global::platform()->OpenFile("../assets/sounds/ingame.ogg", "rb");
+    mFile = Global::platform()->OpenFile("../assets/Sounds/ingame.ogg", "rb");
     assert(mFile);
     mVorbis = stb_vorbis_open_file(mFile, false, nullptr, nullptr);
     assert(mVorbis);

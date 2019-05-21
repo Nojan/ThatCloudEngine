@@ -1,6 +1,6 @@
 #include "gamecamera.hpp"
 
-#include "Boy.hpp"
+#include "boy.hpp"
 #include "../camera.hpp"
 
 #include <glm/gtx/transform.hpp>
