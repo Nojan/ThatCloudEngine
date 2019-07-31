@@ -1,5 +1,7 @@
 #include "loadlevel.hpp"
 
+#include "gridsystem.hpp"
+
 #include "../types.hpp"
 #include "../global.hpp"
 #include "../platform/platform.hpp"
@@ -71,9 +73,8 @@ void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gri
         const char* gridsetName = gridsetElement->Attribute("name");
         for (const tinyxml2::XMLElement* gridcellElement = gridsetElement->FirstChildElement("GridCell"); gridcellElement != nullptr; gridcellElement = gridcellElement->NextSiblingElement("GridCell"))
         {
-            const int x = (-gridcellElement->IntAttribute("x") - 7) * 30;
-            const int y = (-gridcellElement->IntAttribute("y") + 57) * 30;
-            gridSpawner(gridsetName, x, y);
+            const glm::ivec2 gridCellPosition = GridCellSystem::GetWorldPosition( glm::ivec2(gridcellElement->IntAttribute("x"), gridcellElement->IntAttribute("y")) );
+            gridSpawner(gridsetName, gridCellPosition.x, gridCellPosition.y);
         }
     }
 }

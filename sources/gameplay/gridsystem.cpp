@@ -75,3 +75,10 @@ void GridCellSystem::detachEntity(GameEntity * entity)
 {
     IComponentSystem::detachComponent<GridCellComponent>(entity, mComponents);
 }
+
+glm::ivec2 GridCellSystem::GetWorldPosition(const glm::ivec2 & gridPosition)
+{
+    const auto x = (-gridPosition.x - 7) * 30;
+    const auto y = (-gridPosition.y + 57) * 30;
+    return glm::ivec2(x, y);
+}
