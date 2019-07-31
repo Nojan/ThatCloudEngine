@@ -106,28 +106,55 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         const float minDistance = 0.f;
         const float maxDistance = 50.f;
         const float distanceAttenuation = 1.f - glm::clamp(0.f, 1.f, (distance - minDistance) / (maxDistance - minDistance));
-        
-        SoundFrame* soundFrame = soundSystem->RequestFrame();
-        if (!soundFrame)
+
+        // sound effect should either have a position and are mono OR no position and stereo+
+        const uint8_t channelCount = soundStream->mChannels;
+        bool hasEnoughChannel = true;
+        std::vector<SoundFrame*> sFramesPerChannel;
+        sFramesPerChannel.reserve(channelCount);
+        for (uint8_t channel = 0; channel < channelCount && hasEnoughChannel; ++channel)
+        {
+            SoundFrame* soundFrame = soundSystem->RequestFrame();
+            hasEnoughChannel = nullptr != soundFrame;
+            soundFrame->mDelay = -numeric_cast<int32_t>(sampleQueuedCount);
+            soundFrame->mPan = 0 == channel ? -1.f : 1.f;
+            soundFrame->mCounter = 0 == channel ? &(effect.mQueuedSampleCount) : nullptr; // we assume stereo will remain synchronized
+            sFramesPerChannel.push_back(soundFrame);
+        }
+        if (!hasEnoughChannel)
         {
             // no sound frame. Assume we played.
             effect.mSampleIndex += SoundFrame::sample_size;
+            for (size_t channel = 0; channel < sFramesPerChannel.size(); ++channel)
+            {
+                if (SoundFrame* soundFrame = sFramesPerChannel[channel])
+                {
+                    soundSystem->ReleaseFrame(soundFrame);
+                }
+            }
             continue;
         }
-        soundFrame->mDelay = -numeric_cast<int32_t>(sampleQueuedCount);
-        soundFrame->mPan = pan;
-        soundFrame->mCounter = &(effect.mQueuedSampleCount);
-        
-        for (uint16_t frameIdx = 0; frameIdx < SoundFrame::sample_size && sampleIdx < sampleCount; ++sampleIdx, ++frameIdx)
+
+        for (uint16_t frameIdx = 0; frameIdx < SoundFrame::sample_size && sampleIdx < sampleCount; sampleIdx+=channelCount, ++frameIdx)
         {
-            float sample = audio[sampleIdx];
-            sample = distanceAttenuation * sample;
-            soundFrame->mSample[frameIdx] = sample;
+            for (uint8_t channel = 0; channel < channelCount; ++channel)
+            {
+                const int32_t sampleChannelIdx = sampleIdx + channel;
+                assert(sampleChannelIdx < sampleCount);
+                float sample = audio[sampleChannelIdx];
+                sample = distanceAttenuation * sample;
+                sFramesPerChannel[channel]->mSample[frameIdx] = sample;
+            }
         }
         effect.mSampleIndex = sampleIdx;
         effect.mQueuedSampleCount += SoundFrame::sample_size;
-        soundSystem->SubmitFrame(soundFrame);
+
+        for (uint8_t channel = 0; channel < channelCount; ++channel)
+        {
+            soundSystem->SubmitFrame(sFramesPerChannel[channel]);
+        }
     }
+    // Cleanup played sound effect
     for (size_t soundEffectIdx = mSoundPlay.size()-1; soundEffectIdx < mSoundPlay.size(); --soundEffectIdx)
     {
         SoundEffect& effect = *(mSoundPlay[soundEffectIdx]);
