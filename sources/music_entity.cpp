@@ -10,9 +10,7 @@
 #include <cassert>
 
 MusicEntity::MusicEntity()
-: mEntity(nullptr)
-, mVorbis(nullptr)
-, mSubmittedFrame(0)
+: mSubmittedFrame(0)
 , mVolume(1.f)
 {}
 
@@ -34,6 +32,9 @@ void MusicEntity::Init()
     mVorbisCount = 0;
     mVorbisIdx = 0;
     mSubmittedFrame = 0;
+
+    const stb_vorbis_info vorbis_info = stb_vorbis_get_info(mVorbis);
+    assert(vorbis_info.channels == 1 || vorbis_info.channels == 2); // either mono or stereo
 }
 
 void MusicEntity::Terminate()
@@ -41,30 +42,50 @@ void MusicEntity::Terminate()
     GameSystem* gameSystem = Global::gameSytem();
     gameSystem->removeEntity(mEntity);
     mEntity = nullptr;
-    stb_vorbis_close(mVorbis);
-    mVorbis = nullptr;
-    Global::platform()->CloseFile(mFile);
+    FreeResource();
 }
 
 void MusicEntity::Update(const float deltaTime)
 {
+    if(nullptr == mVorbis)
+        return;
+    const stb_vorbis_info vorbis_info = stb_vorbis_get_info(mVorbis);
+    const uint8_t channelCount = vorbis_info.channels;
     GameSystem* gameSystem = Global::gameSytem();
     SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
     int musicDone = 0;
     assert(0 <= mSubmittedFrame);
     while (musicDone < 2 && mSubmittedFrame < (2 * SoundFrame::sample_size))
     {
-        SoundFrame* soundFrame = soundSystem->RequestFrame();
-        if (!soundFrame)
+        bool hasEnoughChannel = true;
+        std::vector<SoundFrame*> sFramesPerChannel;
+        sFramesPerChannel.reserve(channelCount);
+        for (uint8_t channel = 0; channel < channelCount && hasEnoughChannel; ++channel)
+        {
+            SoundFrame* soundFrame = soundSystem->RequestFrame();
+            hasEnoughChannel = nullptr != soundFrame;
+            soundFrame->mPan = 0 == channel ? -1.f : 1.f;
+            sFramesPerChannel.push_back(soundFrame);
+        }
+        if (!hasEnoughChannel)
+        {
+            for (size_t channel = 0; channel < sFramesPerChannel.size(); ++channel)
+            {
+                if (SoundFrame* soundFrame = sFramesPerChannel[channel])
+                {
+                    soundSystem->ReleaseFrame(soundFrame);
+                }
+            }
             break;
+        }
+        
         size_t idx = 0;
-        while (idx < soundFrame->mSample.max_size())
+        while (idx < sFramesPerChannel[0]->mSample.max_size())
         {
             if (mVorbisIdx == mVorbisCount)
             {
-                stb_vorbis_info vorbis_info = stb_vorbis_get_info(mVorbis);
                 mVorbisIdx = 0;
-                mVorbisCount = stb_vorbis_get_frame_float(mVorbis, &(vorbis_info.channels), &mVorbisFrame);
+                mVorbisCount = stb_vorbis_get_frame_float(mVorbis, nullptr, &mVorbisFrame);
             }
             if (mVorbisCount == 0)
             {
@@ -72,23 +93,40 @@ void MusicEntity::Update(const float deltaTime)
                 break;
             }
             musicDone = 0;
-            for (; mVorbisIdx < mVorbisCount && idx < soundFrame->mSample.max_size(); ++mVorbisIdx, ++idx)
+            for (; mVorbisIdx < mVorbisCount && idx < sFramesPerChannel[0]->mSample.max_size(); ++mVorbisIdx, ++idx)
             {
-                const float value = mVorbisFrame[0][mVorbisIdx];
-                soundFrame->mSample[idx] = value * mVolume;
+                for (size_t channel = 0; channel < sFramesPerChannel.size(); ++channel)
+                {
+                    const float value = mVorbisFrame[channel][mVorbisIdx];
+                    sFramesPerChannel[channel]->mSample[idx] = value * mVolume;
+                }
+
             }
         }
         if (0 < idx)
         {
             int alreadySubmitted = mSubmittedFrame;
             mSubmittedFrame += SoundFrame::sample_size;
-            soundFrame->mDelay = -alreadySubmitted;
-            soundFrame->mCounter = &mSubmittedFrame;
-            soundSystem->SubmitFrame(soundFrame);
+            for (size_t channel = 0; channel < sFramesPerChannel.size(); ++channel)
+            {
+                if (SoundFrame* soundFrame = sFramesPerChannel[channel])
+                {
+                    soundFrame->mDelay = -alreadySubmitted;
+                    soundFrame->mCounter = 0 == channel ? &mSubmittedFrame : nullptr; // we assume stereo will remain synchronized
+                    soundSystem->SubmitFrame(soundFrame);
+                    sFramesPerChannel[channel] = nullptr;
+                }
+            }
         }
         else
         {
-            soundSystem->ReleaseFrame(soundFrame);
+            for (size_t channel = 0; channel < sFramesPerChannel.size(); ++channel)
+            {
+                if (SoundFrame* soundFrame = sFramesPerChannel[channel])
+                {
+                    soundSystem->ReleaseFrame(soundFrame);
+                }
+            }
         }
 
     }
@@ -97,5 +135,18 @@ void MusicEntity::Update(const float deltaTime)
 void MusicEntity::debug_GUI()
 {
     ImGui::SliderFloat("Volume", &mVolume, 0.f, 1.f);
+}
+void MusicEntity::FreeResource()
+{
+    if (mVorbis)
+    {
+        stb_vorbis_close(mVorbis);
+        mVorbis = nullptr;
+    }
+    if (mFile)
+    {
+        Global::platform()->CloseFile(mFile);
+        mFile = nullptr;
+    }
 }
 #endif

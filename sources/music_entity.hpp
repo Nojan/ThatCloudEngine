@@ -21,9 +21,11 @@ public:
 #endif
 
 private:
-    GameEntity* mEntity;
-    FILE* mFile;
-    stb_vorbis* mVorbis;
+    void FreeResource();
+
+    GameEntity* mEntity = nullptr;
+    FILE* mFile = nullptr;
+    stb_vorbis* mVorbis = nullptr;
     float** mVorbisFrame;
     int mVorbisCount;
     int mVorbisIdx;
