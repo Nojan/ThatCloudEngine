@@ -82,3 +82,8 @@ glm::ivec2 GridCellSystem::GetWorldPosition(const glm::ivec2 & gridPosition)
     const auto y = (-gridPosition.y + 57) * 30;
     return glm::ivec2(x, y);
 }
+
+float GridCellSystem::GetHeight()
+{
+    return 160.f;
+}

@@ -103,7 +103,7 @@ void LoopManager::Init()
     GridSpawner gridSpawner = [this, gameSystem](const char* name, const int x, const int y)
     {
         ++mGridCount;
-        glm::vec3 position(x, 160.f, y);
+        glm::vec3 position(x, GridCellSystem::GetHeight(), y);
         
         GameEntity* entity = gameSystem->createEntity();
         mEntities.push_back(entity);

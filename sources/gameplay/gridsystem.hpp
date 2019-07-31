@@ -49,6 +49,7 @@ public:
     const char* debug_name() const override { return "GridCell"; }
 
     static glm::ivec2 GetWorldPosition(const glm::ivec2& gridPosition);
+    static float GetHeight();
 
 private:
     std::vector<GridCellComponent> mComponents;
