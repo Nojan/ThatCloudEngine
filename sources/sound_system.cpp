@@ -309,7 +309,7 @@ static RingBuffer<int, g_debug_size> g_debug_required_buffer;
 SoundSystemImpl::SoundSystemImpl()
 {
     // Setup audio
-    mAudioSpecRequest.freq = 48000;
+    mAudioSpecRequest.freq = 44100;
     mAudioSpecRequest.format = AUDIO_F32;
     mAudioSpecRequest.channels = 2;
     mAudioSpecRequest.samples = SoundFrame::sample_size;
