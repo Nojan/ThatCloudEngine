@@ -15,6 +15,7 @@ public:
 
     void Update(const float deltaTime);
     BoundingBox3D GetBoundingBox() const;
+    static float GetSize();
 
     TransformComponent* mTransform = nullptr;
     bool mIsFilled = false;
