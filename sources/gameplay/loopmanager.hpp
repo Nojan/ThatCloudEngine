@@ -18,6 +18,11 @@ class Cursor;
 
 namespace Gameplay {
 
+enum GameDebugMode : uint8_t {
+    None,
+    Dot,
+    Volume,
+};
 
 class LoopManager : public IUpdater, PhysicsListener {
 public:
@@ -57,6 +62,7 @@ private:
     int mGridFilled = 0;
     int mGridUpdateIdx = 0;
     float mStoredCloud = 0.f;
+    GameDebugMode mGameDebugMode = GameDebugMode::None;
     bool mClickLeft = false;
     bool mShiftLeft = false;
     bool mCtrlLeft = false;

@@ -404,6 +404,22 @@ void LoopManager::Event(const SDL_Event & e)
         GridCellSystem* gridCellSystem = gameSystem->getSystem<GridCellSystem>();
         gridCellSystem->ShowDebugGrid(!gridCellSystem->GetDebugGrid());
     }
+
+    if (SDL_KEYDOWN == e.type && SDLK_TAB == e.key.keysym.sym)
+    {
+        switch (mGameDebugMode)
+        {
+            case GameDebugMode::None:
+                mGameDebugMode = GameDebugMode::Dot;
+                break;
+            case GameDebugMode::Dot:
+                mGameDebugMode = GameDebugMode::Volume;
+                break;
+            case GameDebugMode::Volume:
+                mGameDebugMode = GameDebugMode::None;
+                break;
+        }
+    }
 }
 
 #ifdef IMGUI_ENABLE
