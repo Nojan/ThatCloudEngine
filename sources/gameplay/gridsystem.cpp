@@ -64,6 +64,30 @@ void GridCellSystem::Update(const float deltaTime)
     {
         component.Update(deltaTime);
     }
+
+    if(mShowGrid)
+    {
+        const Color::rgbap color = {0.21f, 0.35f, 0.49f, 1.f};
+        const int xmin = -60;
+        const int xmax = 60;
+        const int ymin = 0;
+        const int ymax = 115;
+        for (int x = xmin; x < xmax; ++x)
+        {
+            const glm::ivec2 begin = GetWorldPosition(glm::ivec2(x, ymin));
+            const glm::ivec2 end = GetWorldPosition(glm::ivec2(x, ymax));
+            VisualDebugSegmentCommand command(glm::vec3(begin.x - GridCellComponent::GetSize(), GridCellSystem::GetHeight(), begin.y), glm::vec3(end.x - GridCellComponent::GetSize(), GridCellSystem::GetHeight(), end.y), color);
+            VisualDebug()->PushCommand(command);
+        }
+        
+        for (int y = ymin; y < ymax; ++y)
+        {
+            const glm::ivec2 begin = GetWorldPosition(glm::ivec2(xmin, y));
+            const glm::ivec2 end = GetWorldPosition(glm::ivec2(xmax, y));
+            VisualDebugSegmentCommand command(glm::vec3(begin.x, GridCellSystem::GetHeight(), begin.y - GridCellComponent::GetSize()), glm::vec3(end.x, GridCellSystem::GetHeight(), end.y - GridCellComponent::GetSize()), color);
+            VisualDebug()->PushCommand(command);
+        }
+    }
 }
 
 void GridCellSystem::attachEntity(GameEntity * entity)
@@ -77,6 +101,11 @@ void GridCellSystem::attachEntity(GameEntity * entity)
 void GridCellSystem::detachEntity(GameEntity * entity)
 {
     IComponentSystem::detachComponent<GridCellComponent>(entity, mComponents);
+}
+
+void GridCellSystem::ShowDebugGrid(bool debug)
+{
+    mShowGrid = debug;
 }
 
 glm::ivec2 GridCellSystem::GetWorldPosition(const glm::ivec2 & gridPosition)

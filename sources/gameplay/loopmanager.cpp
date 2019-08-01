@@ -397,6 +397,13 @@ void LoopManager::Event(const SDL_Event & e)
     {
         mCtrlLeft = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
     }
+
+    if (SDL_KEYDOWN == e.type && SDLK_r == e.key.keysym.sym)
+    {
+        GameSystem* gameSystem = Global::gameSytem();
+        GridCellSystem* gridCellSystem = gameSystem->getSystem<GridCellSystem>();
+        gridCellSystem->ShowDebugGrid(!gridCellSystem->GetDebugGrid());
+    }
 }
 
 #ifdef IMGUI_ENABLE

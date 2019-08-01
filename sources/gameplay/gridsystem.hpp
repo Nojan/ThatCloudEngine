@@ -47,6 +47,8 @@ public:
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
 
+    void ShowDebugGrid(bool debug);
+    bool GetDebugGrid() const { return mShowGrid; }
     const char* debug_name() const override { return "GridCell"; }
 
     static glm::ivec2 GetWorldPosition(const glm::ivec2& gridPosition);
@@ -54,4 +56,5 @@ public:
 
 private:
     std::vector<GridCellComponent> mComponents;
+    bool mShowGrid = false;
 };
