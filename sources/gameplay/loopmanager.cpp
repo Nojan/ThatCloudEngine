@@ -211,12 +211,29 @@ void LoopManager::Update(const float deltaTime)
             CloudComponent* cloud = entity->getComponent<CloudComponent>();
             if(!cloud)
                 continue;
-            if(0 == cloud->mColor)
-                continue;
             PhysicComponent* physic = entity->getComponent<PhysicComponent>();
             if(!physic)
                 continue;
             const glm::vec3 position(physic->mTransformComponent->Position());
+            if (GameDebugMode::None != mGameDebugMode)
+            {
+                if (GameDebugMode::Dot == mGameDebugMode)
+                {
+                    // Should a dot(constant size on screen)
+                    VisualDebug()->PushCommand(VisualDebugSphereCommand(position, 1.0f, {1.f, 1.f, 1.f, 1.f}));
+                }
+                else
+                {
+                    const float radius = 5.0f; // Magic number in PhysicsComponent
+                    const glm::vec3 offset(0.0, 1.0, 0.0);
+                    const glm::vec3 bottom = position - offset;
+                    const glm::vec3 top = position + offset;
+                    VisualDebug()->PushCommand(VisualDebugHalfCone(bottom, top, radius, radius, {1.f, 1.f, 1.f, 1.f}));
+                }
+            }
+            if(0 == cloud->mColor)
+                continue;
+
             if (gridBoundingBox.Inside(position))
             {
                 ++gridCloudCount;
@@ -411,12 +428,39 @@ void LoopManager::Event(const SDL_Event & e)
         {
             case GameDebugMode::None:
                 mGameDebugMode = GameDebugMode::Dot;
+                for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
+                {
+                    GameEntity* entity = mEntities[idx];
+                    CloudComponent* cloud = entity->getComponent<CloudComponent>();
+                    if(!cloud)
+                        continue;
+                    BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+                    billboardComponent->mEnable = false;
+                }
                 break;
             case GameDebugMode::Dot:
                 mGameDebugMode = GameDebugMode::Volume;
+                for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
+                {
+                    GameEntity* entity = mEntities[idx];
+                    CloudComponent* cloud = entity->getComponent<CloudComponent>();
+                    if(!cloud)
+                        continue;
+                    BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+                    billboardComponent->mEnable = false;
+                }
                 break;
             case GameDebugMode::Volume:
                 mGameDebugMode = GameDebugMode::None;
+                for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
+                {
+                    GameEntity* entity = mEntities[idx];
+                    CloudComponent* cloud = entity->getComponent<CloudComponent>();
+                    if(!cloud)
+                        continue;
+                    BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
+                    billboardComponent->mEnable = true;
+                }
                 break;
         }
     }

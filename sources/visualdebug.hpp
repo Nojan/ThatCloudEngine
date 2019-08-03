@@ -3,6 +3,7 @@
 #include "root.hpp"
 #include "visualdebug/visualdebug_renderer.hpp"
 #include "visualdebug/cube.hpp"
+#include "visualdebug/halfcone.hpp"
 #include "visualdebug/sphere.hpp"
 #include "visualdebug/segment.hpp"
 #include "visualdebug/vdb_geometry.hpp"
