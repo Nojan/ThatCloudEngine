@@ -1,5 +1,6 @@
 #include "gridsystem.hpp"
 
+#include "gameconstant.hpp"
 #include "../transform_system.hpp"
 #include "../game_entity.hpp"
 #include "../visualdebug.hpp"
@@ -18,7 +19,7 @@ void GridCellComponent::Update(const float deltaTime)
         glm::vec3(-1.f, 0.f, -1.f),
     };
 
-    const float scale = 15.f;
+    const float scale = GetSize();
 
     for (int i = 0; i < 4; ++i)
     {
@@ -50,7 +51,7 @@ BoundingBox3D GridCellComponent::GetBoundingBox() const
 
 float GridCellComponent::GetSize()
 {
-    return 15.0f;
+    return Gameplay::grid_size;
 }
 
 GridCellSystem::GridCellSystem()
@@ -117,5 +118,5 @@ glm::ivec2 GridCellSystem::GetWorldPosition(const glm::ivec2 & gridPosition)
 
 float GridCellSystem::GetHeight()
 {
-    return 160.f;
+    return Gameplay::grid_altitude;
 }

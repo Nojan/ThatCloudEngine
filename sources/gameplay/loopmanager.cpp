@@ -3,6 +3,7 @@
 #include "boy.hpp"
 #include "cloudsystem.hpp"
 #include "gamecamera.hpp"
+#include "gameconstant.hpp"
 #include "gridsystem.hpp"
 #include "cursor.hpp"
 #include "loadlevel.hpp"
@@ -31,8 +32,6 @@
 #include <algorithm>
 
 namespace Gameplay {
-
-constexpr float cloud_radius = 5.0f;
 
 LoopManager::LoopManager()
 : mMusic(new MusicEntity())
@@ -186,7 +185,7 @@ void LoopManager::Update(const float deltaTime)
     const Camera* camera = Root::Instance().GetCamera();
     const glm::vec3& mouseDirection = camera->MouseDirection();
     const glm::vec3 planeNormal(0, 1.f, 0);
-    const float planeAltitude = 160.f;
+    const float planeAltitude = Gameplay::grid_altitude;
     const float cosTheta = glm::dot(mouseDirection, planeNormal);
     if (0.f == cosTheta)
         return;

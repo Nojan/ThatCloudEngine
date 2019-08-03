@@ -1,6 +1,7 @@
 #include "loadlevel.hpp"
 
 #include "gridsystem.hpp"
+#include "gameconstant.hpp"
 
 #include "../types.hpp"
 #include "../global.hpp"
@@ -54,7 +55,7 @@ void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gri
 
     const tinyxml2::XMLElement* CloudsElement = CloudLevelElement->FirstChildElement("CloudLayer")->FirstChildElement("Clouds");
     const float scale = 200.f;
-    const float defaultAltitude = 160.f;
+    const float defaultAltitude = Gameplay::grid_altitude;
     GameSystem* gameSystem = Global::gameSytem();
     int idx = 0;
     for (const tinyxml2::XMLElement* cloudElement = CloudsElement->FirstChildElement("cloud"); cloudElement != nullptr; cloudElement = cloudElement->NextSiblingElement("cloud"))
