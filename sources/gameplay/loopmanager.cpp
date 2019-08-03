@@ -32,6 +32,8 @@
 
 namespace Gameplay {
 
+constexpr float cloud_radius = 5.0f;
+
 LoopManager::LoopManager()
 : mMusic(new MusicEntity())
 , mBoy(new Boy())
@@ -224,7 +226,7 @@ void LoopManager::Update(const float deltaTime)
                 }
                 else
                 {
-                    const float radius = 5.0f; // Magic number in PhysicsComponent
+                    const float radius = cloud_radius;
                     const glm::vec3 offset(0.0, 1.0, 0.0);
                     const glm::vec3 bottom = position - offset;
                     const glm::vec3 top = position + offset;
@@ -362,6 +364,7 @@ void LoopManager::SpawnCloud(const glm::vec3& position, const int color, const f
     transform->SetPosition(glm::vec4(position, 1.f));
     gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
     PhysicComponent* physic = entity->getComponent<PhysicComponent>();
+    physic->SetRadius(cloud_radius);
 
     gameSystem->getSystem<BillboardRenderingSystem>()->attachEntity(entity);
     BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();

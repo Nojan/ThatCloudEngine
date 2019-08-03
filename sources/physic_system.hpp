@@ -19,6 +19,7 @@ public:
 
     bool HasFiniteMass() const;
     void SetMass(const float mass);
+    void SetRadius(const float radius);
 
     void Reset();
 
@@ -35,6 +36,7 @@ public:
 private:
     GameEntity* mEntity; 
     float mInvMass;
+    float mRadius = 0.0f;
     glm::vec4 mLinearVelocity;
     glm::vec4 mLinearAcceleration;
     glm::vec4 mAngularVelocity;

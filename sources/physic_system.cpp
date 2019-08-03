@@ -19,6 +19,7 @@ PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 : mTransformComponent(ref.mTransformComponent)
 , mEntity(ref.mEntity)
 , mInvMass(ref.mInvMass)
+, mRadius(ref.mRadius)
 , mForceAccum(ref.mForceAccum)
 , mLinearVelocity(ref.mLinearVelocity)
 , mLinearAcceleration(ref.mLinearAcceleration)
@@ -41,6 +42,12 @@ void PhysicComponent::SetMass(const float mass)
         mInvMass = FLT_MAX;
     else
         mInvMass = 1.f / mass;
+}
+
+void PhysicComponent::SetRadius(const float radius)
+{
+    assert(radius <= 0.0f);
+    mRadius = radius;
 }
 
 void PhysicComponent::Reset()
@@ -118,13 +125,13 @@ void PhysicSystem::Update(const float deltaTime)
 {
     assert(0 <= deltaTime);
     const size_t componentsSize = mComponents.size();
-    const float radius = 5.f;
-    const float radiusSq = radius * radius;
     for (size_t idx = 0; idx < componentsSize; ++idx)
     {
         PhysicComponent& ci = mComponents[idx];
         if (!ci.IsValid() || !ci.HasFiniteMass())
             continue;
+        const float radius = ci.mRadius;
+        const float radiusSq = radius * radius;
         const glm::vec4& ciPosition = ci.mTransformComponent->mPosition;
         glm::vec4 ciVelocity = ci.LinearVelocity() * 0.5f;
         for (size_t ydx = idx + 1; ydx < componentsSize; ++ydx)
