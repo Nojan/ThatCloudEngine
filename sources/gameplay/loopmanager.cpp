@@ -218,6 +218,8 @@ void LoopManager::Update(const float deltaTime)
             const glm::vec3 position(physic->mTransformComponent->Position());
             if (GameDebugMode::None != mGameDebugMode)
             {
+                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touch_distance, 48, {1.f, 1.f, 1.f, 1.f}));
+                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touch_distance + pull_distance, 48, {1.f, 1.f, 1.f, 1.f}));
                 if (GameDebugMode::Dot == mGameDebugMode)
                 {
                     // Should a dot(constant size on screen)
