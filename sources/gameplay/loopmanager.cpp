@@ -205,7 +205,7 @@ void LoopManager::Update(const float deltaTime)
         GameEntity* closestCloud = nullptr;
         float closestCloudDistanceSq = FLT_MAX;
         const glm::vec3 boyPosition = mBoy->Position();
-        const float touchDistance = 25.f;
+        const float touchDistanceSq = touch_distance * touch_distance;
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
             GameEntity* entity = mEntities[idx];
@@ -251,7 +251,7 @@ void LoopManager::Update(const float deltaTime)
                     closestCloudDistanceSq = distanceSq;
                     closestCloud = entity;
                 }
-                if (mShiftLeft && distanceSq <= touchDistance)
+                if (mShiftLeft && distanceSq <= touchDistanceSq)
                 {
                     // absorb cloud
                     assert(0.f < cloud->mPower);
@@ -263,7 +263,7 @@ void LoopManager::Update(const float deltaTime)
                     mEntities.resize(lastIdx);
                     PlaySoundEffect(CloudConsume);
                 }
-                else if (touchDistance < distanceSq && distanceSq < limitSq)
+                else if (touchDistanceSq < distanceSq && distanceSq < limitSq)
                 {
                     const float distance = sqrt(distanceSq);
                     const glm::vec4 normal(direction / distance, 0.f);
@@ -274,7 +274,7 @@ void LoopManager::Update(const float deltaTime)
         // Spawn cloud
         if (mClickLeft && mCtrlLeft && 1.f <= mStoredCloud)
         {
-            if (closestCloudDistanceSq < touchDistance && nullptr != closestCloud)
+            if (closestCloudDistanceSq < touchDistanceSq && nullptr != closestCloud)
             {
                 const float addedPower = deltaTime;
                 CloudComponent* cloud = closestCloud->getComponent<CloudComponent>();

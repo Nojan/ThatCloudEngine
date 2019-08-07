@@ -19,7 +19,7 @@ void GridCellComponent::Update(const float deltaTime)
         glm::vec3(-1.f, 0.f, -1.f),
     };
 
-    const float scale = GetSize();
+    const float scale = GetSize() / 2.0f;
 
     for (int i = 0; i < 4; ++i)
     {
@@ -41,9 +41,11 @@ BoundingBox3D GridCellComponent::GetBoundingBox() const
         glm::vec3(1.f, 0.f, -1.f),
     };
     
+    const float scale = GetSize() / 2.0f;
+
     for (int i = 0; i < 4; ++i)
     {
-        bbox.Add(center + offset[i] * GetSize());
+        bbox.Add(center + offset[i] * scale);
     }
     
     return bbox;
@@ -68,6 +70,7 @@ void GridCellSystem::Update(const float deltaTime)
 
     if(mShowGrid)
     {
+        const float scale = GridCellComponent::GetSize() / 2.0f;
         const Color::rgbap color = {0.21f, 0.35f, 0.49f, 1.f};
         const int xmin = -60;
         const int xmax = 60;
@@ -77,7 +80,7 @@ void GridCellSystem::Update(const float deltaTime)
         {
             const glm::ivec2 begin = GetWorldPosition(glm::ivec2(x, ymin));
             const glm::ivec2 end = GetWorldPosition(glm::ivec2(x, ymax));
-            VisualDebugSegmentCommand command(glm::vec3(begin.x - GridCellComponent::GetSize(), GridCellSystem::GetHeight(), begin.y), glm::vec3(end.x - GridCellComponent::GetSize(), GridCellSystem::GetHeight(), end.y), color);
+            VisualDebugSegmentCommand command(glm::vec3(begin.x - scale, GridCellSystem::GetHeight(), begin.y), glm::vec3(end.x - scale, GridCellSystem::GetHeight(), end.y), color);
             VisualDebug()->PushCommand(command);
         }
         
@@ -85,7 +88,7 @@ void GridCellSystem::Update(const float deltaTime)
         {
             const glm::ivec2 begin = GetWorldPosition(glm::ivec2(xmin, y));
             const glm::ivec2 end = GetWorldPosition(glm::ivec2(xmax, y));
-            VisualDebugSegmentCommand command(glm::vec3(begin.x, GridCellSystem::GetHeight(), begin.y - GridCellComponent::GetSize()), glm::vec3(end.x, GridCellSystem::GetHeight(), end.y - GridCellComponent::GetSize()), color);
+            VisualDebugSegmentCommand command(glm::vec3(begin.x, GridCellSystem::GetHeight(), begin.y - scale), glm::vec3(end.x, GridCellSystem::GetHeight(), end.y - scale), color);
             VisualDebug()->PushCommand(command);
         }
     }
