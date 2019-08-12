@@ -6,4 +6,5 @@ namespace Gameplay {
     constexpr float cloud_radius = grid_size / 4.0f;
     constexpr float touch_distance = grid_size / 3.0f;
     constexpr float pull_distance = grid_size / 3.0f;
+    constexpr float pull_factor = 100.0f;
 }

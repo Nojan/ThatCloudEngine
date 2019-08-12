@@ -33,6 +33,34 @@
 
 namespace Gameplay {
 
+void SmoothTransition::Update(float dt)
+{
+    const float diff = mTargetValue - mCurrentValue;
+    if (fabsf(diff) <= 0.1f)
+    {
+        SetValue(mTargetValue);
+    } else {
+        mCurrentValue += dt * diff;
+    }
+}
+
+float SmoothTransition::GetValue()
+{
+    return mCurrentValue;
+}
+
+void SmoothTransition::SetValue(float value)
+{
+    mTargetValue = value;
+    mCurrentValue = value;
+    mTime = 0.f;
+}
+
+void SmoothTransition::SetTarget(float value)
+{
+    mTargetValue = value;
+}
+
 LoopManager::LoopManager()
 : mMusic(new MusicEntity())
 , mBoy(new Boy())
@@ -204,8 +232,15 @@ void LoopManager::Update(const float deltaTime)
     {
         GameEntity* closestCloud = nullptr;
         float closestCloudDistanceSq = FLT_MAX;
+        int currentCloudCount = 0;
         const glm::vec3 boyPosition = mBoy->Position();
-        const float touchDistanceSq = touch_distance * touch_distance;
+        const float cloudArea = glm::pi<float>() * cloud_radius * cloud_radius;
+        mAdditionalRadius.SetTarget(sqrtf( numeric_cast<float>(mCloudCount) * cloudArea * glm::one_over_pi<float>() * 0.5));
+        mAdditionalRadius.Update(deltaTime);
+        const float addedDistance = mAdditionalRadius.GetValue();
+        const float touchDistance = touch_distance + addedDistance;
+        const float pullDistance = pull_distance + addedDistance;
+        const float touchDistanceSq = touchDistance * touchDistance;
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
             GameEntity* entity = mEntities[idx];
@@ -218,8 +253,8 @@ void LoopManager::Update(const float deltaTime)
             const glm::vec3 position(physic->mTransformComponent->Position());
             if (GameDebugMode::None != mGameDebugMode)
             {
-                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touch_distance, 48, {1.f, 1.f, 1.f, 1.f}));
-                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touch_distance + pull_distance, 48, {1.f, 1.f, 1.f, 1.f}));
+                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touchDistance, 48, {1.f, 1.f, 1.f, 1.f}));
+                VisualDebug()->PushCommand(VisualDebugCircleCommand(mBoy->Position(), glm::vec3(0.f, 1.f, 0.f), touchDistance + pullDistance, 48, {1.f, 1.f, 1.f, 1.f}));
                 if (GameDebugMode::Dot == mGameDebugMode)
                 {
                     // Should a dot(constant size on screen)
@@ -247,32 +282,37 @@ void LoopManager::Update(const float deltaTime)
                 assert(0.f < cloud->mPower);
                 const glm::vec3 direction = boyPosition - position;
                 const float distanceSq = glm::dot(direction, direction);
-                const float limitSq = 4000.f;
+                const float limitSq = powf((touchDistance + pullDistance) * numeric_cast<float>(mCloudCount), 2.f);
                 if (distanceSq < closestCloudDistanceSq)
                 {
                     closestCloudDistanceSq = distanceSq;
                     closestCloud = entity;
                 }
-                if (mShiftLeft && distanceSq <= touchDistanceSq)
+                if (distanceSq <= touchDistanceSq)
                 {
-                    // absorb cloud
-                    assert(0.f < cloud->mPower);
-                    mStoredCloud += cloud->mPower;
-                    GameSystem* gameSystem = Global::gameSytem();
-                    gameSystem->removeEntity(entity);
-                    const size_t lastIdx = mEntities.size() - 1;
-                    std::swap(mEntities[idx], mEntities[lastIdx]);
-                    mEntities.resize(lastIdx);
-                    PlaySoundEffect(CloudConsume);
+                    currentCloudCount++;
+                    if (mShiftLeft)
+                    {
+                        // absorb cloud
+                        assert(0.f < cloud->mPower);
+                        mStoredCloud += cloud->mPower;
+                        GameSystem* gameSystem = Global::gameSytem();
+                        gameSystem->removeEntity(entity);
+                        const size_t lastIdx = mEntities.size() - 1;
+                        std::swap(mEntities[idx], mEntities[lastIdx]);
+                        mEntities.resize(lastIdx);
+                        PlaySoundEffect(CloudConsume);
+                    }
                 }
                 else if (touchDistanceSq < distanceSq && distanceSq < limitSq)
                 {
                     const float distance = sqrt(distanceSq);
                     const glm::vec4 normal(direction / distance, 0.f);
-                    physic->SetLinearVelocity(physic->LinearVelocity() + normal * 10.f);
+                    physic->SetLinearVelocity(physic->LinearVelocity() + normal * pull_factor);
                 }
             }
         }
+        mCloudCount = currentCloudCount;
         // Spawn cloud
         if (mClickLeft && mCtrlLeft && 1.f <= mStoredCloud)
         {

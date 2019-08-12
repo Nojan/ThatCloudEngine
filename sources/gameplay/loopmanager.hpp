@@ -18,6 +18,19 @@ class Cursor;
 
 namespace Gameplay {
 
+class SmoothTransition {
+public:
+    void Update(float dt);
+    float GetValue();
+    void SetValue(float value);
+    void SetTarget(float value);
+    
+private:
+    float mTargetValue = 0.f;
+    float mCurrentValue = 0.f;
+    float mTime = 0.f;
+};
+
 enum GameDebugMode : uint8_t {
     None,
     Dot,
@@ -57,10 +70,12 @@ private:
     std::unique_ptr<Cursor> mCursor;
     std::vector< GameEntity* > mEntities;
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
+    SmoothTransition mAdditionalRadius;
     int mCloudTextureIdx = 0;
     int mGridCount = 0;
     int mGridFilled = 0;
     int mGridUpdateIdx = 0;
+    int mCloudCount = 0;
     float mStoredCloud = 0.f;
     GameDebugMode mGameDebugMode = GameDebugMode::None;
     bool mClickLeft = false;
