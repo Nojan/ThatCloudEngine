@@ -1,10 +1,12 @@
 #pragma once
+#include <glm/glm.hpp>
 
 class GameEntity;
 
 struct PhysicEvent {
-    GameEntity* a;
-    GameEntity* b;
+    GameEntity* a = nullptr;
+    GameEntity* b = nullptr;
+    glm::vec4* ciVelocity = nullptr;
 };
 
 class PhysicsListener {

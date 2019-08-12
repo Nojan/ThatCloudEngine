@@ -153,7 +153,7 @@ void PhysicSystem::Update(const float deltaTime)
             ciVelocity += diffNormal * penetrationMag;
             if (m_listener)
             {
-                PhysicEvent e = {ci.mEntity, cy.mEntity};
+                PhysicEvent e = {ci.mEntity, cy.mEntity, &ciVelocity};
                 m_listener->OnPhysicsEvent(e);
             }
         }

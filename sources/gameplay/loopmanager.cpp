@@ -371,6 +371,10 @@ void LoopManager::OnPhysicsEvent(PhysicEvent & e)
 {
     CloudComponent* aCloud = e.a->getComponent<CloudComponent>();
     CloudComponent* bCloud = e.b->getComponent<CloudComponent>();
+    if (glm::vec4* ciVelocity = e.ciVelocity)
+    {
+        ciVelocity->y = 0.f;
+    }
     if(nullptr == aCloud)
         return;
     if(nullptr == bCloud)
