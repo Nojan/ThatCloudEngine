@@ -116,6 +116,8 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         {
             SoundFrame* soundFrame = soundSystem->RequestFrame();
             hasEnoughChannel = nullptr != soundFrame;
+            if(!hasEnoughChannel)
+                break;
             soundFrame->mDelay = -numeric_cast<int32_t>(sampleQueuedCount);
             soundFrame->mPan = 0 == channel ? -1.f : 1.f;
             soundFrame->mCounter = 0 == channel ? &(effect.mQueuedSampleCount) : nullptr; // we assume stereo will remain synchronized
