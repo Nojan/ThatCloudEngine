@@ -443,6 +443,10 @@ void LoopManager::Event(const SDL_Event & e)
     else
     {
         mClickLeft = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
+        if (mClickLeft)
+        {
+            mAdditionalRadius.SetValue(0);
+        }
     }
 
     if (mShiftLeft)
@@ -452,6 +456,10 @@ void LoopManager::Event(const SDL_Event & e)
     else
     {
         mShiftLeft = (SDL_KEYDOWN == e.type && SDLK_LSHIFT == e.key.keysym.sym);
+        if (mShiftLeft)
+        {
+            mAdditionalRadius.SetValue(0);
+        }
     }
 
     if (mCtrlLeft)
