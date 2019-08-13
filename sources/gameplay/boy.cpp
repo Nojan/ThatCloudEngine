@@ -1,5 +1,7 @@
 #include "boy.hpp"
 
+#include "gameconstant.hpp"
+
 #include "../types.hpp"
 #include "../global.hpp"
 #include "../platform/platform.hpp"
@@ -63,12 +65,14 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
     PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
     const glm::vec3 currentPosition(physic->mTransformComponent->Position());
     const glm::vec3 diff = position - currentPosition;
-    const glm::vec4 v(diff * 0.1f / deltaTime, 0.f);
+    const float diff_len = glm::length(diff);
+    const glm::vec3 direction = diff / diff_len;
+    const float speed = glm::min(diff_len * 0.1f / deltaTime, Gameplay::max_flying_speed);
+    const glm::vec4 v(direction * speed, 0.f);
     physic->SetLinearVelocity(v);
 
     // Set model
     {
-        const float speed = glm::length(glm::vec3(v));
         int idx = mMeshResourceList.size() - 1;
         if (speed < 5.f)
         {
