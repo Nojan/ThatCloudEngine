@@ -7,4 +7,5 @@ namespace Gameplay {
     constexpr float touch_distance = grid_size / 3.0f;
     constexpr float pull_distance = grid_size / 3.0f;
     constexpr float pull_factor = 100.0f;
+    constexpr float max_flying_speed = grid_size * 5.0f;
 }
