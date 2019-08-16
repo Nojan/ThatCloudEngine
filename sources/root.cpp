@@ -254,6 +254,13 @@ void Root::Update()
             glViewport(0, 0, width, height);
             mCamera->WindowResize(width, height);
         }
+        if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
+        {
+            // This is game specific. TODO move into mGameplayLoopManager
+            int width, height;
+            SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
+            SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
+        }
         mCamera->Event(e);
         mGameplayLoopManager->Event(e);
     }
