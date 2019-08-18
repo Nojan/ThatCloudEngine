@@ -46,7 +46,7 @@ void PhysicComponent::SetMass(const float mass)
 
 void PhysicComponent::SetRadius(const float radius)
 {
-    assert(radius <= 0.0f);
+    assert(0.0f <= radius);
     mRadius = radius;
 }
 
