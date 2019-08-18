@@ -46,7 +46,7 @@ private:
     std::shared_ptr<FireworksManager> mFireworkManager;
     std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;
-    SDL_Context* mSDL_ctx;
+    SDL_Context* mSDL_ctx = nullptr;
 
     int mRunning;
 
