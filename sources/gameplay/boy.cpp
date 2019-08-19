@@ -66,7 +66,7 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
     const glm::vec3 currentPosition(physic->mTransformComponent->Position());
     const glm::vec3 diff = position - currentPosition;
     const float diff_len = glm::length(diff);
-    const glm::vec3 direction = diff / diff_len;
+    const glm::vec3 direction = diff_len == 0.f ? glm::vec3(0,0,0) : diff / diff_len;
     const float speed = glm::min(diff_len * 0.1f / deltaTime, Gameplay::max_flying_speed);
     const glm::vec4 v(direction * speed, 0.f);
     physic->SetLinearVelocity(v);
