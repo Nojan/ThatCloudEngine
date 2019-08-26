@@ -227,7 +227,21 @@ void LoopManager::Update(const float deltaTime)
 
     mBoy->MoveToward(intersect, deltaTime);
     mCursor->SetPosition(intersect, deltaTime);
-    
+
+    {
+        glm::vec3 cameraDir = camera->Direction();
+        cameraDir.y = 0.f;
+        cameraDir = glm::normalize(cameraDir);
+        const glm::vec3 cameraOrtho = glm::cross(cameraDir, glm::vec3(0,1,0));
+        const glm::vec3 boyPosition = mBoy->Position();
+        const float motionLength = glm::length(mMotion);
+        const glm::vec2 motion = 1.0f < motionLength ? (mMotion / motionLength) * Gameplay::grid_size : mMotion * Gameplay::grid_size;
+
+        const glm::vec3 target = boyPosition - cameraDir * motion.y + cameraOrtho * motion.x;
+        mBoy->MoveToward(target, deltaTime);
+        mCursor->SetPosition(target, deltaTime);
+    }
+
     // Game update
     {
         GameEntity* closestCloud = nullptr;
@@ -520,6 +534,11 @@ void LoopManager::Event(const SDL_Event & e)
                 break;
         }
     }
+}
+
+void Gameplay::LoopManager::OnMotion(const float x, const float y)
+{
+    mMotion = glm::vec2(x, y);
 }
 
 #ifdef IMGUI_ENABLE

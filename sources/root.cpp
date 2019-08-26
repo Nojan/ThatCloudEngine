@@ -40,6 +40,7 @@ extern "C" {
 struct SDL_Context {
     SDL_Window *window;
     SDL_GLContext context;
+    SDL_GameController *controller = nullptr;
 };
 
 Root& Root::Instance()
@@ -136,6 +137,21 @@ void Root::CreateContext()
     // Setup ImGui binding
     IMGUI_ONLY(ImGui_ImplSdl_Init(mSDL_ctx->window));
 
+    if(SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) {
+        printf("SDL could not initialize game controller subsystem! SDL_Error: %s\n", SDL_GetError());
+    } else {
+        for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+            if (SDL_IsGameController(i)) {
+                mSDL_ctx->controller = SDL_GameControllerOpen(i);
+                if (mSDL_ctx->controller) {
+                    printf("Found a gamepad: %s\n", SDL_GameControllerName(mSDL_ctx->controller));
+                    SDL_GameControllerEventState(SDL_ENABLE);
+                    break;
+                }
+            }
+        }
+    }
+
     Global::Load();
 }
 
@@ -214,6 +230,12 @@ void Root::Terminate()
     
     Global::Unload();
 
+    if (nullptr != mSDL_ctx->controller)
+    {
+        SDL_GameControllerClose(mSDL_ctx->controller);
+        mSDL_ctx->controller = nullptr;
+    }
+
     IMGUI_ONLY(ImGui_ImplSdl_Shutdown());
     if (mSDL_ctx->window)
         SDL_DestroyWindow(mSDL_ctx->window);
@@ -238,6 +260,8 @@ void Root::Update()
     snprintf(windowTitle, windowTitleSize, "Particle : %lldms", mFrameDuration.count());
     SDL_SetWindowTitle(mSDL_ctx->window, windowTitle);
     SDL_Event e;
+    int width, height;
+    SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
     while (SDL_PollEvent(&e) != 0) {
         if (SDL_QUIT == e.type) {
             mRunning = false;
@@ -249,20 +273,44 @@ void Root::Update()
         }
         if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
         {
-            const int width = static_cast<int>(e.window.data1);
-            const int height = static_cast<int>(e.window.data2);
+            width = static_cast<int>(e.window.data1);
+            height = static_cast<int>(e.window.data2);
             glViewport(0, 0, width, height);
             mCamera->WindowResize(width, height);
         }
         if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
         {
             // This is game specific. TODO move into mGameplayLoopManager
-            int width, height;
-            SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
             SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
         }
         mCamera->Event(e);
         mGameplayLoopManager->Event(e);
+        if (SDL_MOUSEMOTION == e.type)
+        {
+            const float motionx = static_cast<float>(e.motion.x - (width / 2));
+            const float motiony = static_cast<float>(e.motion.y - (height / 2));
+            const float halfWidth = static_cast<float>(width / 2);
+            const float halfHeight = static_cast<float>(height / 2);
+            mGameplayLoopManager->OnMotion(motionx / halfWidth, motiony / halfHeight);
+        }
+        if (SDL_CONTROLLERAXISMOTION == e.type)
+        {
+            const int deadzone = 4000;
+            const float max_range = numeric_cast<float>(32767 - deadzone);
+            const bool value_positive = 0 <= e.caxis.value;
+            int value_abs = abs(e.caxis.value);
+            value_abs = deadzone < value_abs ? value_abs - deadzone : 0;
+            float value = numeric_cast<float>(value_abs) / max_range;
+            if (!value_positive) value *= -1.0f;
+            if (SDL_CONTROLLER_AXIS_LEFTX == e.caxis.axis)
+            {
+                mGameplayLoopManager->OnMotion(value, mGameplayLoopManager->Motion().y);
+            } 
+            else if (SDL_CONTROLLER_AXIS_LEFTY == e.caxis.axis)
+            {
+                mGameplayLoopManager->OnMotion(mGameplayLoopManager->Motion().x, value);
+            }
+        }
     }
     IMGUI_ONLY(ImGui_ImplSdl_NewFrame(mSDL_ctx->window));
     for (std::shared_ptr<IUpdater>& updater : mUpdaterList)

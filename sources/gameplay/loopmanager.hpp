@@ -51,6 +51,8 @@ public:
     void SpawnCloud(const glm::vec3& position, const int color, const float power);
 
     void Event(const SDL_Event& e);
+    void OnMotion(const float x, const float y);
+    glm::vec2 Motion() const { return mMotion; }
 
     enum soundEffectIdx {
         CloudRelease,
@@ -71,6 +73,7 @@ private:
     std::vector< GameEntity* > mEntities;
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
     SmoothTransition mAdditionalRadius;
+    glm::vec2 mMotion = glm::vec2(0,0);
     int mCloudTextureIdx = 0;
     int mGridCount = 0;
     int mGridFilled = 0;
