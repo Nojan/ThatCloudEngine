@@ -80,6 +80,7 @@ private:
     int mGridUpdateIdx = 0;
     int mCloudCount = 0;
     float mStoredCloud = 0.f;
+    float mCloudPower = 0.f;
     GameDebugMode mGameDebugMode = GameDebugMode::None;
     bool mClickLeft = false;
     bool mShiftLeft = false;

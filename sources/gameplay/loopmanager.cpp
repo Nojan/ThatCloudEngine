@@ -255,6 +255,8 @@ void LoopManager::Update(const float deltaTime)
         const float touchDistance = touch_distance + addedDistance;
         const float pullDistance = pull_distance + addedDistance;
         const float touchDistanceSq = touchDistance * touchDistance;
+        if(!mClickLeft)
+            mCloudPower = 0.f;
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
             GameEntity* entity = mEntities[idx];
@@ -294,6 +296,7 @@ void LoopManager::Update(const float deltaTime)
             if (mClickLeft)
             {
                 assert(0.f < cloud->mPower);
+                mCloudPower = glm::max(mCloudPower, cloud->mPower);
                 const glm::vec3 direction = boyPosition - position;
                 const float distanceSq = glm::dot(direction, direction);
                 const float limitSq = powf((touchDistance + pullDistance) * numeric_cast<float>(mCloudCount), 2.f);
@@ -400,7 +403,10 @@ void LoopManager::OnPhysicsEvent(PhysicEvent & e)
             std::swap(aCloud, bCloud);
             std::swap(e.a, e.b);
         }
-        if(aCloud->mPower < bCloud->mPower)
+        // This comparison is kind of weird:
+        // Collision outside the pull radius are affected by the max cloud power within the pull radius
+        // yet it's seems that what the original game do...
+        if(aCloud->mPower < mCloudPower)
         {
             aCloud->mColor = 1;
             BillboardComponent* billboard = e.a->getComponent<BillboardComponent>();
