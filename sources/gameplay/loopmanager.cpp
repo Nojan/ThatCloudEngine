@@ -407,7 +407,7 @@ void LoopManager::OnPhysicsEvent(PhysicEvent & e)
         // This comparison is kind of weird:
         // Collision outside the pull radius are affected by the max cloud power within the pull radius
         // yet it's seems that what the original game do...
-        if(aCloud->mPower < mCloudPower)
+        if(aCloud->mPower <= mCloudPower)
         {
             aCloud->mColor = 1;
             BillboardComponent* billboard = e.a->getComponent<BillboardComponent>();
