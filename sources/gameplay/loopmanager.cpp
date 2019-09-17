@@ -192,7 +192,8 @@ void LoopManager::Update(const float deltaTime)
     mMusic->Update(deltaTime);
 
     // update the grid
-    mGridUpdateIdx = (mGridUpdateIdx + 1) % mGridCount;
+    if(0 < mGridCount)
+        mGridUpdateIdx = (mGridUpdateIdx + 1) % mGridCount;
     GridCellComponent* activeGrid = nullptr;
     int gridCloudCount = 0;
     for(int idx = numeric_cast<int>(mEntities.size()) - 1, gridIdx = 0; 0 <= idx; --idx)

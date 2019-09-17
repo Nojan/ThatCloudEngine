@@ -68,14 +68,15 @@ void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gri
         cloudSpawner(position, color, power);
     }
 
-    const tinyxml2::XMLElement* gridElement = CloudLevelElement->FirstChildElement("Grid");
-    for (const tinyxml2::XMLElement* gridsetElement = gridElement->FirstChildElement("GridSet"); gridsetElement != nullptr; gridsetElement = gridsetElement->NextSiblingElement("GridSet"))
-    {
-        const char* gridsetName = gridsetElement->Attribute("name");
-        for (const tinyxml2::XMLElement* gridcellElement = gridsetElement->FirstChildElement("GridCell"); gridcellElement != nullptr; gridcellElement = gridcellElement->NextSiblingElement("GridCell"))
+    if (const tinyxml2::XMLElement* gridElement = CloudLevelElement->FirstChildElement("Grid")) {
+        for (const tinyxml2::XMLElement* gridsetElement = gridElement->FirstChildElement("GridSet"); gridsetElement != nullptr; gridsetElement = gridsetElement->NextSiblingElement("GridSet"))
         {
-            const glm::ivec2 gridCellPosition = GridCellSystem::GetWorldPosition( glm::ivec2(gridcellElement->IntAttribute("x"), gridcellElement->IntAttribute("y")) );
-            gridSpawner(gridsetName, gridCellPosition.x, gridCellPosition.y);
+            const char* gridsetName = gridsetElement->Attribute("name");
+            for (const tinyxml2::XMLElement* gridcellElement = gridsetElement->FirstChildElement("GridCell"); gridcellElement != nullptr; gridcellElement = gridcellElement->NextSiblingElement("GridCell"))
+            {
+                const glm::ivec2 gridCellPosition = GridCellSystem::GetWorldPosition( glm::ivec2(gridcellElement->IntAttribute("x"), gridcellElement->IntAttribute("y")) );
+                gridSpawner(gridsetName, gridCellPosition.x, gridCellPosition.y);
+            }
         }
     }
 }
