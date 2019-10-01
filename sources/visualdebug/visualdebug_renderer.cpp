@@ -261,6 +261,8 @@ void VisualDebugRenderer::Render(const Scene * scene)
     if (mIndexFill.empty() && mIndexLine.empty())
         return;
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mShaderProgram->Bind();
     GrowGPUBufferIFN();
     if (!mIndexFill.empty())
@@ -268,6 +270,7 @@ void VisualDebugRenderer::Render(const Scene * scene)
     if (!mIndexLine.empty())
         DrawLine();
     mShaderProgram->Unbind();
+    glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 }
 
