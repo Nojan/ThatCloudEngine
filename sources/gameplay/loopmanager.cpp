@@ -300,7 +300,7 @@ void LoopManager::Update(const float deltaTime)
                 mCloudPower = glm::max(mCloudPower, cloud->mPower);
                 const glm::vec3 direction = boyPosition - position;
                 const float distanceSq = glm::dot(direction, direction);
-                const float limitSq = powf((touchDistance + pullDistance) * numeric_cast<float>(mCloudCount), 2.f);
+                const float limitSq = powf((touchDistance + pullDistance), 2.f);
                 if (distanceSq < closestCloudDistanceSq)
                 {
                     closestCloudDistanceSq = distanceSq;
