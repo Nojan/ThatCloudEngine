@@ -2,8 +2,13 @@
 
 #include "transform_system.hpp"
 #include "game_entity.hpp"
+#include "visualdebug.hpp"
+#include "imgui/imgui_header.hpp"
 
+#include <glm/gtx/norm.hpp>
 #include <cassert>
+
+constexpr float awakeCounter = 5.f;
 
 PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
@@ -28,6 +33,11 @@ PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 bool PhysicComponent::IsValid() const
 {
     return nullptr != mTransformComponent;
+}
+
+bool PhysicComponent::IsAsleep() const
+{
+    return 0.f >= mAwake || awakeCounter < mAwake;
 }
 
 bool PhysicComponent::HasFiniteMass() const
@@ -56,11 +66,14 @@ void PhysicComponent::Reset()
     mLinearVelocity = glm::vec4(0, 0, 0, 0);
     mLinearAcceleration = glm::vec4(0, 0, 0, 1);
     mAngularVelocity = glm::vec4(0, 0, 0, 0);
+    mAwake = 0.f;
 }
 
 void PhysicComponent::Integrate(const float deltaTime)
 {
-    if (!IsValid() || !HasFiniteMass())
+    mAwake -= deltaTime;
+    
+    if (!IsValid() || !HasFiniteMass() || IsAsleep())
         return;
 
     const glm::vec4 force(mForceAccum, 0.f);
@@ -86,11 +99,17 @@ void PhysicComponent::Integrate(const float deltaTime)
     const glm::vec4 drag(0.9999f);
     mLinearVelocity = mLinearVelocity * drag;
     mAngularVelocity = mAngularVelocity  * drag;
+
+    if (0.01f < glm::dot(mLinearVelocity, mLinearVelocity) || 0.01f < glm::dot(mAngularVelocity, mAngularVelocity))
+    {
+        SetAwake();
+    }
 }
 
 void PhysicComponent::AddForce(const glm::vec3& force)
 {
     mForceAccum += force;
+    SetAwake();
 }
 
 const glm::vec4& PhysicComponent::LinearVelocity() const
@@ -101,6 +120,8 @@ const glm::vec4& PhysicComponent::LinearVelocity() const
 void PhysicComponent::SetLinearVelocity(const glm::vec4& velocity)
 {
     mLinearVelocity = velocity;
+    if(0.01f < glm::length2(velocity))
+        SetAwake();
 }
 
 const glm::vec4 & PhysicComponent::AngularVelocity() const
@@ -108,9 +129,16 @@ const glm::vec4 & PhysicComponent::AngularVelocity() const
     return mAngularVelocity;
 }
 
-void PhysicComponent::SetAngularVelocity(const glm::vec4 & velocity)
+void PhysicComponent::SetAngularVelocity(const glm::vec4& velocity)
 {
     mAngularVelocity = velocity;
+    if(0.01f < glm::length2(velocity))
+        SetAwake();
+}
+
+void PhysicComponent::SetAwake()
+{
+    mAwake = awakeCounter;
 }
 
 PhysicSystem::PhysicSystem()
@@ -128,7 +156,7 @@ void PhysicSystem::Update(const float deltaTime)
     for (size_t idx = 0; idx < componentsSize; ++idx)
     {
         PhysicComponent& ci = mComponents[idx];
-        if (!ci.IsValid() || !ci.HasFiniteMass())
+        if (!ci.IsValid() || !ci.HasFiniteMass() || ci.IsAsleep())
             continue;
         const float radius = ci.mRadius;
         const float radiusSq = radius * radius;
@@ -136,7 +164,7 @@ void PhysicSystem::Update(const float deltaTime)
         glm::vec4 ciVelocity = ci.LinearVelocity() * 0.5f;
         for (size_t ydx = idx + 1; ydx < componentsSize; ++ydx)
         {
-            const PhysicComponent& cy = mComponents[ydx];
+            PhysicComponent& cy = mComponents[ydx];
             if (!cy.IsValid())
                 continue;
             const glm::vec4& cyPosition = cy.mTransformComponent->mPosition;
@@ -156,6 +184,7 @@ void PhysicSystem::Update(const float deltaTime)
                 PhysicEvent e = {ci.mEntity, cy.mEntity, &ciVelocity};
                 m_listener->OnPhysicsEvent(e);
             }
+            cy.SetAwake();
         }
         ci.SetLinearVelocity(ciVelocity);
     }
@@ -179,3 +208,38 @@ void PhysicSystem::detachEntity(GameEntity* entity)
 {
     IComponentSystem::detachComponent<PhysicComponent>(entity, mComponents);
 }
+
+#ifdef IMGUI_ENABLE
+void PhysicSystem::debug_GUI() const
+{
+    static bool displayAabb = true;
+    ImGui::Checkbox("Display AABB", &displayAabb);
+    if(displayAabb)
+    {
+        VisualDebugRenderer * renderer = VisualDebug();
+        for (const auto& component : mComponents)
+        {
+            if(!component.IsValid())
+            {
+                continue;
+            }
+            const float radius = component.mRadius;
+            const glm::vec3 position(component.mTransformComponent->Position());
+            constexpr float alpha = 0.2f;
+            Color::rgbap color = {1.f, 1.f, 1.f, alpha};
+            {
+                if(!component.HasFiniteMass())
+                {
+                    color  = {0.f, 0.f, 0.f, alpha};
+                }
+                else if(!component.IsAsleep())
+                {
+                    color  = {0.f, 1.f, 0.f, alpha};
+                }
+            }
+            VisualDebugCubeCommand command(position, radius, color);
+            renderer->PushCommand(command);
+        }
+    }
+}
+#endif

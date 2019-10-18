@@ -16,6 +16,7 @@ public:
     PhysicComponent(const PhysicComponent& ref);
 
     bool IsValid() const;
+    bool IsAsleep() const;
 
     bool HasFiniteMass() const;
     void SetMass(const float mass);
@@ -34,9 +35,11 @@ public:
 
     TransformComponent* mTransformComponent;
 private:
+    void SetAwake();
     GameEntity* mEntity; 
     float mInvMass;
     float mRadius = 0.0f;
+    float mAwake = 0.0f;
     glm::vec4 mLinearVelocity;
     glm::vec4 mLinearAcceleration;
     glm::vec4 mAngularVelocity;
@@ -74,6 +77,9 @@ public:
 
     PhysicsListener* m_listener = nullptr;
 
+#ifdef IMGUI_ENABLE
+    virtual void debug_GUI() const;
+#endif
     const char* debug_name() const override { return "Physics"; }
 
 private:
