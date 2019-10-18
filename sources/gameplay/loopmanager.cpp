@@ -409,13 +409,7 @@ void LoopManager::OnPhysicsEvent(PhysicEvent & e)
         // yet it's seems that what the original game do...
         if(aCloud->mPower <= mCloudPower)
         {
-            aCloud->mColor = 1;
-            BillboardComponent* billboard = e.a->getComponent<BillboardComponent>();
-            for (int idx = billboard->mBillboards.size() - 1; 0 <= idx; idx--)
-            {
-                billboard->mBillboards[idx].mAlpha *= 2.f;
-            }
-            PlaySoundEffect(CloudNormalPurified);
+            CloudPurified(e.a);
         }
     }
 }
@@ -453,6 +447,20 @@ void LoopManager::PlaySoundEffect(soundEffectIdx idx)
 {
     SoundComponent* soundComponent = mSoundEffects->getComponent<SoundComponent>();
     SoundEffect* request = soundComponent->Play(idx);
+}
+
+void Gameplay::LoopManager::CloudPurified(GameEntity * cloudEntity)
+{
+    CloudComponent* cloud = cloudEntity->getComponent<CloudComponent>();
+    if(1 == cloud->mColor)
+        return;
+    cloud->mColor = 1;
+    BillboardComponent* billboard = cloudEntity->getComponent<BillboardComponent>();
+    for (int idx = billboard->mBillboards.size() - 1; 0 <= idx; idx--)
+    {
+        billboard->mBillboards[idx].mAlpha *= 2.f;
+    }
+    PlaySoundEffect(CloudNormalPurified);
 }
 
 void LoopManager::Event(const SDL_Event & e)
