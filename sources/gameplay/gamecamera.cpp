@@ -14,39 +14,6 @@ void BoyCamera::Move(const float speed, Camera* camera)
 
 void BoyCamera::Event(const SDL_Event& e, Camera* camera)
 {
-    const bool pressKey = (SDL_KEYDOWN == e.type);
-    const bool releaseKey = (SDL_KEYUP == e.type);
-    if(pressKey || releaseKey)
-    {
-        if (SDLK_DOWN == e.key.keysym.sym)
-        {
-            if (pressKey)
-                mMoveMask |= MV_DOWN;
-            else
-                mMoveMask &= ~MV_DOWN;
-        }
-        if (SDLK_LEFT == e.key.keysym.sym)
-        {
-            if (pressKey)
-                mMoveMask |= MV_LEFT;
-            else
-                mMoveMask &= ~MV_LEFT;
-        }
-        if (SDLK_UP == e.key.keysym.sym)
-        {
-            if (pressKey)
-                mMoveMask |= MV_UP;
-            else
-                mMoveMask &= ~MV_UP;
-        }
-        if (SDLK_RIGHT == e.key.keysym.sym)
-        {
-            if (pressKey)
-                mMoveMask |= MV_RIGHT;
-            else
-                mMoveMask &= ~MV_RIGHT;
-        }
-    }
     if (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_RIGHT == e.button.button)
     {
         mMousePan = true;
