@@ -10,4 +10,7 @@ public:
 
     FILE * OpenFile(const char* filename, const char * mode) override;
     void CloseFile(FILE * file) override;
+
+private:
+    FILE * mLogFile = nullptr; 
 };
