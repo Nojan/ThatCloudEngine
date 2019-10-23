@@ -24,7 +24,6 @@ void Image::load(const char * filepath)
     int comp;
     mData.reset(stbi_load_from_file(file, &mWidth, &mHeight, &comp, STBI_default));
     mChannel = static_cast<ColorsChannel>(comp);
-    printf("Image %s %d %d %d\n", filepath, mWidth, mHeight, comp);
 }
 
 void Image::set(std::unique_ptr<uint8_t[]>& data, int height, int width, ColorsChannel channel)
