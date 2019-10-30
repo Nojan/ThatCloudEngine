@@ -27,7 +27,7 @@ public:
     const char* debug_name() const override { return "Skybox Renderer"; }
 
 private:
-    std::unique_ptr<ShaderProgram> mShaderProgram;
+    std::shared_ptr<ShaderProgram> mShaderProgram;
     GLuint mIndexBufferId;
     GLuint mVertexBufferId;
     GLuint uvbuffer;

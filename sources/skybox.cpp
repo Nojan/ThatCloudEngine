@@ -2,9 +2,10 @@
 
 #include "color.hpp"
 #include "camera.hpp"
+#include "global.hpp"
+#include "resourcemanager.hpp"
 #include "root.hpp"
 #include "shader.hpp"
-#include "shader_loader.hpp"
 #include "texture.hpp"
 
 #include "imgui/imgui_header.hpp"
@@ -58,7 +59,19 @@ Skybox* Skybox::GenerateCheckered()
 
 Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/skybox.vert", "../shaders/skybox.frag")));
+    mShaderProgram = Global::resourceManager()->shader("skybox");
+    mShaderProgram->RegisterAttrib(HashedString("vertexPosition"));
+    mShaderProgram->RegisterUniform(HashedString("cubemapSampler"));
+    mShaderProgram->RegisterUniform(HashedString("MVP"));
+    mShaderProgram->RegisterUniform(HashedString("viewMatrix"));
+    mShaderProgram->RegisterUniform(HashedString("screenSize"));
+    mShaderProgram->RegisterUniform(HashedString("lightDirectionWS"));
+    mShaderProgram->RegisterUniform(HashedString("left"));
+    mShaderProgram->RegisterUniform(HashedString("right"));
+    mShaderProgram->RegisterUniform(HashedString("top"));
+    mShaderProgram->RegisterUniform(HashedString("bottom"));
+    mShaderProgram->RegisterUniform(HashedString("near"));
+    mShaderProgram->RegisterUniform(HashedString("far"));
     glActiveTexture(GL_TEXTURE0); 
     glGenTextures(1, &mTextureBufferId); 
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureBufferId); 
@@ -127,9 +140,9 @@ void Skybox::Render(const Scene * scene)
 {
     mShaderProgram->Bind();
     // Get a handle for our buffers
-    GLuint vertexPositionID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition"); 
-    GLuint cubemapID = glGetUniformLocation(mShaderProgram->ProgramID(), "cubemapSampler"); 
-    GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); 
+    GLuint vertexPositionID = mShaderProgram->GetAttribLocation(HashedString("vertexPosition"));
+    GLuint cubemapID = mShaderProgram->GetUniformLocation(HashedString("cubemapSampler"));
+    GLuint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("MVP"));
 
     const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(glo_scale, glo_scale, glo_scale));
     const Camera * camera = Root::Instance().GetCamera();
@@ -140,19 +153,19 @@ void Skybox::Render(const Scene * scene)
     glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(MVP)); 
 
     {
-        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "viewMatrix");
+        const GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("viewMatrix"));
         glUniformMatrix4fv(uniformID, 1, GL_FALSE, glm::value_ptr(viewModel));
     }
 
     {
-        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); 
+        const GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("screenSize"));
         const glm::vec2& screenSize = camera->ScreenSize();
         glUniform2f(uniformID, (float)screenSize.x, (float)screenSize.y);
     }
 
     {
         const Camera::frustum f = Camera::ConvertTo(camera->Perspective());
-        #define setupFrustumUniform(name, value) { const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), name); glUniform1f(uniformID, value); }
+        #define setupFrustumUniform(name, value) { const GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString(name)); glUniform1f(uniformID, value); }
         setupFrustumUniform("left", f.left);
         setupFrustumUniform("right", f.right);
         setupFrustumUniform("top", f.top);
@@ -163,7 +176,7 @@ void Skybox::Render(const Scene * scene)
     }
 
     {
-        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "lightDirectionWS");
+        const GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("lightDirectionWS"));
         const glm::vec3& direction = scene->GetDirectionalLight().mDirection;
         glUniform3fv(uniformID, 1, glm::value_ptr(direction));
     }
