@@ -36,6 +36,12 @@ extern "C" {
 }
 #endif
 
+namespace Constant {
+    IMGUI_VAR(DisableFrameStep, false);
+    IMGUI_VAR(DisableUpdater, false);
+    IMGUI_VAR(DisableRenderer, false);
+}
+
 struct SDL_Context {
     SDL_Window *window;
     SDL_GLContext context;
@@ -312,11 +318,17 @@ void Root::Update()
         }
     }
     IMGUI_ONLY(ImGui_ImplSdl_NewFrame(mSDL_ctx->window));
-    for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
+    const bool disableFrameStep = Constant::DisableFrameStep;
+    const bool disableUpdate = Constant::DisableUpdater;
+    const bool disableRenderer = Constant::DisableRenderer;
+    if (!disableFrameStep)
     {
-        updater->FrameStep();
+        for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
+        {
+            updater->FrameStep();
+        }
+        Global::gameSytem()->FrameStep();
     }
-    Global::gameSytem()->FrameStep();
     if (mFrameMultiplier <= 0)
     {
         lastFrameDuration = 0;
@@ -326,15 +338,21 @@ void Root::Update()
         lastFrameDuration -= frameDuration;
         playedFrame += frameDuration;
         const float frameStep = frameDuration * mFrameMultiplier;
+        if (disableUpdate)
+            continue;
         for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
         {
             updater->Update(frameStep);
         }
         Global::gameSytem()->Update(frameStep);
     }
+    
     for (auto& renderer : mRendererList)
     {
-        renderer->Render(mScene.get());
+        if (!disableRenderer)
+        {
+            renderer->Render(mScene.get());
+        }
         renderer->FlushFrame();
     }
     mFrameLeftover = lastFrameDuration;
@@ -346,6 +364,9 @@ void Root::Update()
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
         ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
+        ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
+        ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
+        ImGui::Checkbox("DisableRenderer", &Constant::DisableRenderer);
         //if (ImGui::CollapsingHeader("OpenGL"))
         //{
         //    static bool wireframe = false;
