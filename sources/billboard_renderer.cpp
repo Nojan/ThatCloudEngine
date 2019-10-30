@@ -29,6 +29,10 @@ BillboardRenderer::BillboardRenderer()
 , mTextureId(0)
 {
     mShaderProgram = Global::resourceManager()->shader("billboard");
+    mShaderProgram->RegisterAttrib(HashedString("vertexPosition_modelspace"));
+    mShaderProgram->RegisterAttrib(HashedString("textureCoord"));
+    mShaderProgram->RegisterUniform(HashedString("alpha"));
+    mShaderProgram->RegisterUniform(HashedString("mvp"));
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec3>(4, &mVboVerticesId);
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec3>(4, &mVboNormalId);
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec2>(4, &mVboTexCoordId);
@@ -115,22 +119,22 @@ void BillboardRenderer::Render(const Billboard& billboard, const glm::vec3& dire
     std::vector<uint> index = { 0, 1, 2, 2, 1, 3 };
     update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW>(index, mVboIndexId);
     {
-        GLuint uniform_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "alpha");
+        GLuint uniform_ID = mShaderProgram->GetUniformLocation(HashedString("alpha"));
         glUniform1f(uniform_ID, alpha);
     }
     {
-        GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp");
+        GLuint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp));
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPosition_modelspace"));
         glBindBuffer(GL_ARRAY_BUFFER, mVboVerticesId);
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "textureCoord");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("textureCoord"));
         glBindBuffer(GL_ARRAY_BUFFER, mVboTexCoordId);
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -165,11 +169,11 @@ void BillboardRenderer::Render(const Billboard& billboard, const glm::vec3& dire
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPosition_modelspace"));
         glDisableVertexAttribArray(attributeID);
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "textureCoord");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("textureCoord"));
         glDisableVertexAttribArray(attributeID);
     }
 }
