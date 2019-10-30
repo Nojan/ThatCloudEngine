@@ -5,7 +5,6 @@
 #include "particle.hpp"
 #include "platform/platform.hpp"
 #include "renderer_list.hpp"
-#include "particle_renderer.hpp"
 #include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
 #include "mesh_renderer.hpp"
