@@ -77,6 +77,10 @@ void BillboardRenderer::Render(const Scene * scene)
     mShaderProgram->Unbind();
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
+}
+
+void BillboardRenderer::FlushFrame()
+{
     mRenderQueue.clear();
 }
 

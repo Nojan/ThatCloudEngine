@@ -75,6 +75,10 @@ void SkinMeshRenderer::Render(const Scene* scene)
 
     mShaderProgram->Unbind();
     glDisable(GL_DEPTH_TEST);
+}
+
+void SkinMeshRenderer::FlushFrame()
+{
     mRenderQueue.clear();
 }
 

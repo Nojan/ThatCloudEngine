@@ -132,6 +132,10 @@ void ParticleRenderer::Render(const Scene * scene)
     mShaderProgram->Unbind();
 }
 
+void ParticleRenderer::FlushFrame()
+{
+}
+
 void ParticleRenderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime)
 {
     const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);

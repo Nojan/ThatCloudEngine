@@ -277,6 +277,17 @@ void VisualDebugRenderer::Render(const Scene * scene)
     glDisable(GL_DEPTH_TEST);
 }
 
+void VisualDebugRenderer::FlushFrame()
+{
+    mVertexFill.clear();
+    mColorFill.clear();
+    mIndexFill.clear();
+
+    mVertexLine.clear();
+    mColorLine.clear();
+    mIndexLine.clear();
+}
+
 void VisualDebugRenderer::DrawFill()
 {
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mVertexFill, mVboPositionFillId);
@@ -312,9 +323,6 @@ void VisualDebugRenderer::DrawFill()
         GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glDisableVertexAttribArray(attributeID); 
     }
-    mVertexFill.clear();
-    mColorFill.clear();
-    mIndexFill.clear();
 }
 
 void VisualDebugRenderer::DrawLine()
@@ -353,9 +361,6 @@ void VisualDebugRenderer::DrawLine()
         GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glDisableVertexAttribArray(attributeID);
     }
-    mVertexLine.clear();
-    mColorLine.clear();
-    mIndexLine.clear();
 }
 
 void VisualDebugRenderer::HandleMousePosition(float x, float y, float z) {

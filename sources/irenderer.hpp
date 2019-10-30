@@ -8,6 +8,7 @@ class IRenderer {
 public:
 	
     virtual void Render(const Scene* scene) = 0;
+    virtual void FlushFrame() = 0;
 
 #ifdef IMGUI_ENABLE
     virtual void debug_GUI() const;

@@ -208,4 +208,6 @@ void Skybox::Render(const Scene * scene)
     mShaderProgram->Unbind();
 }
 
-
+void Skybox::FlushFrame()
+{
+}

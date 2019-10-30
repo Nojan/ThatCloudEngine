@@ -21,6 +21,7 @@ public:
     ~MeshRenderer();
 
 	void Render(const Scene* scene) override;
+    void FlushFrame() override;
 
     MeshBuffer* RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount = 0) override;
 

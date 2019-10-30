@@ -16,6 +16,7 @@ class BillboardRenderer : public IRenderer {
 public:
 
     void Render(const Scene * scene) override;
+    void FlushFrame() override;
 
     BillboardRenderer();
     ~BillboardRenderer();

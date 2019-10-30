@@ -91,6 +91,10 @@ void MeshRenderer::Render(const Scene* scene)
     mShaderProgram->Unbind();
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
+}
+
+void MeshRenderer::FlushFrame()
+{
     mRenderQueue.clear();
     mRenderAlphaQueue.clear();
 }

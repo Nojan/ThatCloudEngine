@@ -73,6 +73,7 @@ public:
     ~VisualDebugRenderer();
 
     void Render(const Scene* scene) override;
+    void FlushFrame() override;
 
     void HandleMousePosition(float x, float y, float z);
 

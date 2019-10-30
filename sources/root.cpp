@@ -336,6 +336,7 @@ void Root::Update()
     for (auto& renderer : mRendererList)
     {
         renderer->Render(mScene.get());
+        renderer->FlushFrame();
     }
     mFrameLeftover = lastFrameDuration;
     static bool autoSpawnParticle = false;

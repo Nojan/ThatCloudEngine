@@ -20,6 +20,7 @@ public:
     ~Skybox();
 
     void Render(const Scene * scene) override;
+    void FlushFrame() override;
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;

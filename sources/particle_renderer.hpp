@@ -23,6 +23,7 @@ public:
 
     void Update(const float deltaTime) override;
     void Render(const Scene * scene) override;
+    void FlushFrame() override;
 
     void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime);
     void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
