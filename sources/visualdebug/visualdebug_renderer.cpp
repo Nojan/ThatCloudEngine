@@ -243,7 +243,10 @@ VisualDebugRenderer::VisualDebugRenderer()
 , mVboIndexLineSize(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vert", "../shaders/visualdebug.frag")));
+    mShaderProgram = std::make_unique<ShaderProgram>(LoadShaders("../shaders/visualdebug.vert", "../shaders/visualdebug.frag"));
+    mShaderProgram->RegisterAttrib(HashedString("vertexPositionMS"));
+    mShaderProgram->RegisterAttrib(HashedString("vertexColor"));
+    mShaderProgram->RegisterUniform(HashedString("mvp"));
 }
 
 VisualDebugRenderer::~VisualDebugRenderer()
@@ -280,18 +283,18 @@ void VisualDebugRenderer::DrawFill()
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mColorFill, mVboColorFillId);
     update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mIndexFill, mVboIndexFillId);
     {
-        GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); 
+        GLuint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); 
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPositionMS"); 
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPositionMS")); 
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionFillId); 
         glEnableVertexAttribArray(attributeID); 
         glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); 
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); 
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glBindBuffer(GL_ARRAY_BUFFER, mVboColorFillId); 
         glEnableVertexAttribArray(attributeID); 
         glVertexAttribPointer(attributeID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); 
@@ -302,11 +305,11 @@ void VisualDebugRenderer::DrawFill()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPositionMS"); 
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPositionMS")); 
         glDisableVertexAttribArray(attributeID); 
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); 
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glDisableVertexAttribArray(attributeID); 
     }
     mVertexFill.clear();
@@ -321,18 +324,18 @@ void VisualDebugRenderer::DrawLine()
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mColorLine, mVboColorLineId);
     update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mIndexLine, mVboIndexLineId);
     {
-        GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp");
+        GLuint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp));
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPositionMS");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPositionMS")); 
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionLineId);
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glBindBuffer(GL_ARRAY_BUFFER, mVboColorLineId);
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -343,11 +346,11 @@ void VisualDebugRenderer::DrawLine()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPositionMS");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexPositionMS")); 
         glDisableVertexAttribArray(attributeID);
     }
     {
-        GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor");
+        GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vertexColor")); 
         glDisableVertexAttribArray(attributeID);
     }
     mVertexLine.clear();
