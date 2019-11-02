@@ -5,7 +5,9 @@
 #include "color.hpp"
 #include "irenderer.hpp"
 #include "types.hpp"
+#include "vbo.hpp"
 
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -35,10 +37,11 @@ private:
 private:
     std::shared_ptr<ShaderProgram> mShaderProgram;
     std::vector<Billboard> mRenderQueue;
+    std::array<std::shared_ptr< Texture2D >, 8> mTextures;
 
-    GLuint mVboVerticesId;
-    GLuint mVboNormalId;
-    GLuint mVboTexCoordId;
-    GLuint mVboIndexId;
-    GLuint mTextureId;
+    VBO_dynamic<GL_ARRAY_BUFFER, glm::vec3> mVertices;
+    VBO_dynamic<GL_ARRAY_BUFFER, glm::vec2> mTexCoords;
+    VBO_dynamic<GL_ARRAY_BUFFER, float> mAlpha;
+    VBO_dynamic<GL_ARRAY_BUFFER, float> mTexIdx;
+    VBO_dynamic<GL_ELEMENT_ARRAY_BUFFER, uint> mIndex;
 };
