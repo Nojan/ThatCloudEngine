@@ -48,4 +48,15 @@ void update_gl_array_buffer(const std::vector<T>& elements, GLuint vboId)
     update_gl_array_buffer<arrayBufferType, usage, T>(elements.data(), elements.size(), vboId);
 }
 
+template <GLenum arrayBufferType, GLenum usage, typename T>
+void grow_gl_array_buffer(const std::vector<T>& elements, GLuint* vboId, size_t* vboCapacity)
+{
+    if (*vboCapacity < elements.capacity())
+    {
+        *vboCapacity = elements.capacity();
+        glDeleteBuffers(1, vboId);
+        generate_gl_array_buffer<arrayBufferType, usage, T>(*vboCapacity, vboId);
+    }
+}
+
 #endif
