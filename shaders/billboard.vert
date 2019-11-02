@@ -7,14 +7,14 @@ attribute float a_textureIndex;
 
 varying vec2 UV;
 varying float alpha;
-varying float textureIndex;
+varying float v_textureIndex;
 
 uniform mat4 mvp;
 
 void main() {
     UV = textureCoord;
-	alpha = a_alpha;
-	textureIndex = a_textureIndex;
+    alpha = a_alpha;
+    v_textureIndex = a_textureIndex;
     gl_Position =  mvp * vec4(vertexPosition_modelspace, 1);
 }
 
