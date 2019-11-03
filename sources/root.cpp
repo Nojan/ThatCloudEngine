@@ -342,9 +342,12 @@ void Root::Update()
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
         ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
-        ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
-        ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
-        ImGui::Checkbox("DisableRenderer", &Constant::DisableRenderer);
+        if (false)
+        {
+            ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
+            ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
+            ImGui::Checkbox("DisableRenderer", &Constant::DisableRenderer);
+        }
         //if (ImGui::CollapsingHeader("OpenGL"))
         //{
         //    static bool wireframe = false;
