@@ -336,8 +336,34 @@ void LoopManager::Update(const float deltaTime)
         }
         mCloudCount = currentCloudCount;
         // Spawn cloud
-        if (mCloudCall && mCloudRelease && 1.f <= mStoredCloud)
+        if (mCloudRelease && 1.f <= mStoredCloud)
         {
+            // do we know the closest cloud
+            if (!mCloudCall)
+            {
+                for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
+                {
+                    GameEntity* entity = mEntities[idx];
+                    CloudComponent* cloud = entity->getComponent<CloudComponent>();
+                    if(!cloud)
+                        continue;
+                    if(0 == cloud->mColor)
+                        continue;
+                    PhysicComponent* physic = entity->getComponent<PhysicComponent>();
+                    if(!physic)
+                        continue;
+                    const glm::vec3 position(physic->mTransformComponent->Position());
+                    const glm::vec3 direction = boyPosition - position;
+                    const float distanceSq = glm::dot(direction, direction);
+                    const float limitSq = powf((touchDistance + pullDistance), 2.f);
+                    if (distanceSq < closestCloudDistanceSq)
+                    {
+                        closestCloudDistanceSq = distanceSq;
+                        closestCloud = entity;
+                    }
+                }
+            }
+            
             if (closestCloudDistanceSq < touchDistanceSq && nullptr != closestCloud)
             {
                 const float addedPower = deltaTime;
