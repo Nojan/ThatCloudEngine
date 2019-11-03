@@ -106,7 +106,7 @@ void Root::CreateContext()
     const int windowsWidth = 800;
     const int windowsHeight = 600;
     mSDL_ctx->window = SDL_CreateWindow(
-        "SDL Bootstrap", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        "Cloud", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         windowsWidth, windowsHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (nullptr == mSDL_ctx->window) {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -263,10 +263,6 @@ void Root::Update()
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     //glClearDepth(1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    const size_t windowTitleSize = 265;
-    char windowTitle[windowTitleSize];
-    snprintf(windowTitle, windowTitleSize, "Particle : %lldms", mFrameDuration.count());
-    SDL_SetWindowTitle(mSDL_ctx->window, windowTitle);
     SDL_Event e;
     int width, height;
     SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
