@@ -9,6 +9,7 @@
 #include "loadlevel.hpp"
 #include "../root.hpp"
 #include "../camera.hpp"
+#include "../input_control.hpp"
 #include "../physic_system.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
@@ -216,18 +217,21 @@ void LoopManager::Update(const float deltaTime)
     const glm::vec3 planeNormal(0, 1.f, 0);
     const float planeAltitude = Gameplay::grid_altitude;
     const float cosTheta = glm::dot(mouseDirection, planeNormal);
-    if (0.f == cosTheta)
-        return;
-    const glm::vec3& cameraPosition = camera->Position();
-    const float t = glm::dot( (planeNormal * planeAltitude) - cameraPosition, planeNormal) / cosTheta;
-    const Camera::perspective& parameter = camera->Perspective();
-    if (t < parameter.zNear || parameter.zFar < t)
-        return;
-    const glm::vec3 intersect = cameraPosition + mouseDirection*t;
-    //VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 0.25f, {1.f, 0.f, 0.f, 1.f}));
+    if (false && 0.f != cosTheta)
+    {
+        const glm::vec3& cameraPosition = camera->Position();
+        const float t = glm::dot( (planeNormal * planeAltitude) - cameraPosition, planeNormal) / cosTheta;
+        const Camera::perspective& parameter = camera->Perspective();
+        if (!(t < parameter.zNear || parameter.zFar < t))
+        {
+            const glm::vec3 intersect = cameraPosition + mouseDirection*t;
+            //VisualDebug()->PushCommand(VisualDebugSphereCommand(intersect, 0.25f, {1.f, 0.f, 0.f, 1.f}));
 
-    mBoy->MoveToward(intersect, deltaTime);
-    mCursor->SetPosition(intersect, deltaTime);
+            mBoy->MoveToward(intersect, deltaTime);
+            mCursor->SetPosition(intersect, deltaTime);
+        }
+    }
+
 
     {
         glm::vec3 cameraDir = camera->Direction();
@@ -465,41 +469,6 @@ void Gameplay::LoopManager::CloudPurified(GameEntity * cloudEntity)
 
 void LoopManager::Event(const SDL_Event & e)
 {
-    if (mClickLeft)
-    {
-        mClickLeft = !(SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button);
-    }
-    else
-    {
-        mClickLeft = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
-        if (mClickLeft)
-        {
-            mAdditionalRadius.SetValue(0);
-        }
-    }
-
-    if (mShiftLeft)
-    {
-        mShiftLeft = !(SDL_KEYUP == e.type && SDLK_LSHIFT == e.key.keysym.sym);
-    }
-    else
-    {
-        mShiftLeft = (SDL_KEYDOWN == e.type && SDLK_LSHIFT == e.key.keysym.sym);
-        if (mShiftLeft)
-        {
-            mAdditionalRadius.SetValue(0);
-        }
-    }
-
-    if (mCtrlLeft)
-    {
-        mCtrlLeft = !(SDL_KEYUP == e.type && SDLK_LCTRL == e.key.keysym.sym);
-    }
-    else
-    {
-        mCtrlLeft = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
-    }
-
     if (SDL_KEYDOWN == e.type && SDLK_r == e.key.keysym.sym)
     {
         GameSystem* gameSystem = Global::gameSytem();
@@ -551,9 +520,21 @@ void LoopManager::Event(const SDL_Event & e)
     }
 }
 
-void Gameplay::LoopManager::OnMotion(const float x, const float y)
+void Gameplay::LoopManager::Control(const InputControl& input)
 {
-    mMotion = glm::vec2(x, y);
+    if (!mClickLeft && input.call)
+    {
+        mAdditionalRadius.SetValue(0);
+    }
+    if (!mShiftLeft && input.absorb)
+    {
+        mAdditionalRadius.SetValue(0);
+    }
+
+    mClickLeft = input.call;
+    mShiftLeft = input.absorb;
+    mCtrlLeft = input.release;
+    mMotion = input.move;
 }
 
 #ifdef IMGUI_ENABLE

@@ -9,7 +9,7 @@ class BoyCamera : public CameraMover
 {
 public:
     void Move(const float speed, Camera* camera) override;
-    void Event(const SDL_Event& e, Camera* camera) override;
+    void Control(const InputControl& control, Camera* camera) override;
 
     Boy* mBoy = nullptr;
     bool mMousePan = false;

@@ -16,6 +16,8 @@ class GameEntity;
 class Boy;
 class Cursor;
 
+struct InputControl;
+
 namespace Gameplay {
 
 class SmoothTransition {
@@ -51,8 +53,7 @@ public:
     void SpawnCloud(const glm::vec3& position, const int color, const float power);
 
     void Event(const SDL_Event& e);
-    void OnMotion(const float x, const float y);
-    glm::vec2 Motion() const { return mMotion; }
+    void Control(const InputControl& input);
 
     enum soundEffectIdx {
         CloudRelease,

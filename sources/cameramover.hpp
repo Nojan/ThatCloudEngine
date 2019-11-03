@@ -2,11 +2,13 @@
 
 union SDL_Event;
 class Camera;
+struct InputControl;
 
 class CameraMover
 {
 public:
     virtual void Move(const float speed, Camera* camera) {};
+    virtual void Control(const InputControl& control, Camera* camera) {};
     virtual void Event(const SDL_Event& e, Camera* camera) {};
 
     enum MoveMask

@@ -208,14 +208,17 @@ void Camera::SetCameraMover(std::unique_ptr<CameraMover>&& mover)
 
 void Camera::Event(const SDL_Event & e)
 {
-    if(mMover)
-        mMover->Event(e, this);
-
     if (SDL_MOUSEMOTION == e.type)
     {
         const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
         mMouseDirectionWorld = ProjectScreenCoordToWorld(newMousePosition);
     }
+}
+
+void Camera::Control(const InputControl& control)
+{
+    if(mMover)
+        mMover->Control(control, this);
 }
 
 void Camera::WindowResize(int width, int height)

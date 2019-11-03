@@ -10,6 +10,7 @@
 
 union SDL_Event;
 class CameraMover;
+struct InputControl;
 
 class Camera : public IUpdater {
 public:
@@ -67,6 +68,7 @@ public:
     void SetCameraMover(std::unique_ptr<CameraMover>&& mover);
 
     void Event(const SDL_Event& e);
+    void Control(const InputControl& control);
     
     void WindowResize(int width, int height);
 

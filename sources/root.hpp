@@ -6,6 +6,7 @@
 #include <memory>
 
 class Camera;
+class InputController;
 class FireworksManager;
 class IUpdater;
 class IRenderer;
@@ -41,6 +42,7 @@ private:
 private:
     std::shared_ptr<Camera> mCamera;
     std::unique_ptr<Scene> mScene;
+    std::unique_ptr<InputController> mInputController;
     std::vector<std::shared_ptr< IRenderer > > mRendererList;
     std::vector<std::shared_ptr< IUpdater > > mUpdaterList;
     std::shared_ptr<FireworksManager> mFireworkManager;

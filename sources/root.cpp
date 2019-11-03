@@ -2,6 +2,7 @@
 
 #include "camera.hpp"
 #include "firework.hpp"
+#include "input_controller.hpp"
 #include "particle.hpp"
 #include "platform/platform.hpp"
 #include "renderer_list.hpp"
@@ -139,6 +140,8 @@ void Root::CreateContext()
 
     gl_log_error();
 
+    mInputController = std::make_unique<InputController>();
+
     // Setup ImGui binding
     IMGUI_ONLY(ImGui_ImplSdl_Init(mSDL_ctx->window));
 
@@ -267,6 +270,7 @@ void Root::Update()
     SDL_Event e;
     int width, height;
     SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
+    mInputController->BeginEvents();
     while (SDL_PollEvent(&e) != 0) {
         if (SDL_QUIT == e.type) {
             mRunning = false;
@@ -283,40 +287,18 @@ void Root::Update()
             glViewport(0, 0, width, height);
             mCamera->WindowResize(width, height);
         }
-        if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
-        {
-            // This is game specific. TODO move into mGameplayLoopManager
-            SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
-        }
-        mCamera->Event(e);
-        mGameplayLoopManager->Event(e);
-        if (SDL_MOUSEMOTION == e.type)
-        {
-            const float motionx = static_cast<float>(e.motion.x - (width / 2));
-            const float motiony = static_cast<float>(e.motion.y - (height / 2));
-            const float halfWidth = static_cast<float>(width / 2);
-            const float halfHeight = static_cast<float>(height / 2);
-            mGameplayLoopManager->OnMotion(motionx / halfWidth, motiony / halfHeight);
-        }
-        if (SDL_CONTROLLERAXISMOTION == e.type)
-        {
-            const int deadzone = 4000;
-            const float max_range = numeric_cast<float>(32767 - deadzone);
-            const bool value_positive = 0 <= e.caxis.value;
-            int value_abs = abs(e.caxis.value);
-            value_abs = deadzone < value_abs ? value_abs - deadzone : 0;
-            float value = numeric_cast<float>(value_abs) / max_range;
-            if (!value_positive) value *= -1.0f;
-            if (SDL_CONTROLLER_AXIS_LEFTX == e.caxis.axis)
-            {
-                mGameplayLoopManager->OnMotion(value, mGameplayLoopManager->Motion().y);
-            } 
-            else if (SDL_CONTROLLER_AXIS_LEFTY == e.caxis.axis)
-            {
-                mGameplayLoopManager->OnMotion(mGameplayLoopManager->Motion().x, value);
-            }
-        }
+        mInputController->Event(e, glm::ivec2(width, height));
+        //mCamera->Event(e); // TODO use Control(mInputController)
+        mGameplayLoopManager->Event(e); // TODO use Control(mInputController)
     }
+    mInputController->EndEvents();
+    if (mInputController->GetInput().center)
+    {
+        // This is game specific. TODO move into mGameplayLoopManager
+        SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
+    }
+    mCamera->Control(mInputController->GetInput());
+    mGameplayLoopManager->Control(mInputController->GetInput());
     IMGUI_ONLY(ImGui_ImplSdl_NewFrame(mSDL_ctx->window));
     const bool disableFrameStep = Constant::DisableFrameStep;
     const bool disableUpdate = Constant::DisableUpdater;
@@ -376,6 +358,10 @@ void Root::Update()
         //    else
         //        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         //}
+        if (ImGui::CollapsingHeader("Control"))
+        {
+            mInputController->debug_GUI();
+        }
         if (ImGui::CollapsingHeader("Main camera"))
         {
             mCamera->debug_GUI();
