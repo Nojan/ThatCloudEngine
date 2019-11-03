@@ -2,7 +2,7 @@
 
 #include "../config.hpp"
 
-#ifdef IMGUI_ENABLE
+#if IMGUI_ENABLE()
 #include "imgui.h"
 #include "imgui_impl.hpp"
 

@@ -3,7 +3,7 @@
 
 #include "../config.hpp"
 
-#ifdef IMGUI_ENABLE
+#if IMGUI_ENABLE()
 
 struct SDL_Window;
 typedef union SDL_Event SDL_Event;

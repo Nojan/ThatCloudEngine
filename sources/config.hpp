@@ -4,10 +4,10 @@
 #define WEBGL
 #endif
 
-#define IMGUI_ENABLE
+#define IMGUI_ENABLE() 1
 
-#ifdef IMGUI_ENABLE
+#if IMGUI_ENABLE()
 #define GUI_DEBUG() 1
 #else
 #define GUI_DEBUG() 0
-#endif // IMGUI_ENABLE
+#endif

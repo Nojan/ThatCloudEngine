@@ -4,7 +4,7 @@
 #include "imgui.h"
 #include "imgui_impl.hpp"
 
-#ifdef IMGUI_ENABLE
+#if IMGUI_ENABLE()
 
 #include <SDL2/SDL.h>
 #ifdef __EMSCRIPTEN__
