@@ -392,6 +392,7 @@ void Root::Update()
     ImGui::End();
 #endif
     IMGUI_ONLY(ImGui::Render());
+    IMGUI_ONLY(ImGui_ImplSdl_RenderDrawLists(ImGui::GetDrawData()));
     SDL_GL_SwapWindow(mSDL_ctx->window);
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
