@@ -72,7 +72,7 @@ public:
     
     void WindowResize(int width, int height);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI();
 #endif
 

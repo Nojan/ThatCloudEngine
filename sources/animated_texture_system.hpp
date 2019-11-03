@@ -32,7 +32,7 @@ public:
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const override;
 #endif
     const char* debug_name() const override { return "AnimatedTexture"; }

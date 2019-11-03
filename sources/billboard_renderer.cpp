@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cassert>
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void BillboardRenderer::debug_GUI() const {
 
 }

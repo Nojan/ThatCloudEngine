@@ -16,7 +16,7 @@ public:
     void Terminate();
     void Update(const float deltaTime);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI();
 #endif
 

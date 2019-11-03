@@ -102,7 +102,7 @@ void VisualDebugRenderer_vao::PushCommand(const IVisualDebugCommand& command) {
     command.ApplyCommand(mVertexFill, mColorFill, mIndexFill, mVertexLine, mColorLine, mIndexLine);
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void VisualDebugRenderer_vao::debug_GUI() const {
     
 }
@@ -371,7 +371,7 @@ void VisualDebugRenderer::PushCommand(const IVisualDebugCommand& command) {
     command.ApplyCommand(mVertexFill, mColorFill, mIndexFill, mVertexLine, mColorLine, mIndexLine);
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void VisualDebugRenderer::debug_GUI() const {
     
 }

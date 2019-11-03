@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <algorithm>
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void MeshRenderer::debug_GUI() const
 {
 

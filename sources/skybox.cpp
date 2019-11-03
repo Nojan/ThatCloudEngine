@@ -15,7 +15,7 @@
 
 static float glo_scale = 100.f;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void Skybox::debug_GUI() const {
     ImGui::SliderFloat("Scale", &glo_scale, 1.f, 1000.f);
 }

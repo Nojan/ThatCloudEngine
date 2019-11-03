@@ -340,7 +340,7 @@ void Root::Update()
     mFrameLeftover = lastFrameDuration;
     static bool autoSpawnParticle = false;
     static int autoSpawnParticleFrame = 100;
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     if (ImGui::Begin("Debug_Info"))
     {
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

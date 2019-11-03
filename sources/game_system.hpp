@@ -44,7 +44,7 @@ public:
     GameEntity* createEntity();
     void removeEntity(GameEntity* entity);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const;
 #endif
 

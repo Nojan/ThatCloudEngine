@@ -29,7 +29,7 @@ namespace Constant {
 }
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void SkinMeshRenderer::debug_GUI() const
 {
     ImGui::Checkbox("Override Animation", &Gameplay::Constant::OverrideAnimation);

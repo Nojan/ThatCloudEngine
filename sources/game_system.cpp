@@ -106,7 +106,7 @@ void GameSystem::removeEntity(GameEntity* entity)
     mDeadEntities.push_back(entity);
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void GameSystem::debug_GUI() const
 {
     if (ImGui::CollapsingHeader("Game System"))

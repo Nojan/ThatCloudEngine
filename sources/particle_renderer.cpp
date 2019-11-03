@@ -169,7 +169,7 @@ void ParticleRenderer::HandleMousePosition(float x, float y, float z) {
     mMousePosition = glm::vec3(x, y, z);
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void ParticleRenderer::debug_GUI() const {
     ImGui::Text("Particle %d/%d", mParticleData->mCount, mParticleData->mMaxCount);
 }

@@ -22,7 +22,7 @@ public:
     void Render(const Scene * scene) override;
     void FlushFrame() override;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const;
 #endif
     const char* debug_name() const override { return "Skybox Renderer"; }

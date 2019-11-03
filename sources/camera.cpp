@@ -228,7 +228,7 @@ void Camera::WindowResize(int width, int height)
     mUpdateProjection = true;
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void Camera::debug_GUI()
 {
     ImGui::Text("Position %s", glm::to_string(mPosition).c_str());

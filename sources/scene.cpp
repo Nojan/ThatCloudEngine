@@ -8,7 +8,7 @@ namespace Constant {
     IMGUI_CONST float SpecularColor[] = { 1.f, 1.f, 1.f };
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void Scene::debug_GUI()
 {
     ImGui::SliderFloat3("Direction", Constant::Direction, -1.f, 1.f);

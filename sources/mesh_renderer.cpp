@@ -54,7 +54,7 @@ static const GLenum ToGLType[] = {
 };
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void GenericMeshRenderer::debug_GUI() const
 {
 

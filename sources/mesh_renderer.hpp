@@ -22,7 +22,7 @@ public:
 
     virtual MeshBuffer* RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount = 0) = 0;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const override;
 #endif
     const char* debug_name() const override { return "Generic Mesh Renderer"; } //TODO return shader name

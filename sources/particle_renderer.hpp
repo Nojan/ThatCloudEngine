@@ -30,7 +30,7 @@ public:
 
     void HandleMousePosition(float x, float y, float z);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const override;
 #endif
     const char* debug_name() const override { return "Particle Renderer"; }

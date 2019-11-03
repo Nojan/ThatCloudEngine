@@ -17,7 +17,7 @@ public:
     void EndEvents();
     InputControl GetInput() const;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI();
 #endif
 

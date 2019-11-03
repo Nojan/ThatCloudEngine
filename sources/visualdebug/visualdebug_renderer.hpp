@@ -32,7 +32,7 @@ public:
 
     void PushCommand(const IVisualDebugCommand& command);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const override;
     const char* debug_name() const override { return "Visual debug Renderer"; }
 #endif
@@ -79,7 +79,7 @@ public:
 
     void PushCommand(const IVisualDebugCommand& command);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI() const override;
 #endif
     const char* debug_name() const override { return "Visual debug Renderer"; }

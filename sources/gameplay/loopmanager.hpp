@@ -63,7 +63,7 @@ public:
     void PlaySoundEffect(soundEffectIdx idx);
     void CloudPurified(GameEntity* cloudEntity);
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     void debug_GUI();
 #endif
 

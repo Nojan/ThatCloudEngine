@@ -26,7 +26,7 @@ public:
     virtual void attachEntity(GameEntity* entity) = 0;
     virtual void detachEntity(GameEntity* entity) = 0;
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     virtual void debug_GUI() const {};
 #endif
     virtual const char* debug_name() const = 0;

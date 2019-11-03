@@ -9,7 +9,7 @@ namespace Constant {
 IMGUI_VAR(AnimatedTextureTimer, 0.1f);
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void AnimatedTextureSystem::debug_GUI() const
 {
     ImGui::SliderFloat("Timer", &Constant::AnimatedTextureTimer, 0.f, 0.2f);

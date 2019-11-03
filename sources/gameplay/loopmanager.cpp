@@ -563,7 +563,7 @@ void Gameplay::LoopManager::Control(const InputControl& input)
     mMotion = input.move;
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void LoopManager::debug_GUI()
 {
     ImGui::InputFloat("StoredCloud", &mStoredCloud, -100.f, 100.f);

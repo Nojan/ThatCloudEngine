@@ -329,7 +329,7 @@ public:
     std::vector<float> mFrameMixer;
 };
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 const int16_t g_debug_size = 64;
 static RingBuffer<int, g_debug_size> g_debug_sample_buffer;
 static RingBuffer<int, g_debug_size> g_debug_required_buffer;
@@ -370,10 +370,10 @@ int16_t SoundSystemImpl::samplesNeeded() const
 
 void SoundSystemImpl::queueAudio()
 {
-#ifdef IMGUI_ENABLE
     const int max_samples = mAudioSpecObtained.samples * mAudioSpecObtained.channels;
     const uint32_t bytePerSample = sizeof(float);
     SDL_AudioDeviceID audioDeviceID = mAudioDeviceId;
+#if GUI_DEBUG()
     uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(audioDeviceID);
     int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
     int16_t toQueue = max_samples - alreadyQueued;
@@ -427,7 +427,7 @@ SoundSystem::~SoundSystem()
 void SoundSystem::FrameStep()
 {
     return;
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
     if (ImGui::Begin("Debug_Sound"))
     {
         const int16_t buffer = g_debug_sample_buffer.peek_at(g_debug_sample_buffer.size());

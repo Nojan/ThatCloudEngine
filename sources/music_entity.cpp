@@ -131,11 +131,13 @@ void MusicEntity::Update(const float deltaTime)
 
     }
 }
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void MusicEntity::debug_GUI()
 {
     ImGui::SliderFloat("Volume", &mVolume, 0.f, 1.f);
 }
+#endif
+
 void MusicEntity::FreeResource()
 {
     if (mVorbis)
@@ -149,4 +151,3 @@ void MusicEntity::FreeResource()
         mFile = nullptr;
     }
 }
-#endif

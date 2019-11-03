@@ -158,7 +158,7 @@ InputControl InputController::GetInput() const
     return mControl;
 }
 
-#ifdef IMGUI_ENABLE
+#if GUI_DEBUG()
 void InputController::debug_GUI()
 {
     ImGui::Text("Move %s", glm::to_string(mControl.move).c_str());
