@@ -61,7 +61,6 @@ void BillboardRenderer::Render(const Scene * scene)
 {
 	if (mRenderQueue.empty())
         return;
-	glEnable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -178,7 +177,6 @@ void BillboardRenderer::Render(const Scene * scene)
     }
 
     mShaderProgram->Unbind();
-    glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
 }
 
