@@ -260,7 +260,7 @@ void LoopManager::Update(const float deltaTime)
         const float touchDistance = touch_distance + addedDistance;
         const float pullDistance = pull_distance + addedDistance;
         const float touchDistanceSq = touchDistance * touchDistance;
-        if(!mClickLeft)
+        if(!mCloudCall)
             mCloudPower = 0.f;
         for(int idx = numeric_cast<int>(mEntities.size()) - 1; 0 <= idx; --idx)
         {
@@ -298,7 +298,7 @@ void LoopManager::Update(const float deltaTime)
                 ++gridCloudCount;
             }
             // pull clouds toward the boy
-            if (mClickLeft)
+            if (mCloudCall)
             {
                 assert(0.f < cloud->mPower);
                 mCloudPower = glm::max(mCloudPower, cloud->mPower);
@@ -313,7 +313,7 @@ void LoopManager::Update(const float deltaTime)
                 if (distanceSq <= touchDistanceSq)
                 {
                     currentCloudCount++;
-                    if (mShiftLeft)
+                    if (mCloudAbsorb)
                     {
                         // absorb cloud
                         assert(0.f < cloud->mPower);
@@ -336,7 +336,7 @@ void LoopManager::Update(const float deltaTime)
         }
         mCloudCount = currentCloudCount;
         // Spawn cloud
-        if (mClickLeft && mCtrlLeft && 1.f <= mStoredCloud)
+        if (mCloudCall && mCloudRelease && 1.f <= mStoredCloud)
         {
             if (closestCloudDistanceSq < touchDistanceSq && nullptr != closestCloud)
             {
@@ -522,18 +522,18 @@ void LoopManager::Event(const SDL_Event & e)
 
 void Gameplay::LoopManager::Control(const InputControl& input)
 {
-    if (!mClickLeft && input.call)
+    if (!mCloudCall && input.call)
     {
         mAdditionalRadius.SetValue(0);
     }
-    if (!mShiftLeft && input.absorb)
+    if (!mCloudAbsorb && input.absorb)
     {
         mAdditionalRadius.SetValue(0);
     }
 
-    mClickLeft = input.call;
-    mShiftLeft = input.absorb;
-    mCtrlLeft = input.release;
+    mCloudCall = input.call;
+    mCloudAbsorb = input.absorb;
+    mCloudRelease = input.release;
     mMotion = input.move;
 }
 

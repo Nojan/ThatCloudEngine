@@ -84,9 +84,9 @@ private:
     float mStoredCloud = 0.f;
     float mCloudPower = 0.f;
     GameDebugMode mGameDebugMode = GameDebugMode::None;
-    bool mClickLeft = false;
-    bool mShiftLeft = false;
-    bool mCtrlLeft = false;
+    bool mCloudCall = false;
+    bool mCloudAbsorb = false;
+    bool mCloudRelease = false;
 };
 
 } // namespace
