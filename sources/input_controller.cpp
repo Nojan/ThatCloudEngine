@@ -194,7 +194,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         const int zoom_area(min_side * width);
         Control2D& c = mControl2D[2];
         c.position = glm::ivec2(windowSize.x * 0.5f - zoom_area, 0);
-        c.size = glm::ivec2(zoom_area, windowSize.y);
+        c.size = glm::ivec2(zoom_area * 2.f, windowSize.y);
     }
 }
 
