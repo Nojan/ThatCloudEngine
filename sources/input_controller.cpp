@@ -6,6 +6,13 @@
 #include <glm/ext.hpp>
 #include <SDL2/SDL.h>
 
+glm::vec2 Control2D::GetNormalizedPosition(glm::ivec2 p) const
+{
+    const glm::vec2 localPosition(p - position);
+    const glm::vec2 normalizedPosition = glm::clamp(localPosition / glm::vec2(size), glm::vec2(0.f), glm::vec2(1.f));
+    return glm::vec2(normalizedPosition - glm::vec2(0.5f)) * glm::vec2(2.0f);
+}
+
 void InputController::BeginEvents()
 {
     mControl.center = false;
@@ -14,70 +21,121 @@ void InputController::BeginEvents()
     {
         mControl.view = glm::vec2(0);
         mControl.zoom = 0;
-    } 
+    }
 }
 
 void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
 {
+    if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
+    {
+        SetupTouchControl(windowSize);
+    }
     if (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || SDL_MOUSEWHEEL == e.type || SDL_MOUSEMOTION == e.type)
     {
         mMode = Mode::Mouse;
+        if (mMouseClick && SDL_MOUSEBUTTONUP == e.type)
+        {
+            mMouseClick = false;
+        }
+        else if (!mMouseClick && SDL_MOUSEBUTTONDOWN == e.type)
+        {
+            mMouseClick = true;
+        }
+        constexpr bool forceTouchEvent = true;
+        if (forceTouchEvent && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || (mMouseClick && SDL_MOUSEMOTION == e.type)) )
+        {
+            SDL_TouchFingerEvent touch;
+            touch.timestamp = e.motion.timestamp;
+            touch.touchId = 1;
+            touch.fingerId = 1;
+            touch.x = 0;
+            touch.y = 0;
+            touch.dx = 0;
+            touch.dy = 0;
+            touch.pressure = 0.5f;
+            if (SDL_MOUSEBUTTONUP == e.type)
+            {
+                touch.type = SDL_FINGERUP;
+            }
+            else if (SDL_MOUSEBUTTONDOWN == e.type)
+            {
+                touch.type = SDL_FINGERDOWN;
+            }
+            else
+            {
+                touch.type = SDL_FINGERMOTION;
+            }
+            const glm::vec2 windowSizeF(windowSize);
+            const glm::vec2 position( float(e.motion.x) / windowSizeF.x,  float(e.motion.y) / windowSizeF.y);
+            const glm::vec2 dposition((position.x - 0.5f) * 2.f, (position.y - 0.5f) * 2.f);
+            touch.x = position.x;
+            assert(fabsf(touch.x) < 2.0f);
+            touch.y = position.y;
+            assert(fabsf(touch.y) < 2.0f);
+            touch.dx = dposition.x;
+            touch.dy = dposition.y;
+            ProcessTouchEvent(touch, windowSize);
+        }
+        if(forceTouchEvent)
+            return;
     }
     else if (SDL_CONTROLLERAXISMOTION == e.type)
     {
         mMode = Mode::Gamepad;
     }
 
-    if (SDL_BUTTON_RIGHT == e.button.button)
+    if (Mode::Mouse == mMode)
     {
-        mMousePan = SDL_MOUSEBUTTONDOWN == e.type;
-    }
-    if (SDL_MOUSEMOTION == e.type)
-    {
-        const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
-        mMousePositionCurrent = newMousePosition;
-    }
+        if (SDL_BUTTON_RIGHT == e.button.button)
+        {
+            mMousePan = SDL_MOUSEBUTTONDOWN == e.type;
+        }
+        if (SDL_MOUSEMOTION == e.type)
+        {
+            const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
+            mMousePositionCurrent = newMousePosition;
+        }
 
-    if (SDL_MOUSEWHEEL == e.type)
-    {
-        const float value(e.wheel.y * 15);
-        mControl.zoom += value;
-    }
+        if (SDL_MOUSEWHEEL == e.type)
+        {
+            const float value(e.wheel.y * 15.f);
+            mControl.zoom += value;
+        }
 
-    if (mControl.call)
-    {
-        mControl.call = !(SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button);
-    }
-    else
-    {
-        mControl.call = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
-    }
+        if (mControl.call)
+        {
+            mControl.call = !(SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button);
+        }
+        else
+        {
+            mControl.call = (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_LEFT == e.button.button);
+        }
 
-    if (mControl.absorb)
-    {
-        mControl.absorb = !(SDL_KEYUP == e.type && SDLK_LSHIFT == e.key.keysym.sym);
-    }
-    else
-    {
-        mControl.absorb = (SDL_KEYDOWN == e.type && SDLK_LSHIFT == e.key.keysym.sym);
-    }
+        if (mControl.absorb)
+        {
+            mControl.absorb = !(SDL_KEYUP == e.type && SDLK_LSHIFT == e.key.keysym.sym);
+        }
+        else
+        {
+            mControl.absorb = (SDL_KEYDOWN == e.type && SDLK_LSHIFT == e.key.keysym.sym);
+        }
 
-    if (mControl.release)
-    {
-        mControl.release = !(SDL_KEYUP == e.type && SDLK_LCTRL == e.key.keysym.sym);
-    }
-    else
-    {
-        mControl.release = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
-    }
-
-    if (SDL_MOUSEMOTION == e.type)
-    {
-        const float motionx = static_cast<float>(e.motion.x - (windowSize.x / 2));
-        const float motiony = static_cast<float>(e.motion.y - (windowSize.y / 2));
-        const float halfWidth = static_cast<float>(windowSize.x / 2);
-        const float halfHeight = static_cast<float>(windowSize.y / 2);
-        mControl.move = glm::vec2(motionx / halfWidth, motiony / halfHeight);
+        if (mControl.release)
+        {
+            mControl.release = !(SDL_KEYUP == e.type && SDLK_LCTRL == e.key.keysym.sym);
+        }
+        else
+        {
+            mControl.release = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
+        }
+        if (SDL_MOUSEMOTION == e.type)
+        {
+            const float motionx = static_cast<float>(e.motion.x - (windowSize.x / 2));
+            const float motiony = static_cast<float>(e.motion.y - (windowSize.y / 2));
+            const float halfWidth = static_cast<float>(windowSize.x / 2);
+            const float halfHeight = static_cast<float>(windowSize.y / 2);
+            mControl.move = glm::vec2(motionx / halfWidth, motiony / halfHeight);
+        }
     }
 
     if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
@@ -142,6 +200,104 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             mControl.center = pressed;
         }
     }
+
+    if (SDL_FINGERDOWN == e.type || SDL_FINGERUP == e.type || SDL_FINGERMOTION == e.type)
+    {
+        ProcessTouchEvent(e.tfinger, windowSize);
+    }
+}
+
+void InputController::SetupTouchControl(const glm::ivec2 windowSize)
+{
+    // Reset
+    for (size_t idx = 0; idx < mControl2D.size(); ++idx)
+    {
+        Control2D& c = mControl2D[idx];
+        c.position = glm::ivec2(0);
+        c.size = glm::ivec2(0);
+        c.fingerIdx = -1;
+    }
+    
+    const int min_side = glm::min(windowSize.x, windowSize.y);
+    const int stick_area_size(min_side * 0.45f);
+    if(stick_area_size < 1)
+        return;
+
+    // Left thumb
+    {
+        Control2D& c = mControl2D[0];
+        c.position = glm::ivec2(0, windowSize.y - stick_area_size);
+        c.size = glm::ivec2(stick_area_size, stick_area_size);
+    }
+
+    // Right thumb
+    {
+        Control2D& c = mControl2D[1];
+        c.position = glm::ivec2(windowSize.x - stick_area_size, windowSize.y - stick_area_size);
+        c.size = glm::ivec2(stick_area_size, stick_area_size);
+    }
+
+    // Zoom
+    {
+        const float width = 0.05f;
+        const int zoom_area(min_side * width);
+        Control2D& c = mControl2D[2];
+        c.position = glm::ivec2(windowSize.x * 0.5f - zoom_area, 0);
+        c.size = glm::ivec2(zoom_area, windowSize.y);
+    }
+}
+
+void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm::ivec2 windowSize)
+{
+    mMode = Mode::Touch;
+    const glm::vec2 touchPosition = glm::vec2(e.x, e.y) * glm::vec2(windowSize);
+    if (SDL_FINGERDOWN == e.type)
+    {
+        for (size_t idx = 0; idx < mFingers.size(); ++idx)
+        {
+            Finger& f = mFingers[idx];
+            if (Finger::State::up == f.state)
+            {
+                f.position = touchPosition;
+                f.state = Finger::State::down;
+                break;
+            }
+        }
+    }
+    else
+    {
+        size_t closestFinger = -1;
+        float closestDistance = FLT_MAX;
+        for (size_t idx = 0; idx < mFingers.size(); ++idx)
+        {
+            Finger& f = mFingers[idx];
+            if (Finger::State::up == f.state)
+            {
+                continue;
+            }
+            const glm::vec2 diff = glm::vec2(f.position) - touchPosition;
+            const float diffMagSq = glm::dot(diff, diff);
+            if (diffMagSq < closestDistance)
+            {
+                closestDistance = diffMagSq;
+                closestFinger = idx;
+            }
+        }
+        if (-1 != closestFinger)
+        {
+            Finger& f = mFingers[closestFinger];
+            if (SDL_FINGERUP == e.type)
+            {
+                f.state = Finger::State::up;
+                f.position = glm::ivec2(0, 0);
+            }
+            else
+            {
+                f.state = Finger::State::motion;
+                f.position = glm::ivec2(touchPosition);
+            }
+        }
+    }
 }
 
 void InputController::EndEvents()
@@ -151,12 +307,108 @@ void InputController::EndEvents()
         const float gain = 0.005f;
         mControl.view = (mMousePositionCurrent - mMousePositionPrevious)*gain;
     }
+
+    for (size_t idx = 0; idx < mControl2D.size(); ++idx)
+    {
+        Control2D& c = mControl2D[idx];
+        if (uint8_t(-1) != c.fingerIdx)
+        {
+            // Finger leaving control
+            const Finger& f = mFingers[c.fingerIdx];
+            if (Finger::State::up == f.state)
+            {
+                c.fingerIdx = -1;
+            }
+            else
+            {
+                const glm::ivec2 diff = f.position - c.position;
+                if (diff.x < 0 || diff.y < 0|| c.size.x < diff.x || c.size.y < diff.y)
+                {
+                    c.fingerIdx = -1;
+                }
+            }
+        }
+        else
+        {
+            // Finger entering control
+            for (size_t fingerIdx = 0; fingerIdx < mFingers.size(); ++fingerIdx)
+            {
+                const Finger& f = mFingers[fingerIdx];
+                if (Finger::State::down != f.state)
+                    continue;
+                const glm::ivec2 diff = f.position - c.position;
+                if (diff.x >= 0 && diff.y >= 0 && c.size.x >= diff.x && c.size.y >= diff.y)
+                {
+                    c.fingerIdx = numeric_cast<uint8_t>(fingerIdx);
+                    break;
+                }
+            }
+        }
+    }
+    if (Mode::Touch == mMode)
+    {
+        auto computeControl2D = [this](const Control2D& c) -> glm::vec2
+        {
+            glm::vec2 result = glm::vec2(0, 0);
+            if (uint8_t(-1) != c.fingerIdx)
+            {
+                const Finger& f = mFingers[c.fingerIdx];
+                assert(Finger::State::up != f.state);
+                result = c.GetNormalizedPosition(f.position);
+            }
+            return result;
+        };
+        mControl.move = computeControl2D(mControl2D[0]);
+        mControl.view = computeControl2D(mControl2D[1]) * 0.01f;
+        mControl.view.x = -mControl.view.x;
+        mControl.zoom = computeControl2D(mControl2D[2]).y;
+    }
 }
 
 InputControl InputController::GetInput() const
 {
     return mControl;
 }
+
+#if IMGUI_ENABLE()
+void InputController::DrawGamepad()
+{
+    const float alpha = 0.15f;
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    const float sz = 36.0f;
+    const float thickness = 3.0f;
+    const ImVec4 colf = ImVec4(1.0f, 1.0f, 0.4f, 1.0f);
+    const ImU32 col = ImColor(colf);
+
+    char name[64] = "";
+    for(size_t idx = 0; idx < mControl2D.size(); ++idx)
+    {
+        const Control2D& c = mControl2D[idx];
+        if (0 != c.size.x)
+        {
+            ImGui::SetNextWindowPos(ImVec2(c.position.x, c.position.y), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(c.size.x, c.size.y), ImGuiCond_Always);
+            ImGui::SetNextWindowBgAlpha(alpha);
+            sprintf(name, "stick##%d", idx);
+            if (ImGui::Begin(name, nullptr, flags))
+            {
+                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                const ImVec2 p = ImGui::GetCursorScreenPos();
+                float x = p.x + c.size.x * 0.5f, y = p.y + c.size.y * 0.5f;
+                if (uint8_t(-1) != c.fingerIdx)
+                {
+                    draw_list->AddCircleFilled(ImVec2(x - sz*0.5f, y - sz*0.5f), sz, col, 20);
+                }
+                else
+                {
+                    draw_list->AddCircle(ImVec2(x - sz*0.5f, y - sz*0.5f), sz, col, 20, thickness);
+                }
+            }
+            ImGui::End();
+        }
+    }
+}
+#endif
 
 #if GUI_DEBUG()
 void InputController::debug_GUI()
@@ -169,3 +421,4 @@ void InputController::debug_GUI()
     ImGui::Value("Release", mControl.release);
 }
 #endif
+

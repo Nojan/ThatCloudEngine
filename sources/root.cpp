@@ -141,6 +141,7 @@ void Root::CreateContext()
     gl_log_error();
 
     mInputController = std::make_unique<InputController>();
+    mInputController->SetupTouchControl(glm::ivec2(windowsWidth, windowsHeight));
 
     // Setup ImGui binding
     IMGUI_ONLY(ImGui_ImplSdl_Init(mSDL_ctx->window));
@@ -333,6 +334,7 @@ void Root::Update()
         }
         renderer->FlushFrame();
     }
+    IMGUI_ONLY(mInputController->DrawGamepad());
     mFrameLeftover = lastFrameDuration;
     static bool autoSpawnParticle = false;
     static int autoSpawnParticleFrame = 100;
