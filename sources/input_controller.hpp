@@ -30,6 +30,7 @@ struct Control2D {
 class InputController {
 public:
     enum class Mode {
+        None,
         Mouse,
         Gamepad,
         Touch,
@@ -51,6 +52,7 @@ public:
 
 private:
     void ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm::ivec2 windowSize);
+    void ProcessGamepadEvent(const SDL_Event& e);
     InputControl mControl;
     glm::vec2 mMousePositionPrevious = glm::vec2(0,0);
     glm::vec2 mMousePositionCurrent = glm::vec2(0,0);

@@ -6,6 +6,8 @@
 #include <glm/ext.hpp>
 #include <SDL2/SDL.h>
 
+constexpr bool mouseSimulateTouchEvent = false;
+
 glm::vec2 Control2D::GetNormalizedPosition(glm::ivec2 p) const
 {
     const glm::vec2 localPosition(p - position);
@@ -22,6 +24,12 @@ void InputController::BeginEvents()
         mControl.view = glm::vec2(0);
         mControl.zoom = 0;
     }
+    // Unset the mode for the frame
+    // priority order:
+    // touch
+    // gamepad
+    // mouse
+    mMode = Mode::None;
 }
 
 void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
@@ -30,7 +38,23 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
     {
         SetupTouchControl(windowSize);
     }
-    if (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || SDL_MOUSEWHEEL == e.type || SDL_MOUSEMOTION == e.type)
+    if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
+    {
+        mControl.center = true;
+    }
+
+    if (SDL_FINGERDOWN == e.type || SDL_FINGERUP == e.type || SDL_FINGERMOTION == e.type)
+    {
+        mMode = Mode::Touch;
+        ProcessTouchEvent(e.tfinger, windowSize);
+    }
+    if ((Mode::None == mMode || Mode::Gamepad == mMode) && (SDL_CONTROLLERAXISMOTION == e.type || SDL_CONTROLLERBUTTONDOWN == e.type || SDL_CONTROLLERBUTTONUP == e.type))
+    {
+        mMode = Mode::Gamepad;
+        ProcessGamepadEvent(e);
+    }
+
+    if ((Mode::None == mMode || Mode::Mouse == mMode) && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || SDL_MOUSEWHEEL == e.type || SDL_MOUSEMOTION == e.type))
     {
         mMode = Mode::Mouse;
         if (mMouseClick && SDL_MOUSEBUTTONUP == e.type)
@@ -41,8 +65,7 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
         {
             mMouseClick = true;
         }
-        constexpr bool forceTouchEvent = true;
-        if (forceTouchEvent && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || (mMouseClick && SDL_MOUSEMOTION == e.type)) )
+        if (mouseSimulateTouchEvent && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || (mMouseClick && SDL_MOUSEMOTION == e.type)) )
         {
             SDL_TouchFingerEvent touch;
             touch.timestamp = e.motion.timestamp;
@@ -76,12 +99,8 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             touch.dy = dposition.y;
             ProcessTouchEvent(touch, windowSize);
         }
-        if(forceTouchEvent)
+        if(mouseSimulateTouchEvent)
             return;
-    }
-    else if (SDL_CONTROLLERAXISMOTION == e.type)
-    {
-        mMode = Mode::Gamepad;
     }
 
     if (Mode::Mouse == mMode)
@@ -137,12 +156,102 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             mControl.move = glm::vec2(motionx / halfWidth, motiony / halfHeight);
         }
     }
+}
 
-    if (SDL_KEYDOWN == e.type && SDLK_SPACE == e.key.keysym.sym)
+void InputController::SetupTouchControl(const glm::ivec2 windowSize)
+{
+    // Reset
+    for (size_t idx = 0; idx < mControl2D.size(); ++idx)
     {
-        mControl.center = true;
+        Control2D& c = mControl2D[idx];
+        c.position = glm::ivec2(0);
+        c.size = glm::ivec2(0);
+        c.fingerIdx = -1;
+    }
+    
+    const int min_side = glm::min(windowSize.x, windowSize.y);
+    const int stick_area_size(min_side * 0.45f);
+    if(stick_area_size < 1)
+        return;
+
+    // Left thumb
+    {
+        Control2D& c = mControl2D[0];
+        c.position = glm::ivec2(0, windowSize.y - stick_area_size);
+        c.size = glm::ivec2(stick_area_size, stick_area_size);
     }
 
+    // Right thumb
+    {
+        Control2D& c = mControl2D[1];
+        c.position = glm::ivec2(windowSize.x - stick_area_size, windowSize.y - stick_area_size);
+        c.size = glm::ivec2(stick_area_size, stick_area_size);
+    }
+
+    // Zoom
+    {
+        const float width = 0.05f;
+        const int zoom_area(min_side * width);
+        Control2D& c = mControl2D[2];
+        c.position = glm::ivec2(windowSize.x * 0.5f - zoom_area, 0);
+        c.size = glm::ivec2(zoom_area, windowSize.y);
+    }
+}
+
+void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm::ivec2 windowSize)
+{
+    const glm::vec2 touchPosition = glm::vec2(e.x, e.y) * glm::vec2(windowSize);
+    if (SDL_FINGERDOWN == e.type)
+    {
+        for (size_t idx = 0; idx < mFingers.size(); ++idx)
+        {
+            Finger& f = mFingers[idx];
+            if (Finger::State::up == f.state)
+            {
+                f.position = touchPosition;
+                f.state = Finger::State::down;
+                break;
+            }
+        }
+    }
+    else
+    {
+        size_t closestFinger = -1;
+        float closestDistance = FLT_MAX;
+        for (size_t idx = 0; idx < mFingers.size(); ++idx)
+        {
+            Finger& f = mFingers[idx];
+            if (Finger::State::up == f.state)
+            {
+                continue;
+            }
+            const glm::vec2 diff = glm::vec2(f.position) - touchPosition;
+            const float diffMagSq = glm::dot(diff, diff);
+            if (diffMagSq < closestDistance)
+            {
+                closestDistance = diffMagSq;
+                closestFinger = idx;
+            }
+        }
+        if (-1 != closestFinger)
+        {
+            Finger& f = mFingers[closestFinger];
+            if (SDL_FINGERUP == e.type)
+            {
+                f.state = Finger::State::up;
+                f.position = glm::ivec2(0, 0);
+            }
+            else
+            {
+                f.state = Finger::State::motion;
+                f.position = glm::ivec2(touchPosition);
+            }
+        }
+    }
+}
+
+void InputController::ProcessGamepadEvent(const SDL_Event& e)
+{
     if (SDL_CONTROLLERAXISMOTION == e.type)
     {
         const float view_gain = 0.1f;
@@ -200,104 +309,6 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             mControl.center = pressed;
         }
     }
-
-    if (SDL_FINGERDOWN == e.type || SDL_FINGERUP == e.type || SDL_FINGERMOTION == e.type)
-    {
-        ProcessTouchEvent(e.tfinger, windowSize);
-    }
-}
-
-void InputController::SetupTouchControl(const glm::ivec2 windowSize)
-{
-    // Reset
-    for (size_t idx = 0; idx < mControl2D.size(); ++idx)
-    {
-        Control2D& c = mControl2D[idx];
-        c.position = glm::ivec2(0);
-        c.size = glm::ivec2(0);
-        c.fingerIdx = -1;
-    }
-    
-    const int min_side = glm::min(windowSize.x, windowSize.y);
-    const int stick_area_size(min_side * 0.45f);
-    if(stick_area_size < 1)
-        return;
-
-    // Left thumb
-    {
-        Control2D& c = mControl2D[0];
-        c.position = glm::ivec2(0, windowSize.y - stick_area_size);
-        c.size = glm::ivec2(stick_area_size, stick_area_size);
-    }
-
-    // Right thumb
-    {
-        Control2D& c = mControl2D[1];
-        c.position = glm::ivec2(windowSize.x - stick_area_size, windowSize.y - stick_area_size);
-        c.size = glm::ivec2(stick_area_size, stick_area_size);
-    }
-
-    // Zoom
-    {
-        const float width = 0.05f;
-        const int zoom_area(min_side * width);
-        Control2D& c = mControl2D[2];
-        c.position = glm::ivec2(windowSize.x * 0.5f - zoom_area, 0);
-        c.size = glm::ivec2(zoom_area, windowSize.y);
-    }
-}
-
-void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm::ivec2 windowSize)
-{
-    mMode = Mode::Touch;
-    const glm::vec2 touchPosition = glm::vec2(e.x, e.y) * glm::vec2(windowSize);
-    if (SDL_FINGERDOWN == e.type)
-    {
-        for (size_t idx = 0; idx < mFingers.size(); ++idx)
-        {
-            Finger& f = mFingers[idx];
-            if (Finger::State::up == f.state)
-            {
-                f.position = touchPosition;
-                f.state = Finger::State::down;
-                break;
-            }
-        }
-    }
-    else
-    {
-        size_t closestFinger = -1;
-        float closestDistance = FLT_MAX;
-        for (size_t idx = 0; idx < mFingers.size(); ++idx)
-        {
-            Finger& f = mFingers[idx];
-            if (Finger::State::up == f.state)
-            {
-                continue;
-            }
-            const glm::vec2 diff = glm::vec2(f.position) - touchPosition;
-            const float diffMagSq = glm::dot(diff, diff);
-            if (diffMagSq < closestDistance)
-            {
-                closestDistance = diffMagSq;
-                closestFinger = idx;
-            }
-        }
-        if (-1 != closestFinger)
-        {
-            Finger& f = mFingers[closestFinger];
-            if (SDL_FINGERUP == e.type)
-            {
-                f.state = Finger::State::up;
-                f.position = glm::ivec2(0, 0);
-            }
-            else
-            {
-                f.state = Finger::State::motion;
-                f.position = glm::ivec2(touchPosition);
-            }
-        }
-    }
 }
 
 void InputController::EndEvents()
@@ -345,6 +356,10 @@ void InputController::EndEvents()
             }
         }
     }
+    if (mouseSimulateTouchEvent && Mode::Mouse == mMode)
+    {
+        mMode = Mode::Touch;
+    }
     if (Mode::Touch == mMode)
     {
         auto computeControl2D = [this](const Control2D& c) -> glm::vec2
@@ -373,6 +388,8 @@ InputControl InputController::GetInput() const
 #if IMGUI_ENABLE()
 void InputController::DrawGamepad()
 {
+    if (Mode::Touch != mMode)
+        return;
     const float alpha = 0.15f;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     const float sz = 36.0f;
