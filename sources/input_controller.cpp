@@ -501,8 +501,7 @@ void InputController::DrawGamepad()
     const ImU32 col = ImColor(colf);
 
     char name[64] = "";
-    const size_t buttonsCount = showControl ? mButton2D.size() : glm::min<size_t>(1, mButton2D.size());
-    for(size_t idx = 0; idx < buttonsCount; ++idx)
+    for(size_t idx = 0; idx <  mButton2D.size(); ++idx)
     {
         const Button2D& b = mButton2D[idx];
         if (0 == b.size.x)
