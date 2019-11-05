@@ -12,3 +12,5 @@ set MAKE="%EMSDK%/mingw/7.1.0_64bit/bin/mingw32-make.exe"
 
 call emcmake cmake -DCMAKE_BUILD_TYPE=Release -D"CMAKE_MAKE_PROGRAM:PATH=%MAKE%" .. -G "MinGW Makefiles"
 call emmake %MAKE%
+
+copy /b index.html +,,
