@@ -466,6 +466,19 @@ void InputController::EndEvents()
         mControl.call = mButton2D[1].state;
         mControl.absorb = mButton2D[2].state;
         mControl.release = mButton2D[3].state;
+
+        if (mButton2D[0].state)
+        {
+            mShowTouchControl = 5.f;
+        }
+    }
+}
+
+void InputController::Update(const float duration)
+{
+    if (0 < mShowTouchControl)
+    {
+        mShowTouchControl -= duration;
     }
 }
 
@@ -479,7 +492,8 @@ void InputController::DrawGamepad()
 {
     if (Mode::Touch != mMode)
         return;
-    const float alpha = 0.15f;
+    const bool showControl = 0.f < mShowTouchControl;
+    const float alpha = 0.15f * glm::min(1.0f, mShowTouchControl);
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     const float sz = 36.0f;
     const float thickness = 3.0f;
@@ -487,6 +501,28 @@ void InputController::DrawGamepad()
     const ImU32 col = ImColor(colf);
 
     char name[64] = "";
+    const size_t buttonsCount = showControl ? mButton2D.size() : glm::min<size_t>(1, mButton2D.size());
+    for(size_t idx = 0; idx < buttonsCount; ++idx)
+    {
+        const Button2D& b = mButton2D[idx];
+        if (0 == b.size.x)
+            continue;
+
+        const float alpha_button = b.state ? glm::min(alpha * 2.0f, 1.0f): alpha;
+        ImGui::SetNextWindowPos(ImVec2(b.position.x, b.position.y), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(b.size.x, b.size.y), ImGuiCond_Always);
+        ImGui::SetNextWindowBgAlpha(alpha_button);
+        sprintf(name, "%s##%d", b.name.c_str(), idx);
+        if (ImGui::Begin(name, nullptr, flags))
+        {
+            ImGui::Text("%c", b.name[0]);
+        }
+        ImGui::End();
+    }
+
+    if(!showControl)
+        return;
+
     for(size_t idx = 0; idx < mControl2D.size(); ++idx)
     {
         const Control2D& c = mControl2D[idx];
@@ -512,24 +548,6 @@ void InputController::DrawGamepad()
             }
             ImGui::End();
         }
-    }
-
-    for(size_t idx = 0; idx < mButton2D.size(); ++idx)
-    {
-        const Button2D& b = mButton2D[idx];
-        if (0 == b.size.x)
-            continue;
-
-        const float alpha_button = b.state ? glm::min(alpha * 2.0f, 1.0f): alpha;
-        ImGui::SetNextWindowPos(ImVec2(b.position.x, b.position.y), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(b.size.x, b.size.y), ImGuiCond_Always);
-        ImGui::SetNextWindowBgAlpha(alpha_button);
-        sprintf(name, "%s##%d", b.name.c_str(), idx);
-        if (ImGui::Begin(name, nullptr, flags))
-        {
-            ImGui::Text("%c", b.name[0]);
-        }
-        ImGui::End();
     }
 }
 #endif

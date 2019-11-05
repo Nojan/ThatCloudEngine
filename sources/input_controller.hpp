@@ -55,6 +55,7 @@ public:
     void BeginEvents();
     void Event(const SDL_Event& e, const glm::ivec2 windowSize);
     void EndEvents();
+    void Update(const float duration);
     InputControl GetInput() const;
     void SetupTouchControl(const glm::ivec2 windowSize);
 
@@ -73,6 +74,7 @@ private:
     InputControl mControl;
     glm::vec2 mMousePositionPrevious = glm::vec2(0,0);
     glm::vec2 mMousePositionCurrent = glm::vec2(0,0);
+    float mShowTouchControl = 0.f;
     Mode mMode = Mode::Mouse;
     bool mMouseClick = false;
     bool mMousePan = false;

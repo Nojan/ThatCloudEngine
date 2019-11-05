@@ -324,6 +324,7 @@ void Root::Update()
             updater->Update(frameStep);
         }
         Global::gameSytem()->Update(frameStep);
+        mInputController->Update(frameStep);
     }
     
     for (auto& renderer : mRendererList)
