@@ -4,6 +4,7 @@
 #include "input_control.hpp"
 
 #include <array>
+#include <string>
 #include <vector>
 
 union SDL_Event;
@@ -11,12 +12,13 @@ struct SDL_TouchFingerEvent;
 
 struct Finger {
     enum class State : uint8_t {
+        none,
         down,
         up,
         motion,
     };
     glm::ivec2 position = glm::ivec2(0, 0);
-    State state = State::up;
+    State state = State::none;
 };
 
 struct Control2D {
@@ -25,6 +27,20 @@ struct Control2D {
     uint8_t fingerIdx = -1;
 
     glm::vec2 GetNormalizedPosition(glm::ivec2 position) const;
+};
+
+struct Button2D {
+    enum class Mode {
+        Press,
+        Switch,
+    };
+    glm::ivec2 position = glm::ivec2(0, 0);
+    glm::ivec2 size = glm::ivec2(0, 0);
+    uint8_t fingerIdx = -1;
+
+    std::string name;
+    Mode mode = Mode::Press;
+    bool state = false;
 };
 
 class InputController {
@@ -52,6 +68,7 @@ public:
 
 private:
     void ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm::ivec2 windowSize);
+    void ProcessTouchSurface(const glm::ivec2& position, const glm::ivec2& size, uint8_t& currentFingerIdx);
     void ProcessGamepadEvent(const SDL_Event& e);
     InputControl mControl;
     glm::vec2 mMousePositionPrevious = glm::vec2(0,0);
@@ -62,4 +79,5 @@ private:
 
     std::array<Finger, 4> mFingers;
     std::array<Control2D, 3> mControl2D;
+    std::array<Button2D, 4> mButton2D;
 };

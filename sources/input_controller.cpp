@@ -168,7 +168,18 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.size = glm::ivec2(0);
         c.fingerIdx = -1;
     }
-    
+
+    for (size_t idx = 0; idx < mButton2D.size(); ++idx)
+    {
+        Button2D& b = mButton2D[idx];
+        b.position = glm::ivec2(0);
+        b.size = glm::ivec2(0);
+        b.fingerIdx = -1;
+        b.name = "";
+        b.mode = Button2D::Mode::Press;
+        b.state = false;
+    }
+
     const int min_side = glm::min(windowSize.x, windowSize.y);
     const int stick_area_size(min_side * 0.45f);
     if(stick_area_size < 1)
@@ -193,8 +204,44 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         const float width = 0.05f;
         const int zoom_area(min_side * width);
         Control2D& c = mControl2D[2];
-        c.position = glm::ivec2(windowSize.x * 0.5f - zoom_area, 0);
-        c.size = glm::ivec2(zoom_area * 2.f, windowSize.y);
+        c.position = glm::ivec2(windowSize.x / 2 - zoom_area, 0);
+        c.size = glm::ivec2(zoom_area * 2, windowSize.y);
+    }
+
+    const int button_size(min_side * 0.1f);
+    if(button_size < 1)
+        return;
+    // Show Control
+    {
+        Button2D& b = mButton2D[0];
+        b.position = glm::ivec2(0, 0);
+        b.size = glm::ivec2(button_size, button_size);
+        b.name = "Show Control";
+    }
+
+    // Call
+    {
+        Button2D& b = mButton2D[1];
+        b.position = glm::ivec2(windowSize.x - button_size, (button_size + 5) * 0);
+        b.size = glm::ivec2(button_size, button_size);
+        b.mode = Button2D::Mode::Switch;
+        b.name = "Call";
+    }
+
+    // Absorb
+    {
+        Button2D& b = mButton2D[2];
+        b.position = glm::ivec2(windowSize.x - button_size, (button_size + 5) * 1);
+        b.size = glm::ivec2(button_size, button_size);
+        b.name = "Absorb";
+    }
+
+    // Release
+    {
+        Button2D& b = mButton2D[3];
+        b.position = glm::ivec2(windowSize.x - button_size, (button_size + 5) * 2);
+        b.size = glm::ivec2(button_size, button_size);
+        b.name = "Release";
     }
 }
 
@@ -206,7 +253,7 @@ void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm
         for (size_t idx = 0; idx < mFingers.size(); ++idx)
         {
             Finger& f = mFingers[idx];
-            if (Finger::State::up == f.state)
+            if (Finger::State::none == f.state)
             {
                 f.position = touchPosition;
                 f.state = Finger::State::down;
@@ -221,7 +268,7 @@ void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm
         for (size_t idx = 0; idx < mFingers.size(); ++idx)
         {
             Finger& f = mFingers[idx];
-            if (Finger::State::up == f.state)
+            if (Finger::State::up == f.state || Finger::State::none == f.state)
             {
                 continue;
             }
@@ -245,6 +292,43 @@ void InputController::ProcessTouchEvent(const SDL_TouchFingerEvent& e, const glm
             {
                 f.state = Finger::State::motion;
                 f.position = glm::ivec2(touchPosition);
+            }
+        }
+    }
+}
+
+void InputController::ProcessTouchSurface(const glm::ivec2 & position, const glm::ivec2 & size, uint8_t& currentFingerIdx)
+{
+    if (uint8_t(-1) != currentFingerIdx)
+    {
+        // Finger leaving control
+        const Finger& f = mFingers[currentFingerIdx];
+        if (Finger::State::none == f.state)
+        {
+            currentFingerIdx = -1;
+        }
+        else
+        {
+            const glm::ivec2 diff = f.position - position;
+            if (diff.x < 0 || diff.y < 0|| size.x < diff.x || size.y < diff.y)
+            {
+                currentFingerIdx = -1;
+            }
+        }
+    }
+    else
+    {
+        // Finger entering control
+        for (size_t fingerIdx = 0; fingerIdx < mFingers.size(); ++fingerIdx)
+        {
+            const Finger& f = mFingers[fingerIdx];
+            if (Finger::State::down != f.state)
+                continue;
+            const glm::ivec2 diff = f.position - position;
+            if (diff.x >= 0 && diff.y >= 0 && size.x >= diff.x && size.y >= diff.y)
+            {
+                currentFingerIdx = numeric_cast<uint8_t>(fingerIdx);
+                break;
             }
         }
     }
@@ -322,38 +406,39 @@ void InputController::EndEvents()
     for (size_t idx = 0; idx < mControl2D.size(); ++idx)
     {
         Control2D& c = mControl2D[idx];
-        if (uint8_t(-1) != c.fingerIdx)
+        ProcessTouchSurface(c.position, c.size, c.fingerIdx);
+    }
+    for (size_t idx = 0; idx < mButton2D.size(); ++idx)
+    {
+        Button2D& b = mButton2D[idx];
+        ProcessTouchSurface(b.position, b.size, b.fingerIdx);
+        if (Button2D::Mode::Press == b.mode)
         {
-            // Finger leaving control
-            const Finger& f = mFingers[c.fingerIdx];
-            if (Finger::State::up == f.state)
+            b.state = uint8_t(-1) != b.fingerIdx;
+        }
+        else if (Button2D::Mode::Switch == b.mode)
+        {
+            if (uint8_t(-1) != b.fingerIdx)
             {
-                c.fingerIdx = -1;
-            }
-            else
-            {
-                const glm::ivec2 diff = f.position - c.position;
-                if (diff.x < 0 || diff.y < 0|| c.size.x < diff.x || c.size.y < diff.y)
+                const Finger& f = mFingers[b.fingerIdx];
+                if (Finger::State::down == f.state)
                 {
-                    c.fingerIdx = -1;
+                    b.state = !b.state;
                 }
             }
         }
-        else
+    }
+    // All controls should all processed the up event
+    for (size_t idx = 0; idx < mFingers.size(); ++idx)
+    {
+        Finger& f = mFingers[idx];
+        if (Finger::State::up == f.state)
         {
-            // Finger entering control
-            for (size_t fingerIdx = 0; fingerIdx < mFingers.size(); ++fingerIdx)
-            {
-                const Finger& f = mFingers[fingerIdx];
-                if (Finger::State::down != f.state)
-                    continue;
-                const glm::ivec2 diff = f.position - c.position;
-                if (diff.x >= 0 && diff.y >= 0 && c.size.x >= diff.x && c.size.y >= diff.y)
-                {
-                    c.fingerIdx = numeric_cast<uint8_t>(fingerIdx);
-                    break;
-                }
-            }
+            f.state = Finger::State::none;
+        } 
+        else if(Finger::State::down == f.state)
+        {
+            f.state = Finger::State::motion;
         }
     }
     if (mouseSimulateTouchEvent && Mode::Mouse == mMode)
@@ -377,6 +462,10 @@ void InputController::EndEvents()
         mControl.view = computeControl2D(mControl2D[1]) * 0.01f;
         mControl.view.x = -mControl.view.x;
         mControl.zoom = computeControl2D(mControl2D[2]).y;
+
+        mControl.call = mButton2D[1].state;
+        mControl.absorb = mButton2D[2].state;
+        mControl.release = mButton2D[3].state;
     }
 }
 
@@ -423,6 +512,24 @@ void InputController::DrawGamepad()
             }
             ImGui::End();
         }
+    }
+
+    for(size_t idx = 0; idx < mButton2D.size(); ++idx)
+    {
+        const Button2D& b = mButton2D[idx];
+        if (0 == b.size.x)
+            continue;
+
+        const float alpha_button = b.state ? glm::min(alpha * 2.0f, 1.0f): alpha;
+        ImGui::SetNextWindowPos(ImVec2(b.position.x, b.position.y), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(b.size.x, b.size.y), ImGuiCond_Always);
+        ImGui::SetNextWindowBgAlpha(alpha_button);
+        sprintf(name, "%s##%d", b.name.c_str(), idx);
+        if (ImGui::Begin(name, nullptr, flags))
+        {
+            ImGui::Text("%c", b.name[0]);
+        }
+        ImGui::End();
     }
 }
 #endif
