@@ -75,7 +75,8 @@ private:
     glm::vec2 mMousePositionPrevious = glm::vec2(0,0);
     glm::vec2 mMousePositionCurrent = glm::vec2(0,0);
     float mShowTouchControl = 0.f;
-    Mode mMode = Mode::Mouse;
+    Mode mMode = Mode::None;
+    Mode mPreviousMode = Mode::None;
     bool mMouseClick = false;
     bool mMousePan = false;
 

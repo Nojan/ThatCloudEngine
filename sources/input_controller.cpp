@@ -29,7 +29,11 @@ void InputController::BeginEvents()
     // touch
     // gamepad
     // mouse
-    mMode = Mode::None;
+    if (Mode::None != mMode)
+    {
+        mPreviousMode = mMode;
+        mMode = Mode::None;
+    }
 }
 
 void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
@@ -401,6 +405,11 @@ void InputController::ProcessGamepadEvent(const SDL_Event& e)
 
 void InputController::EndEvents()
 {
+    if (Mode::None == mMode)
+    {
+        mMode = mPreviousMode;
+    }
+    
     if (mMousePan)
     {
         const float gain = 0.005f;
