@@ -115,12 +115,23 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             mMousePositionCurrent = newMousePosition;
         }
 
+        if (SDL_MOUSEMOTION == e.type)
+        {
+            const float motionx = static_cast<float>(e.motion.x - (windowSize.x / 2));
+            const float motiony = static_cast<float>(e.motion.y - (windowSize.y / 2));
+            const float halfWidth = static_cast<float>(windowSize.x / 2);
+            const float halfHeight = static_cast<float>(windowSize.y / 2);
+            mControl.move = glm::vec2(motionx / halfWidth, motiony / halfHeight);
+        }
+
         if (SDL_MOUSEWHEEL == e.type)
         {
             const float value(e.wheel.y * 15.f);
             mControl.zoom += value;
         }
+    }
 
+    {
         if (mControl.call)
         {
             mControl.call = !(SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button);
@@ -147,14 +158,7 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
         {
             mControl.release = (SDL_KEYDOWN == e.type && SDLK_LCTRL == e.key.keysym.sym);
         }
-        if (SDL_MOUSEMOTION == e.type)
-        {
-            const float motionx = static_cast<float>(e.motion.x - (windowSize.x / 2));
-            const float motiony = static_cast<float>(e.motion.y - (windowSize.y / 2));
-            const float halfWidth = static_cast<float>(windowSize.x / 2);
-            const float halfHeight = static_cast<float>(windowSize.y / 2);
-            mControl.move = glm::vec2(motionx / halfWidth, motiony / halfHeight);
-        }
+
     }
 }
 
@@ -471,6 +475,12 @@ void InputController::EndEvents()
         {
             mShowTouchControl = 5.f;
         }
+    }
+
+    // prevent conflict
+    if(mControl.absorb)
+    {
+        mControl.release = false;
     }
 }
 
