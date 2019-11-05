@@ -493,7 +493,7 @@ void InputController::DrawGamepad()
     if (Mode::Touch != mMode)
         return;
     const bool showControl = 0.f < mShowTouchControl;
-    const float alpha = 0.15f * glm::min(1.0f, mShowTouchControl);
+    const float alpha_buttons = 0.15f + 0.15f * glm::min(1.0f, mShowTouchControl);
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     const float sz = 36.0f;
     const float thickness = 3.0f;
@@ -507,10 +507,10 @@ void InputController::DrawGamepad()
         if (0 == b.size.x)
             continue;
 
-        const float alpha_button = b.state ? glm::min(alpha * 2.0f, 1.0f): alpha;
+        const float alpha = b.state ? glm::min(alpha_buttons * 2.0f, 1.0f): alpha_buttons;
         ImGui::SetNextWindowPos(ImVec2(b.position.x, b.position.y), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(b.size.x, b.size.y), ImGuiCond_Always);
-        ImGui::SetNextWindowBgAlpha(alpha_button);
+        ImGui::SetNextWindowBgAlpha(alpha);
         sprintf(name, "%s##%d", b.name.c_str(), idx);
         if (ImGui::Begin(name, nullptr, flags))
         {
@@ -522,6 +522,7 @@ void InputController::DrawGamepad()
     if(!showControl)
         return;
 
+    const float alpha = 0.15f * glm::min(1.0f, mShowTouchControl);
     for(size_t idx = 0; idx < mControl2D.size(); ++idx)
     {
         const Control2D& c = mControl2D[idx];
