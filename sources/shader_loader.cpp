@@ -1,5 +1,8 @@
 #include "shader_loader.hpp"
 
+#include "global.hpp"
+#include "platform/platform.hpp"
+
 #include <cassert>
 #include <cstdio>
 #include <string>
@@ -46,7 +49,7 @@ void printShaderLog(GLuint shader) {
 
 bool shaderToBuffer(const char * filename, const size_t limit, char * buffer)
 {
-    FILE * f = fopen(filename, "rb");
+    FILE * f = Global::platform()->OpenFile(filename, "rb");
     if (!f)
         return false;
     fseek(f, 0, SEEK_END);
