@@ -32,6 +32,16 @@ void PlatformEmscripten::Init()
 #endif
     printf("Emscripten FS init done\n");
     const char * url[] = {
+        "../shaders/skybox.vert",
+        "../shaders/skybox.frag",
+        "../shaders/texture.vert",
+        "../shaders/texture.frag",
+        "../shaders/visualdebug.vert",
+        "../shaders/visualdebug.frag",
+        "../shaders/skin.vert",
+        "../shaders/skin.frag",
+        "../shaders/billboard.vert",
+        "../shaders/billboard.frag",
         "../assets/Sounds/ingame.ogg",
         "../assets/3D/cloudboy_slow.assxml",
         "../assets/3D/cloudboyskin.tga",

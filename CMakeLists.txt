@@ -19,9 +19,9 @@ if( EMSCRIPTEN )
 	#add_definitions( -s USE_SDL=2 -s LEGACY_GL_EMULATION=1 -std=c++1y )
 	add_definitions( -s USE_SDL=2 )
 	# RELEASE
-	set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-O2 -s USE_SDL=2 -s TOTAL_MEMORY=67108864 -s USE_WEBGL2=1 --preload-file ${CMAKE_SOURCE_DIR}/shaders@../shaders" )
+	set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-O2 -s USE_SDL=2 -s TOTAL_MEMORY=67108864 -s USE_WEBGL2=1" )
 	# DEV
-	# set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-s USE_SDL=2 --preload-file ${CMAKE_SOURCE_DIR}/shaders@../shaders" )
+	# set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-s USE_SDL=2" )
 	set_property( TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 14 )
 	target_link_libraries( ${TARGET_NAME} ${DEPENDENCIES_LIBRARIES} )
 else()
