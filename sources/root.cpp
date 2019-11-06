@@ -166,15 +166,38 @@ void Root::CreateContext()
 
 void Root::Init()
 {
+    int windowsWidth, windowsHeight;
+    SDL_GetWindowSize(mSDL_ctx->window, &windowsWidth, &windowsHeight);  
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, windowsWidth, windowsHeight);
+#if IMGUI_ENABLE()
+    const int widthMargin = windowsWidth / 4;
+    const int heightMargin = windowsHeight / 4;
+    ImGui_ImplSdl_NewFrame(mSDL_ctx->window);
+    ImGui::SetNextWindowPos(ImVec2(widthMargin, heightMargin), ImGuiCond_Always); 
+    ImGui::SetNextWindowSize(ImVec2(windowsWidth - ( 2 * widthMargin), windowsHeight - ( 2 * heightMargin)), ImGuiCond_Always);
+    ImGui::SetNextWindowCollapsed(false, ImGuiCond_Always);     
+    if (ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoInputs))
+    {
+        ImGui::SetWindowFontScale(2.0f);
+        ImGui::Text("Please wait :)");
+    }
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplSdl_RenderDrawLists(ImGui::GetDrawData());
+#endif
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (SDL_QUIT == e.type) {
+            exit(EXIT_FAILURE);
+            break;
+        }
+    }
+    SDL_GL_SwapWindow(mSDL_ctx->window);
     if (!Global::platform()->Ready())
     {
-        printf("Platform not ready\n");
         return;
     }
-
-    int windowsWidth, windowsHeight;
-    SDL_GetWindowSize(mSDL_ctx->window, &windowsWidth, &windowsHeight);
-
     mCamera.reset(new Camera());
     mCamera->WindowResize(windowsWidth, windowsHeight);
 
