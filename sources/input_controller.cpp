@@ -518,7 +518,6 @@ void InputController::DrawGamepad()
     const bool showControl = 0.f < mShowTouchControl;
     const float alpha_buttons = 0.15f + 0.15f * glm::min(1.0f, mShowTouchControl);
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    const float sz = 36.0f;
     const float thickness = 3.0f;
     const ImVec4 colf = ImVec4(1.0f, 1.0f, 0.4f, 1.0f);
     const ImU32 col = ImColor(colf);
@@ -557,6 +556,7 @@ void InputController::DrawGamepad()
             sprintf(name, "stick##%d", idx);
             if (ImGui::Begin(name, nullptr, flags))
             {
+                const float sz = glm::min(c.size.x, c.size.y) * 0.1f;
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 const ImVec2 p = ImGui::GetCursorScreenPos();
                 float x = p.x + c.size.x * 0.5f, y = p.y + c.size.y * 0.5f;
