@@ -154,6 +154,7 @@ void LoopManager::Init()
     camera->SetPosition(cameraPosition);
     std::unique_ptr<BoyCamera> cameraMover = std::make_unique<BoyCamera>();
     cameraMover->mBoy = mBoy.get();
+    cameraMover->mDistance = cameraDistance;
     camera->SetCameraMover(std::move(cameraMover));
 
     {
