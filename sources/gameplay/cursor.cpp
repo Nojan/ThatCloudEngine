@@ -36,7 +36,7 @@ void Cursor::Init()
     BillboardComponent* billboardComponent = entity->getComponent<BillboardComponent>();
     Billboard billboard;
     billboard.mPosition = glm::vec3(0.f);
-    billboard.mSize = glm::vec2(5.f);
+    billboard.mSize = glm::vec2(1.f);
     billboard.mAlpha = 1.f;
     billboard.mTexture = mTextures[0];
     billboardComponent->mBillboards.push_back(billboard);
