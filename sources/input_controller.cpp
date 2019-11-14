@@ -228,22 +228,22 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.name = "Zoom";
     }
 
-    const int button_size(min_side * 0.15f);
-    if(button_size < 1)
+    const glm::ivec2 button_size(min_side * 0.25f, min_side * 0.15f);
+    if(button_size.y < 1)
         return;
     // Show Control
     {
         Button2D& b = mButton2D[0];
         b.position = glm::ivec2(margin, margin);
-        b.size = glm::ivec2(button_size, button_size);
+        b.size = button_size;
         b.name = "Show Control";
     }
 
     // Call
     {
         Button2D& b = mButton2D[1];
-        b.position = glm::ivec2(window_width - button_size, (button_size + 5) * 0 + margin);
-        b.size = glm::ivec2(button_size, button_size);
+        b.position = glm::ivec2(window_width - button_size.x, (button_size.y + 5) * 0 + margin);
+        b.size = button_size;
         b.mode = Button2D::Mode::Switch;
         b.name = "Call";
     }
@@ -251,16 +251,16 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
     // Absorb
     {
         Button2D& b = mButton2D[2];
-        b.position = glm::ivec2(window_width - button_size, (button_size + 5) * 1 + margin);
-        b.size = glm::ivec2(button_size, button_size);
+        b.position = glm::ivec2(window_width - button_size.x, (button_size.y + 5) * 1 + margin);
+        b.size = button_size;
         b.name = "Absorb";
     }
 
     // Release
     {
         Button2D& b = mButton2D[3];
-        b.position = glm::ivec2(window_width - button_size, (button_size + 5) * 2 + margin);
-        b.size = glm::ivec2(button_size, button_size);
+        b.position = glm::ivec2(window_width - button_size.x, (button_size.y + 5) * 2 + margin);
+        b.size = button_size;
         b.name = "Release";
     }
 }
