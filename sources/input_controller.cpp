@@ -10,9 +10,9 @@ constexpr bool mouseSimulateTouchEvent = false;
 
 glm::vec2 Control2D::GetNormalizedPosition(glm::ivec2 p) const
 {
-    const glm::vec2 localPosition(p - position);
-    const glm::vec2 normalizedPosition = glm::clamp(localPosition / glm::vec2(size), glm::vec2(0.f), glm::vec2(1.f));
-    return glm::vec2(normalizedPosition - glm::vec2(0.5f)) * glm::vec2(2.0f);
+    const glm::vec2 localPosition(p - center);
+    const glm::vec2 normalizedPosition = glm::clamp(localPosition / glm::vec2(size / 2), glm::vec2(-1.f), glm::vec2(1.f));
+    return normalizedPosition;
 }
 
 void InputController::BeginEvents()
@@ -174,6 +174,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         Control2D& c = mControl2D[idx];
         c.position = glm::ivec2(0);
         c.size = glm::ivec2(0);
+        c.center = glm::ivec2(0);
         c.fingerIdx = -1;
     }
 
@@ -202,6 +203,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         Control2D& c = mControl2D[0];
         c.position = glm::ivec2(margin, window_height - stick_area_size);
         c.size = glm::ivec2(stick_area_size, stick_area_size);
+        c.center = c.position + c.size / 2;
     }
 
     // Right thumb
@@ -209,6 +211,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         Control2D& c = mControl2D[1];
         c.position = glm::ivec2(window_width - stick_area_size, window_height - stick_area_size);
         c.size = glm::ivec2(stick_area_size, stick_area_size);
+        c.center = c.position + c.size / 2;
     }
 
     // Zoom
@@ -218,6 +221,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         Control2D& c = mControl2D[2];
         c.position = glm::ivec2(window_width / 2 - zoom_area, margin);
         c.size = glm::ivec2(zoom_area * 2, window_height);
+        c.center = c.position + c.size / 2;
     }
 
     const int button_size(min_side * 0.15f);
@@ -423,7 +427,19 @@ void InputController::EndEvents()
     for (size_t idx = 0; idx < mControl2D.size(); ++idx)
     {
         Control2D& c = mControl2D[idx];
+        const uint8_t fingerIdx = c.fingerIdx;
         ProcessTouchSurface(c.position, c.size, c.fingerIdx);
+        if (uint8_t(-1) != c.fingerIdx)
+        {
+            if (fingerIdx != c.fingerIdx)
+            {
+                c.center = mFingers[c.fingerIdx].position;
+            }
+        }
+        else
+        {
+            c.center = c.position + c.size / 2;
+        }
     }
     for (size_t idx = 0; idx < mButton2D.size(); ++idx)
     {
@@ -559,7 +575,7 @@ void InputController::DrawGamepad()
                 const float sz = glm::min(c.size.x, c.size.y) * 0.1f;
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 const ImVec2 p = ImGui::GetCursorScreenPos();
-                float x = p.x + c.size.x * 0.5f, y = p.y + c.size.y * 0.5f;
+                float x = c.center.x, y = c.center.y;
                 if (uint8_t(-1) != c.fingerIdx)
                 {
                     draw_list->AddCircleFilled(ImVec2(x - sz*0.5f, y - sz*0.5f), sz, col, 20);
