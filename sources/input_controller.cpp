@@ -176,6 +176,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.size = glm::ivec2(0);
         c.center = glm::ivec2(0);
         c.fingerIdx = -1;
+        c.name = "";
     }
 
     for (size_t idx = 0; idx < mButton2D.size(); ++idx)
@@ -204,6 +205,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.position = glm::ivec2(margin, window_height - stick_area_size);
         c.size = glm::ivec2(stick_area_size, stick_area_size);
         c.center = c.position + c.size / 2;
+        c.name = "Move";
     }
 
     // Right thumb
@@ -212,6 +214,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.position = glm::ivec2(window_width - stick_area_size, window_height - stick_area_size);
         c.size = glm::ivec2(stick_area_size, stick_area_size);
         c.center = c.position + c.size / 2;
+        c.name = "Look";
     }
 
     // Zoom
@@ -222,6 +225,7 @@ void InputController::SetupTouchControl(const glm::ivec2 windowSize)
         c.position = glm::ivec2(window_width / 2 - zoom_area, margin);
         c.size = glm::ivec2(zoom_area * 2, window_height);
         c.center = c.position + c.size / 2;
+        c.name = "Zoom";
     }
 
     const int button_size(min_side * 0.15f);
@@ -552,7 +556,7 @@ void InputController::DrawGamepad()
         sprintf(name, "%s##%d", b.name.c_str(), idx);
         if (ImGui::Begin(name, nullptr, flags))
         {
-            ImGui::Text("%c", b.name[0]);
+            ImGui::Text("%s", b.name.c_str());
         }
         ImGui::End();
     }
@@ -572,6 +576,7 @@ void InputController::DrawGamepad()
             sprintf(name, "stick##%d", idx);
             if (ImGui::Begin(name, nullptr, flags))
             {
+                ImGui::Text("%s", c.name.c_str());
                 const float sz = glm::min(c.size.x, c.size.y) * 0.1f;
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 const ImVec2 p = ImGui::GetCursorScreenPos();

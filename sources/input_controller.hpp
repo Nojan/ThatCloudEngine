@@ -27,6 +27,7 @@ struct Control2D {
     glm::ivec2 center = glm::ivec2(0, 0);
     uint8_t fingerIdx = -1;
 
+    std::string name;
     glm::vec2 GetNormalizedPosition(glm::ivec2 position) const;
 };
 
