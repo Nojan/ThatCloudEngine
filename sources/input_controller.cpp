@@ -538,9 +538,6 @@ void InputController::DrawGamepad()
     const bool showControl = 0.f < mShowTouchControl;
     const float alpha_buttons = 0.15f + 0.15f * glm::min(1.0f, mShowTouchControl);
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    const float thickness = 3.0f;
-    const ImVec4 colf = ImVec4(1.0f, 1.0f, 0.4f, 1.0f);
-    const ImU32 col = ImColor(colf);
 
     char name[64] = "";
     for(size_t idx = 0; idx <  mButton2D.size(); ++idx)
@@ -561,11 +558,13 @@ void InputController::DrawGamepad()
         ImGui::End();
     }
 
-    if(!showControl)
-        return;
-
+    const float thickness = 3.0f;
+    const ImVec4 colf = ImVec4(1.0f, 1.0f, 1.0f, 0.3f);
+    const ImU32 col = ImColor(colf);
     const float alpha = 0.15f * glm::min(1.0f, mShowTouchControl);
-    for(size_t idx = 0; idx < mControl2D.size(); ++idx)
+    const size_t controlsSize = showControl ? mControl2D.size() : glm::min<size_t>(mControl2D.size(), 2);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    for(size_t idx = 0; idx < controlsSize; ++idx)
     {
         const Control2D& c = mControl2D[idx];
         if (0 != c.size.x)
@@ -573,26 +572,31 @@ void InputController::DrawGamepad()
             ImGui::SetNextWindowPos(ImVec2(c.position.x, c.position.y), ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImVec2(c.size.x, c.size.y), ImGuiCond_Always);
             ImGui::SetNextWindowBgAlpha(alpha);
+            
             sprintf(name, "stick##%d", idx);
             if (ImGui::Begin(name, nullptr, flags))
             {
-                ImGui::Text("%s", c.name.c_str());
+                if(showControl)
+                    ImGui::Text("%s", c.name.c_str());
                 const float sz = glm::min(c.size.x, c.size.y) * 0.1f;
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 const ImVec2 p = ImGui::GetCursorScreenPos();
                 float x = c.center.x, y = c.center.y;
                 if (uint8_t(-1) != c.fingerIdx)
                 {
-                    draw_list->AddCircleFilled(ImVec2(x - sz*0.5f, y - sz*0.5f), sz, col, 20);
+                    const glm::vec2 p(mFingers[c.fingerIdx].position);
+                    draw_list->AddCircleFilled(ImVec2(p.x, p.y), sz, col, 20);
                 }
                 else
                 {
-                    draw_list->AddCircle(ImVec2(x - sz*0.5f, y - sz*0.5f), sz, col, 20, thickness);
+                    draw_list->AddCircleFilled(ImVec2(c.center.x, c.center.y), sz, col, 20);
                 }
+                draw_list->AddCircle(ImVec2(c.center.x, c.center.y), sz, col, 20, thickness);
             }
             ImGui::End();
         }
     }
+    ImGui::PopStyleVar();
 }
 #endif
 
