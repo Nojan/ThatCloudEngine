@@ -36,13 +36,13 @@ constexpr unsigned table[] = { A(0) };
 #undef A
 
 // Constexpr implementation and helpers
-constexpr uint32_t impl(const uint8_t* p, size_t len, uint32_t crc) {
+constexpr uint32_t impl(const char* p, size_t len, uint32_t crc) {
     return len ?
         impl(p+1,len-1,(crc>>8)^table[(crc&0xFF)^*p])
         : crc;
 }
 
-constexpr uint32_t crc32(const uint8_t* data, size_t length) {
+constexpr uint32_t crc32(const char* data, size_t length) {
     return ~impl(data, length, ~0);
 }
 
@@ -51,7 +51,8 @@ constexpr size_t strlen_c(const char* str) {
 }
 
 constexpr crc32_t hash(const char* str) {
-    return crc32_t(crc32((uint8_t*)str, strlen_c(str)));
+    static_assert(1 == sizeof(char));
+    return crc32_t(crc32(str, strlen_c(str)));
 }
 
 }
