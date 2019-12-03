@@ -5,6 +5,7 @@
 #include "imgui_impl.hpp"
 
 #if IMGUI_ENABLE()
+#define WINDOWS_IGNORE_PACKING_MISMATCH
 
 #include <SDL2/SDL.h>
 #ifdef __EMSCRIPTEN__
