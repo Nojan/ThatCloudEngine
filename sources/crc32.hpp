@@ -51,7 +51,7 @@ constexpr size_t strlen_c(const char* str) {
 }
 
 constexpr crc32_t hash(const char* str) {
-    static_assert(1 == sizeof(char));
+    static_assert(1 == sizeof(char), "char must be 1 byte");
     return crc32_t(crc32(str, strlen_c(str)));
 }
 
