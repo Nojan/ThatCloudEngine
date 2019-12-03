@@ -10,15 +10,11 @@
 #include <type_traits>
 #include <vector>
 
-inline void gl_log_error()
-{
-    GLenum error_code = glGetError();
-    while (GL_NO_ERROR != error_code)
-    {
-        printf("OpenGL error %d\n", error_code);
-        error_code = glGetError();
-    }
-}
+const char* gl_error_enum_string(GLenum);
+
+void gl_log_error();
+
+void glad_setup_callback(bool pre, bool post);
 
 template <GLenum arrayBufferType, GLenum usage, typename T>
 void generate_gl_array_buffer(size_t count, GLuint* vboId)

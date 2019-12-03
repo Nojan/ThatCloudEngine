@@ -129,6 +129,9 @@ void Root::CreateContext()
             SDL_GetError());
         exit(EXIT_FAILURE);
     }
+    glad_setup_callback(false, false);
+    gl_log_error();
+    glad_setup_callback(false, true);
 #endif
     printf("Vendor:   %s\n", glGetString(GL_VENDOR));
     printf("Renderer: %s\n", glGetString(GL_RENDERER));
@@ -137,8 +140,6 @@ void Root::CreateContext()
     if (SDL_GL_SetSwapInterval(1) < 0) {
         printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
     }
-
-    gl_log_error();
 
     mInputController = std::make_unique<InputController>();
     mInputController->SetupTouchControl(glm::ivec2(windowsWidth, windowsHeight));
