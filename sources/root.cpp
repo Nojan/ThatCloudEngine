@@ -19,7 +19,7 @@
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 

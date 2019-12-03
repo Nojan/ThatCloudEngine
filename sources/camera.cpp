@@ -5,7 +5,7 @@
 #include "orbitcamera.hpp"
 
 #include "imgui/imgui_header.hpp"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
 

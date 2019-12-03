@@ -28,7 +28,7 @@
 
 #include "../opengl_includes.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <cassert>
 #include <algorithm>
 

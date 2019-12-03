@@ -4,7 +4,7 @@
 
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 void OrbitCamera::Move(const float speed, Camera* camera)
 {

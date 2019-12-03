@@ -5,14 +5,13 @@
 #include "imgui_impl.hpp"
 
 #if IMGUI_ENABLE()
-#define WINDOWS_IGNORE_PACKING_MISMATCH
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #ifdef __EMSCRIPTEN__
 #include "emscripten.h"
 #include <GLES2/gl2.h>
 #else
-#include <SDL2/SDL_syswm.h>
+#include <SDL_syswm.h>
 #include "../opengl_includes.hpp"
 #endif
 

@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #define FREE_CAM
 #ifdef __EMSCRIPTEN__

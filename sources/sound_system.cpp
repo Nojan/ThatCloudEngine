@@ -9,7 +9,7 @@
 
 #include "imgui/imgui_header.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>

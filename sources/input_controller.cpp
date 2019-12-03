@@ -4,7 +4,7 @@
 #include "imgui/imgui_header.hpp"
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 constexpr bool mouseSimulateTouchEvent = false;
 
