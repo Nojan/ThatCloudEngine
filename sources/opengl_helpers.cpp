@@ -36,6 +36,7 @@ void gl_log_error()
     }
 }
 
+#ifdef USE_GLAD
 void glad_empty_callback(const char* name, void* funcptr, int len_args, ...) {}
 
 void glad_pre_callback(const char* name, void* funcptr, int len_args, ...)
@@ -76,4 +77,4 @@ void glad_setup_callback(bool pre, bool post)
     else
         glad_set_post_callback(glad_empty_callback);
 }
-   
+#endif

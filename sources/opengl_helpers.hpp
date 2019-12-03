@@ -14,7 +14,9 @@ const char* gl_error_enum_string(GLenum);
 
 void gl_log_error();
 
+#ifdef USE_GLAD
 void glad_setup_callback(bool pre, bool post);
+#endif
 
 template <GLenum arrayBufferType, GLenum usage, typename T>
 void generate_gl_array_buffer(size_t count, GLuint* vboId)
