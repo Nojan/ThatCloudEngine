@@ -3,7 +3,7 @@
 #include "../opengl_helpers.hpp"
 #include "../camera.hpp"
 #include "../shader.hpp"
-#include "../shader_loader.hpp"
+#include "../resourceshader.hpp"
 #include "../root.hpp"
 
 #include "../imgui/imgui_header.hpp"
@@ -243,10 +243,10 @@ VisualDebugRenderer::VisualDebugRenderer()
 , mVboIndexLineSize(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
-    mShaderProgram = std::make_unique<ShaderProgram>(LoadShaders("../shaders/visualdebug.vert", "../shaders/visualdebug.frag"));
-    mShaderProgram->RegisterAttrib(HashedString("vertexPositionMS"));
-    mShaderProgram->RegisterAttrib(HashedString("vertexColor"));
-    mShaderProgram->RegisterUniform(HashedString("mvp"));
+    mShaderResource = std::make_unique<ResourceShader>("visualdebug");
+    mShaderResource->PreloadAttribute(HashedString("vertexPositionMS"));
+    mShaderResource->PreloadAttribute(HashedString("vertexColor"));
+    mShaderResource->PreloadUniform(HashedString("mvp"));
 }
 
 VisualDebugRenderer::~VisualDebugRenderer()
@@ -286,6 +286,16 @@ void VisualDebugRenderer::FlushFrame()
     mVertexLine.clear();
     mColorLine.clear();
     mIndexLine.clear();
+}
+
+void VisualDebugRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void VisualDebugRenderer::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }
 
 void VisualDebugRenderer::DrawFill()

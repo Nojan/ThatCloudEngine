@@ -3,7 +3,7 @@
 #include "color.hpp"
 #include "camera.hpp"
 #include "global.hpp"
-#include "resourcemanager.hpp"
+#include "resourceshader.hpp"
 #include "root.hpp"
 #include "shader.hpp"
 #include "scene.hpp"
@@ -60,19 +60,19 @@ Skybox* Skybox::GenerateCheckered()
 
 Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg)
 {
-    mShaderProgram = Global::resourceManager()->shader("skybox");
-    mShaderProgram->RegisterAttrib(HashedString("vertexPosition"));
-    mShaderProgram->RegisterUniform(HashedString("cubemapSampler"));
-    mShaderProgram->RegisterUniform(HashedString("MVP"));
-    mShaderProgram->RegisterUniform(HashedString("viewMatrix"));
-    mShaderProgram->RegisterUniform(HashedString("screenSize"));
-    mShaderProgram->RegisterUniform(HashedString("lightDirectionWS"));
-    mShaderProgram->RegisterUniform(HashedString("left"));
-    mShaderProgram->RegisterUniform(HashedString("right"));
-    mShaderProgram->RegisterUniform(HashedString("top"));
-    mShaderProgram->RegisterUniform(HashedString("bottom"));
-    mShaderProgram->RegisterUniform(HashedString("near"));
-    mShaderProgram->RegisterUniform(HashedString("far"));
+    mShaderResource = std::make_unique<ResourceShader>("skybox");
+    mShaderResource->PreloadAttribute(HashedString("vertexPosition"));
+    mShaderResource->PreloadUniform(HashedString("cubemapSampler"));
+    mShaderResource->PreloadUniform(HashedString("MVP"));
+    mShaderResource->PreloadUniform(HashedString("viewMatrix"));
+    mShaderResource->PreloadUniform(HashedString("screenSize"));
+    mShaderResource->PreloadUniform(HashedString("lightDirectionWS"));
+    mShaderResource->PreloadUniform(HashedString("left"));
+    mShaderResource->PreloadUniform(HashedString("right"));
+    mShaderResource->PreloadUniform(HashedString("top"));
+    mShaderResource->PreloadUniform(HashedString("bottom"));
+    mShaderResource->PreloadUniform(HashedString("near"));
+    mShaderResource->PreloadUniform(HashedString("far"));
     glActiveTexture(GL_TEXTURE0); 
     glGenTextures(1, &mTextureBufferId); 
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureBufferId); 
@@ -211,4 +211,14 @@ void Skybox::Render(const Scene * scene)
 
 void Skybox::FlushFrame()
 {
+}
+
+void Skybox::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void Skybox::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }

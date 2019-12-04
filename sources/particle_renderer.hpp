@@ -15,6 +15,7 @@
 
 class ParticleData;
 class ShaderProgram; 
+class ResourceShader;
 
 class ParticleRenderer : public IRenderer, public IUpdater {
 public:
@@ -24,6 +25,8 @@ public:
     void Update(const float deltaTime) override;
     void Render(const Scene * scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime);
     void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
@@ -37,7 +40,8 @@ public:
 
 private:
     std::unique_ptr<ParticleData> mParticleData;
-    std::unique_ptr<ShaderProgram> mShaderProgram;
+    std::unique_ptr<ResourceShader> mShaderResource;
+    std::shared_ptr<ShaderProgram> mShaderProgram;
     GLuint mVboPositionId;
     GLuint mVboColorId;
     GLuint mTextureId;

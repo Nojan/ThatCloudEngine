@@ -20,13 +20,13 @@ public:
 
     void Render(const Scene * scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     BillboardRenderer();
     ~BillboardRenderer();
 
     void PushToRenderQueue(const Billboard& billboard);
-
-    void ListResources(std::vector<Resource*>& resources) override;
 
 #if GUI_DEBUG()
     void debug_GUI() const override;

@@ -13,6 +13,7 @@
 
 class RenderableSkinMesh;
 class ShaderProgram;
+class ResourceShader;
 class Texture2D;
 
 class SkinMeshRenderer : public GenericMeshRenderer {
@@ -22,6 +23,8 @@ public:
 
 	void Render(const Scene* scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     MeshBuffer * RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount) override;
 
@@ -36,6 +39,7 @@ private:
     void Render(const RenderableSkinMesh& renderable, const Scene* scene);
 
 private:
+    std::unique_ptr<ResourceShader> mShaderResource;
     std::unique_ptr<Texture2D> mTexture2D;
     std::vector<RenderableSkinMesh*> mRenderQueue;
 };

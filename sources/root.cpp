@@ -9,6 +9,7 @@
 #include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
 #include "mesh_renderer.hpp"
+#include "resource.hpp"
 #include "skinMeshRenderer.hpp"
 #include "scene.hpp"
 #include "skybox.hpp"
@@ -244,6 +245,23 @@ void Root::Init()
     mUpdaterList.push_back(particleRenderer);
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
+
+    {
+        std::vector<Resource*> resources;
+        for (auto& renderer : mRendererList)
+        {
+            renderer->ListResources(resources);
+        }
+        for (auto& resource : resources)
+        {
+            resource->Load();
+        }
+        for (auto& renderer : mRendererList)
+        {
+            renderer->OnLoad();
+        }
+    }
+    
 
     printf("Engine initialization done\n");
     gl_log_error();

@@ -13,6 +13,7 @@
 
 class RenderableMesh;
 class ShaderProgram;
+class ResourceShader;
 class Texture2D;
 
 class MeshRenderer : public GenericMeshRenderer {
@@ -22,6 +23,8 @@ public:
 
 	void Render(const Scene* scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     MeshBuffer* RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount = 0) override;
 
@@ -36,6 +39,7 @@ private:
     void Render(const RenderableMesh& renderable, const Scene* scene);
 
 private:
+    std::unique_ptr<ResourceShader> mShaderResource;
     std::vector<std::shared_ptr<RenderableMesh>> mRenderQueue;
     std::vector<std::shared_ptr<RenderableMesh>> mRenderAlphaQueue;
 };

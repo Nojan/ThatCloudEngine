@@ -11,7 +11,8 @@
 #include <memory>
 #include <vector>
 
-class ShaderProgram; 
+class ShaderProgram;
+class ResourceShader;
 
 class IVisualDebugCommand {
 public:
@@ -74,6 +75,8 @@ public:
 
     void Render(const Scene* scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void HandleMousePosition(float x, float y, float z);
 
@@ -90,7 +93,8 @@ private:
     void DrawLine();
 
 private:
-    std::unique_ptr<ShaderProgram> mShaderProgram;
+    std::unique_ptr<ResourceShader> mShaderResource;
+    std::shared_ptr<ShaderProgram> mShaderProgram;
     std::vector<glm::vec3> mVertexFill;
     std::vector<Color::rgbap> mColorFill;
     std::vector<uint> mIndexFill;

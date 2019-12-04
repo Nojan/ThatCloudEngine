@@ -8,8 +8,7 @@
 #include "mesh_buffer_gpu.hpp"
 #include "shader.hpp"
 #include "scene.hpp"
-#include "resourcemanager.hpp"
-#include "shader_loader.hpp"
+#include "resourceshader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
 
@@ -40,20 +39,28 @@ void SkinMeshRenderer::debug_GUI() const
 
 SkinMeshRenderer::SkinMeshRenderer()
 {
-    mShaderProgram = Global::resourceManager()->shader("skin");
-    mShaderProgram->RegisterAttrib(HashedString("Position"));
-    mShaderProgram->RegisterAttrib(HashedString("Normal"));
-    mShaderProgram->RegisterAttrib(HashedString("TexCoord0"));
-    mShaderProgram->RegisterAttrib(HashedString("Index"));
-    mShaderProgram->RegisterAttrib(HashedString("Weigth"));
-    mShaderProgram->RegisterUniform(HashedString("textureSampler"));
-    mShaderProgram->RegisterUniform(HashedString("mvp"));
-    mShaderProgram->RegisterUniform(HashedString("mv"));
-    mShaderProgram->RegisterUniform(HashedString("viewNormal"));
-    mShaderProgram->RegisterUniform(HashedString("lightPosition"));
-    mShaderProgram->RegisterUniform(HashedString("bones"));
-    mShaderProgram->RegisterUniform(HashedString("lightDiffuse"));
-    mShaderProgram->RegisterUniform(HashedString("lightSpecular"));
+    mShaderResource = std::make_unique<ResourceShader>("skin");
+    mShaderResource->PreloadAttribute(HashedString("Position"));
+    mShaderResource->PreloadAttribute(HashedString("Normal"));
+    mShaderResource->PreloadAttribute(HashedString("TexCoord0"));
+    mShaderResource->PreloadAttribute(HashedString("Index"));
+    mShaderResource->PreloadAttribute(HashedString("Weigth"));
+
+    mShaderResource->PreloadUniform(HashedString("textureSampler"));
+    mShaderResource->PreloadUniform(HashedString("mvp"));
+    mShaderResource->PreloadUniform(HashedString("mv"));
+    mShaderResource->PreloadUniform(HashedString("viewNormal"));
+    mShaderResource->PreloadUniform(HashedString("lightPosition"));
+    mShaderResource->PreloadUniform(HashedString("bones"));
+    mShaderResource->PreloadUniform(HashedString("lightDiffuse"));
+    mShaderResource->PreloadUniform(HashedString("lightSpecular"));
+
+    mShaderResource->PreloadUniform(HashedString("mvp"));
+    mShaderResource->PreloadUniform(HashedString("mv"));
+    mShaderResource->PreloadUniform(HashedString("viewNormal"));
+    mShaderResource->PreloadUniform(HashedString("lightPosition"));
+    mShaderResource->PreloadUniform(HashedString("lightDiffuse"));
+    mShaderResource->PreloadUniform(HashedString("lightSpecular"));
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 })); 
 }
 
@@ -81,6 +88,16 @@ void SkinMeshRenderer::Render(const Scene* scene)
 void SkinMeshRenderer::FlushFrame()
 {
     mRenderQueue.clear();
+}
+
+void SkinMeshRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void SkinMeshRenderer::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }
 
 // Opengl ES 2 :(

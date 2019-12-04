@@ -6,6 +6,7 @@
 
 class Texture2D;
 class ShaderProgram;
+class ResourceShader;
 
 class Skybox : public IRenderer {
 public:
@@ -21,6 +22,8 @@ public:
 
     void Render(const Scene * scene) override;
     void FlushFrame() override;
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
 #if GUI_DEBUG()
     void debug_GUI() const;
@@ -28,6 +31,7 @@ public:
     const char* debug_name() const override { return "Skybox Renderer"; }
 
 private:
+    std::unique_ptr<ResourceShader> mShaderResource;
     std::shared_ptr<ShaderProgram> mShaderProgram;
     GLuint mIndexBufferId;
     GLuint mVertexBufferId;

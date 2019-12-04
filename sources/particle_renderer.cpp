@@ -6,7 +6,7 @@
 #include "root.hpp"
 
 #include "opengl_includes.hpp"
-#include "shader_loader.hpp"
+#include "resourceshader.hpp"
 #include "imgui/imgui_header.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -23,12 +23,16 @@ ParticleRenderer::ParticleRenderer()
 , mTextureId(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
+    mShaderResource = std::make_unique<ResourceShader>("simple");
+    mShaderResource->PreloadAttribute(HashedString("vertexPosition_modelspace"));
+    mShaderResource->PreloadAttribute(HashedString("vertexColor"));
+    mShaderResource->PreloadUniform(HashedString("uTexture"));
+    mShaderResource->PreloadUniform(HashedString("view"));
+    mShaderResource->PreloadUniform(HashedString("projection"));
+    mShaderResource->PreloadUniform(HashedString("screenSize"));
+    mShaderResource->PreloadUniform(HashedString("spriteSize"));
     return;
     Texture2D::loadFromFile("../asset/particle_mask.bmp", mParticleMask);
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/simple.vert", "../shaders/simple.frag")));
-    mShaderProgram->Bind();
-    GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); 
-    GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); 
 
     {
         glGenTextures(1, &mTextureId); 
@@ -81,7 +85,7 @@ void ParticleRenderer::Render(const Scene * scene)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     {
-        GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); 
+        GLuint textureID = mShaderProgram->GetUniformLocation(HashedString("uTexture"));
         glActiveTexture(GL_TEXTURE0); 
         glBindTexture(GL_TEXTURE_2D, mTextureId);
         glUniform1i(textureID, 0); 
@@ -89,33 +93,33 @@ void ParticleRenderer::Render(const Scene * scene)
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mPosition.get(), mParticleData->mCount, mVboPositionId);
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mColor.get(), mParticleData->mCount, mVboPositionId);
     {
-        GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); 
+        GLuint matrixView_ID = mShaderProgram->GetUniformLocation(HashedString("view")); 
         glm::mat4 view = Root::Instance().GetCamera()->View();
         glUniformMatrix4fv(matrixView_ID, 1, GL_FALSE, glm::value_ptr(view)); 
     }
     {
-        GLuint matrixProjection_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "projection"); 
+        GLuint matrixProjection_ID = mShaderProgram->GetUniformLocation(HashedString("projection"));
         glm::mat4 projection = Root::Instance().GetCamera()->Projection();
         glUniformMatrix4fv(matrixProjection_ID, 1, GL_FALSE, glm::value_ptr(projection)); 
     }
     {
-        GLuint screenSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); 
+        GLuint screenSize_ID = mShaderProgram->GetUniformLocation(HashedString("screenSize"));
         glm::vec2 screenSize = Root::Instance().GetCamera()->ScreenSize();
         glUniform2f(screenSize_ID, screenSize.x, screenSize.y); 
     }
     {
-        GLuint spriteSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "spriteSize"); 
+        GLuint spriteSize_ID = mShaderProgram->GetUniformLocation(HashedString("spriteSize"));
         float spriteSize(2);
         glUniform1f(spriteSize_ID, spriteSize); 
     }
     {
-        GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace");
+        GLuint vertexPosition_modelspaceID = mShaderProgram->GetAttribLocation(HashedString("vertexPosition_modelspace"));
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId);
         glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(vertexPosition_modelspaceID);
     }
     {
-        GLuint vertexColorID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor");
+        GLuint vertexColorID = mShaderProgram->GetAttribLocation(HashedString("vertexColor"));
         glBindBuffer(GL_ARRAY_BUFFER, mVboColorId);
         glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(vertexColorID);
@@ -134,6 +138,16 @@ void ParticleRenderer::Render(const Scene * scene)
 
 void ParticleRenderer::FlushFrame()
 {
+}
+
+void ParticleRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void ParticleRenderer::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }
 
 void ParticleRenderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime)

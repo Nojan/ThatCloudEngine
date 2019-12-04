@@ -6,8 +6,7 @@
 #include "mesh_buffer_gpu.hpp"
 #include "shader.hpp"
 #include "scene.hpp"
-#include "resourcemanager.hpp"
-#include "shader_loader.hpp"
+#include "resourceshader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
 
@@ -30,17 +29,17 @@ void MeshRenderer::debug_GUI() const
 
 MeshRenderer::MeshRenderer()
 {
-    mShaderProgram = Global::resourceManager()->shader("texture");
-    mShaderProgram->RegisterAttrib(HashedString("Position"));
-    mShaderProgram->RegisterAttrib(HashedString("Normal"));
-    mShaderProgram->RegisterAttrib(HashedString("TexCoord0"));
-    mShaderProgram->RegisterUniform(HashedString("textureSampler"));
-    mShaderProgram->RegisterUniform(HashedString("mvp"));
-    mShaderProgram->RegisterUniform(HashedString("mv"));
-    mShaderProgram->RegisterUniform(HashedString("viewNormal"));
-    mShaderProgram->RegisterUniform(HashedString("lightPosition"));
-    mShaderProgram->RegisterUniform(HashedString("lightDiffuse"));
-    mShaderProgram->RegisterUniform(HashedString("lightSpecular"));
+    mShaderResource = std::make_unique<ResourceShader>("texture");
+    mShaderResource->PreloadAttribute(HashedString("Position"));
+    mShaderResource->PreloadAttribute(HashedString("Normal"));
+    mShaderResource->PreloadAttribute(HashedString("TexCoord0"));
+    mShaderResource->PreloadUniform(HashedString("textureSampler"));
+    mShaderResource->PreloadUniform(HashedString("mvp"));
+    mShaderResource->PreloadUniform(HashedString("mv"));
+    mShaderResource->PreloadUniform(HashedString("viewNormal"));
+    mShaderResource->PreloadUniform(HashedString("lightPosition"));
+    mShaderResource->PreloadUniform(HashedString("lightDiffuse"));
+    mShaderResource->PreloadUniform(HashedString("lightSpecular"));
 }
 
 MeshRenderer::~MeshRenderer()
@@ -98,6 +97,16 @@ void MeshRenderer::FlushFrame()
 {
     mRenderQueue.clear();
     mRenderAlphaQueue.clear();
+}
+
+void MeshRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void MeshRenderer::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }
 
 void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)

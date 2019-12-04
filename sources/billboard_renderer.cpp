@@ -4,9 +4,7 @@
 #include "global.hpp"
 #include "opengl_helpers.hpp"
 #include "shader.hpp"
-#include "resourcemanager.hpp"
 #include "resourceshader.hpp"
-#include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
 
@@ -24,24 +22,18 @@ void BillboardRenderer::debug_GUI() const {
 
 BillboardRenderer::BillboardRenderer()
 {
-    mShaderProgram = Global::resourceManager()->shader("billboard");
-    mShaderProgram->RegisterAttrib(HashedString("vertexPosition_modelspace"));
-    mShaderProgram->RegisterAttrib(HashedString("textureCoord"));
-    mShaderProgram->RegisterAttrib(HashedString("a_alpha"));
-    mShaderProgram->RegisterAttrib(HashedString("a_textureIndex"));
-    mShaderProgram->RegisterUniform(HashedString("mvp"));
-    mShaderProgram->RegisterUniform(HashedString("textureSampler"));
+    mShaderResource = std::make_unique<ResourceShader>("billboard");
+    mShaderResource->PreloadAttribute(HashedString("vertexPosition_modelspace"));
+    mShaderResource->PreloadAttribute(HashedString("textureCoord"));
+    mShaderResource->PreloadAttribute(HashedString("a_alpha"));
+    mShaderResource->PreloadAttribute(HashedString("a_textureIndex"));
+    mShaderResource->PreloadUniform(HashedString("mvp"));
+    mShaderResource->PreloadUniform(HashedString("textureSampler"));
     FlushFrame();
-    
 }
 
 BillboardRenderer::~BillboardRenderer()
 {
-}
-
-void BillboardRenderer::ListResources(std::vector<Resource*>& resources)
-{
-    resources.push_back(mResourceShader.get());
 }
 
 void BillboardRenderer::PushToRenderQueue(const Billboard& billboard)
@@ -198,6 +190,16 @@ void BillboardRenderer::FlushFrame()
     mAlpha.mElements.clear();
     mTexIdx.mElements.clear();
     mIndex.mElements.clear();
+}
+
+void BillboardRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mShaderResource.get());
+}
+
+void BillboardRenderer::OnLoad()
+{
+    mShaderProgram = mShaderResource->mShaderProgram;
 }
 
 void BillboardRenderer::SortQueue()
