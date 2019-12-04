@@ -3,6 +3,7 @@
 
 #include "opengl_includes.hpp"
 #include "HashedString.hpp"
+#include "resource.hpp"
 
 #include <unordered_map>
 
