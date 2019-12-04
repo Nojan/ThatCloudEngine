@@ -12,6 +12,7 @@
 #include <vector>
 
 class ShaderProgram;
+class ResourceShader;
 class Texture2D;
 
 class BillboardRenderer : public IRenderer {
@@ -25,6 +26,8 @@ public:
 
     void PushToRenderQueue(const Billboard& billboard);
 
+    void ListResources(std::vector<Resource*>& resources) override;
+
 #if GUI_DEBUG()
     void debug_GUI() const override;
 #endif
@@ -35,6 +38,7 @@ private:
     void SortQueue();
 
 private:
+    std::unique_ptr<ResourceShader> mShaderResource;
     std::shared_ptr<ShaderProgram> mShaderProgram;
     std::vector<Billboard> mRenderQueue;
     std::array<std::shared_ptr< Texture2D >, 8> mTextures;

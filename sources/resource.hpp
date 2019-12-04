@@ -12,7 +12,7 @@ public:
     Resource() = delete;
     Resource(const std::string name, ResourceType type) : mName(name), mType(type) {}
 
-    virtual Load() {}
+    virtual void Load() {}
 
     const std::string& name() const { return mName; }
     const ResourceType type() const { return mType; }

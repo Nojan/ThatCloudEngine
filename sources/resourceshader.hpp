@@ -9,7 +9,7 @@ public:
     ResourceShader(const std::string name) : Resource(name, ResourceType::Shader) {}
     ~ResourceShader();
 
-    Load() override;
+    void Load() override;
 
     std::shared_ptr<ShaderProgram> mShaderProgram;
 };

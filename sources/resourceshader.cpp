@@ -1,11 +1,13 @@
 #include "resourceshader.hpp"
 #include "shader.hpp"
+#include "global.hpp"
+#include "resourcemanager.hpp"
 
 ResourceShader::~ResourceShader()
 {
 }
 
-ResourceShader::Load()
+void ResourceShader::Load()
 {
-    mShaderProgram = Global::resourceManager()->shader(mName);
+    mShaderProgram = Global::resourceManager()->shader(name());
 }

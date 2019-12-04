@@ -5,6 +5,7 @@
 #include "opengl_helpers.hpp"
 #include "shader.hpp"
 #include "resourcemanager.hpp"
+#include "resourceshader.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
@@ -36,6 +37,11 @@ BillboardRenderer::BillboardRenderer()
 
 BillboardRenderer::~BillboardRenderer()
 {
+}
+
+void BillboardRenderer::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mResourceShader.get());
 }
 
 void BillboardRenderer::PushToRenderQueue(const Billboard& billboard)

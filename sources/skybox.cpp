@@ -6,6 +6,7 @@
 #include "resourcemanager.hpp"
 #include "root.hpp"
 #include "shader.hpp"
+#include "scene.hpp"
 #include "texture.hpp"
 
 #include "imgui/imgui_header.hpp"

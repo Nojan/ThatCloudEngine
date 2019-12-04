@@ -1,10 +1,11 @@
 #pragma once
 
 #include "config.hpp"
-#include "scene.hpp"
-#include "shader.hpp"
+#include "iresourceowner.hpp"
 
-class IRenderer {
+class Scene;
+
+class IRenderer : public IResourceOwner {
 public:
 	
     virtual void Render(const Scene* scene) = 0;

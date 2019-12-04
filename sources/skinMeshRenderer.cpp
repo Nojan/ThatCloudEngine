@@ -7,6 +7,7 @@
 #include "renderableSkinMesh.hpp"
 #include "mesh_buffer_gpu.hpp"
 #include "shader.hpp"
+#include "scene.hpp"
 #include "resourcemanager.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
