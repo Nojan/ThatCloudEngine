@@ -1,9 +1,7 @@
 #include "root.hpp"
 
 #include "camera.hpp"
-#include "firework.hpp"
 #include "input_controller.hpp"
-#include "particle.hpp"
 #include "platform/platform.hpp"
 #include "renderer_list.hpp"
 #include "billboard_renderer.hpp"
@@ -59,7 +57,6 @@ Root& Root::Instance()
 Root::Root()
 : mSDL_ctx(nullptr)
 , mRunning(GL_FALSE)
-, mFramesCounter(0)
 , mFrameDuration(1)
 , mFrameLeftover(0)
 , mFrameMultiplier(1)
@@ -68,11 +65,6 @@ Root::Root()
 
 Root::~Root()
 {
-}
-
-FireworksManager* Root::GetFireworksManager()
-{
-    return mFireworkManager.get();
 }
 
 void Root::CreateContext()
@@ -212,11 +204,6 @@ void Root::Init()
         renderList->addRenderer(renderer.get());
         mRendererList.push_back(renderer);
     }
-    std::shared_ptr<ParticleRenderer> particleRenderer = std::make_shared<ParticleRenderer>();
-    {
-        renderList->addRenderer(particleRenderer.get());
-        mRendererList.push_back(particleRenderer);
-    }
     {
         std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
         renderList->addRenderer(renderer.get());
@@ -237,14 +224,11 @@ void Root::Init()
         renderList->addRenderer(renderer.get());
         mRendererList.push_back(renderer);
     }
-    mFireworkManager.reset(new FireworksManager(renderList->getRenderer<ParticleRenderer>()));
     mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mGameplayLoopManager->Init();
 
     mUpdaterList.push_back(mCamera);
-    mUpdaterList.push_back(particleRenderer);
     mUpdaterList.push_back(mGameplayLoopManager);
-    mUpdaterList.push_back(mFireworkManager);
 
     {
         std::vector<Resource*> resources;
@@ -276,7 +260,6 @@ void Root::Terminate()
     mUpdaterList.clear();
 
     mCamera.reset();
-    mFireworkManager.reset();
     mVisualDebugRenderer.reset();
     mGameplayLoopManager.reset();
     
@@ -380,7 +363,6 @@ void Root::Update()
     }
     IMGUI_ONLY(mInputController->DrawGamepad());
     mFrameLeftover = lastFrameDuration;
-    static bool autoSpawnParticle = false;
     static int autoSpawnParticleFrame = 100;
 #if GUI_DEBUG()
     if (ImGui::Begin("Debug_Info"))
@@ -415,11 +397,6 @@ void Root::Update()
         {
             mScene->debug_GUI();
         }
-        if (ImGui::CollapsingHeader("Particle Module"))
-        {
-            ImGui::Checkbox("auto spawn", &autoSpawnParticle);
-            ImGui::SliderInt("spawn each frame", &autoSpawnParticleFrame, 10, 500);
-        }
         if (ImGui::CollapsingHeader("Renderer"))
         {
             for (auto& renderer : mRendererList)
@@ -442,7 +419,6 @@ void Root::Update()
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
-    ++mFramesCounter;
     //std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
 #ifdef __EMSCRIPTEN__
@@ -450,11 +426,6 @@ void Root::Update()
 #else
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
 #endif
-    if (autoSpawnParticle && mFramesCounter > autoSpawnParticleFrame)
-    {
-        mFireworkManager->spawnPeony(glm::ballRand(200.f) + glm::vec3(0.f, 400.f, -500.f), 100.f, 3.f);
-        mFramesCounter = 0;
-    }
 }
 
 bool Root::IsRunning()
