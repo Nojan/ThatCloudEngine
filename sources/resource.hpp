@@ -11,11 +11,12 @@ class Resource {
 public:
     Resource() = delete;
     Resource(const std::string name, ResourceType type) : mName(name), mType(type) {}
+    virtual ~Resource() = default;
 
     virtual void Load() {}
 
     const std::string& name() const { return mName; }
-    const ResourceType type() const { return mType; }
+    ResourceType type() const { return mType; }
 private:
     const std::string mName;
     const ResourceType mType;
