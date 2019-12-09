@@ -363,7 +363,6 @@ void Root::Update()
     }
     IMGUI_ONLY(mInputController->DrawGamepad());
     mFrameLeftover = lastFrameDuration;
-    static int autoSpawnParticleFrame = 100;
 #if GUI_DEBUG()
     if (ImGui::Begin("Debug_Info"))
     {
