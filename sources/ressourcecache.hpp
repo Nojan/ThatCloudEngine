@@ -3,11 +3,13 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 template<class T>
 class RessourceCache {
 public:
     std::shared_ptr<T> get(const std::string& name);
+    virtual void get_dependencies(const std::string& name, std::vector<std::string>& dependencies) const {};
 	
 protected:
 	virtual std::shared_ptr<T> load(const std::string& name) const = 0;
