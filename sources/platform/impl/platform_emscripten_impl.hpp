@@ -10,6 +10,7 @@ public:
     bool Ready() const override;
     void Terminate() override;
 
+    bool Fetch(const char* filename) override;
     FILE * OpenFile(const char* filename, const char * mode) override;
     void CloseFile(FILE * file) override;
 

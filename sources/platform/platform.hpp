@@ -27,6 +27,7 @@ public:
     bool Ready() const;
     void Terminate();
 
+    bool Fetch(const char* filename);
     FILE* OpenFile(const char* filename, const char * mode);
     void CloseFile(FILE* file);
 

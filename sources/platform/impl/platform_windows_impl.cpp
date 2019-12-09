@@ -20,6 +20,17 @@ void PlatformWindows::Terminate() {
     }
 }
 
+bool PlatformWindows::Fetch(const char *filename)
+{
+    bool res = false;
+    if(FILE* f = fopen(filename, "rb"))
+    {
+       res = true;
+       fclose(f);
+    }
+    return res;
+}
+
 FILE * PlatformWindows::OpenFile(const char* filename, const char * mode) {
     if (mLogFile)
     {

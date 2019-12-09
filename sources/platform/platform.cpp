@@ -52,6 +52,11 @@ void Platform::Terminate() {
     mImpl->Terminate();
 }
 
+bool Platform::Fetch(const char *filename)
+{
+    return mImpl->Fetch(filename);
+}
+
 FILE* Platform::OpenFile(const char* filename, const char * mode) {
     printf("Open file %s %s\n", filename, mode);
     FILE* file = mImpl->OpenFile(filename, mode);

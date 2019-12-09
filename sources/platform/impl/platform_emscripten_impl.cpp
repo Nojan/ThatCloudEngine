@@ -166,19 +166,9 @@ void PlatformEmscripten::Init()
         "../assets/Sounds/cloud_normaltopurified.ogg",
     };
     const size_t count = (sizeof(url) / sizeof(url[0]));
-    mFileToLoad = count;
-
-    auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };
-    auto onErrorFunc = [](const char* filename) { gloPlatformEmscripten->OnLoadError(filename); };
-
     for (size_t idx = 0; idx < count; ++idx) {
-        const char * filename = url[idx];
-        const char * url = filename;
-        printf("async_wget(%s, %s)\n", url, filename);
-#ifdef __EMSCRIPTEN__
-        emscripten_async_wget(url, filename, onLoadFunc, onErrorFunc);
-#endif
-    };
+        Fetch(url[idx]);
+    }
 }
 
 bool PlatformEmscripten::Ready() const
@@ -188,6 +178,19 @@ bool PlatformEmscripten::Ready() const
 
 void PlatformEmscripten::Terminate() {
 
+}
+
+bool PlatformEmscripten::Fetch(const char *filename)
+{
+        ++mFileToLoad;
+        const char * url = filename;
+        printf("async_wget(%s, %s)\n", url, filename);
+#ifdef __EMSCRIPTEN__
+        auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };
+        auto onErrorFunc = [](const char* filename) { gloPlatformEmscripten->OnLoadError(filename); };
+        emscripten_async_wget(url, filename, onLoadFunc, onErrorFunc);
+#endif
+        return false;
 }
 
 FILE * PlatformEmscripten::OpenFile(const char* filename, const char * mode) {
