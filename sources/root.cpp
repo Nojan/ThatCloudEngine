@@ -415,10 +415,12 @@ void Root::Update()
     IMGUI_ONLY(ImGui::Render());
     IMGUI_ONLY(ImGui_ImplSdl_RenderDrawLists(ImGui::GetDrawData()));
     SDL_GL_SwapWindow(mSDL_ctx->window);
-    const auto endFrame = std::chrono::high_resolution_clock::now();
-    const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
-
-    //std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    if(0 == SDL_GL_GetSwapInterval())
+    {
+        const auto endFrame = std::chrono::high_resolution_clock::now();
+        const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
+        std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    }
     const auto endSleep = std::chrono::high_resolution_clock::now();
 #ifdef __EMSCRIPTEN__
     mFrameDuration = frameLimiter;
