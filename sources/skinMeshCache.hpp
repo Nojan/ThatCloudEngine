@@ -4,7 +4,7 @@
 #include "armature.hpp"
 #include "ressource_compiler_armature.hpp"
 
-class SkinMeshCache : public RessourceCache<SkinMesh>
+class SkinMeshCache : public ClassCache<SkinMesh>
 {
 protected:
     std::shared_ptr<SkinMesh> load(const std::string& name) const override

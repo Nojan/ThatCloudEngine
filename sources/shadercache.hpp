@@ -4,7 +4,7 @@
 #include "shader.hpp"
 #include "shader_loader.hpp"
 
-class ShaderCache : public RessourceCache<ShaderProgram>
+class ShaderCache : public ClassCache<ShaderProgram>
 {
 public:
     void get_dependencies(const std::string& name, std::vector<std::string>& dependencies) const override

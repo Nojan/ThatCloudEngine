@@ -6,7 +6,7 @@
 #include <vector>
 
 template<class T>
-class RessourceCache {
+class ClassCache {
 public:
     std::shared_ptr<T> get(const std::string& name);
     virtual void get_dependencies(const std::string& name, std::vector<std::string>& dependencies) const {};
@@ -19,7 +19,7 @@ private:
 };
 
 template<class T>
-std::shared_ptr<T> RessourceCache<T>::get(const std::string& name) {
+std::shared_ptr<T> ClassCache<T>::get(const std::string& name) {
     std::shared_ptr<T> ressource;
     {
         auto it = mCache.find(name);

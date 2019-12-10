@@ -4,7 +4,7 @@
 #include "texture.hpp"
 #include "color.hpp"
 
-class Texture2DCache : public RessourceCache<Texture2D>
+class Texture2DCache : public ClassCache<Texture2D>
 {
 protected:
     std::shared_ptr<Texture2D> load(const std::string& name) const override
