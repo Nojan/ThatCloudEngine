@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ressourcecache.hpp"
+#include "classcache.hpp"
 #include "armature.hpp"
 #include "ressource_compiler_armature.hpp"
 

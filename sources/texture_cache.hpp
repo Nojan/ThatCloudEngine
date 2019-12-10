@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ressourcecache.hpp"
+#include "classcache.hpp"
 #include "texture.hpp"
 #include "color.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ressourcecache.hpp"
+#include "classcache.hpp"
 #include "sound_stream.hpp"
 #include "sound_stream_loader.hpp"
 

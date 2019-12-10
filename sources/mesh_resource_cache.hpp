@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ressourcecache.hpp"
+#include "classcache.hpp"
 #include "mesh_resource.hpp"
 
 class MeshResourceCache : public ClassCache<MeshResourceList>
