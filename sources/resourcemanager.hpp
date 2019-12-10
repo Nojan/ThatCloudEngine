@@ -14,11 +14,14 @@ struct SoundStream;
 class SoundStreamCache;
 class Texture2D;
 class Texture2DCache;
+class ResourceCache;
 
 class ResourceManager {
 public:
     ResourceManager();
     ~ResourceManager();
+
+    ResourceCache* Cache();
     
     std::shared_ptr<MeshResourceList> meshResource(const std::string& resourceName);
     std::shared_ptr<SkinMesh> skinMesh(const std::string& resourceName);
@@ -32,5 +35,6 @@ private:
     std::unique_ptr<ShaderCache> mShaderCache;
     std::unique_ptr<SoundStreamCache> mSoundStreamCache;
     std::unique_ptr<Texture2DCache> mTextureCache;
+    std::unique_ptr<ResourceCache> mResourceCache;
 };
 

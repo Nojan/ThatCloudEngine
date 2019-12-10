@@ -1,14 +1,16 @@
 #include "resourcemanager.hpp"
 
 #include "mesh_resource_cache.hpp"
+#include "resourcecache.hpp"
 #include "skinMeshCache.hpp"
 #include "shadercache.hpp"
 #include "sound_stream_cache.hpp"
 #include "texture_cache.hpp"
 
 ResourceManager::ResourceManager()
-: mTextureCache(std::make_unique<Texture2DCache>())
-, mMeshResourceCache(std::make_unique<MeshResourceCache>())
+: mMeshResourceCache(std::make_unique<MeshResourceCache>())
+, mTextureCache(std::make_unique<Texture2DCache>())
+, mResourceCache(std::make_unique<ResourceCache>())
 {
     mSkinMeshCache.reset(new SkinMeshCache());
     mShaderCache.reset(new ShaderCache());
@@ -17,6 +19,11 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
+}
+
+ResourceCache *ResourceManager::Cache()
+{
+    return mResourceCache.get();
 }
 
 std::shared_ptr<MeshResourceList> ResourceManager::meshResource(const std::string & resourceName)
