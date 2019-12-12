@@ -56,7 +56,7 @@ Root& Root::Instance()
 
 Root::Root()
 : mSDL_ctx(nullptr)
-, mRunning(GL_FALSE)
+, mState(State::Created)
 , mFrameDuration(1)
 , mFrameLeftover(0)
 , mFrameMultiplier(1)
@@ -249,7 +249,7 @@ void Root::Init()
 
     printf("Engine initialization done\n");
     gl_log_error();
-    mRunning = GL_TRUE;
+    mState = State::Running;
 }
 
 void Root::Terminate()
@@ -280,7 +280,7 @@ void Root::Terminate()
 
 void Root::Update()
 {
-    assert(GL_TRUE == mRunning);
+    assert(IsRunning());
     const std::chrono::milliseconds frameLimiter(16);
     const float frameDuration = frameLimiter.count() / 1000.f;
     float lastFrameDuration = mFrameDuration.count() / 1000.f;
@@ -296,11 +296,11 @@ void Root::Update()
     mInputController->BeginEvents();
     while (SDL_PollEvent(&e) != 0) {
         if (SDL_QUIT == e.type) {
-            mRunning = false;
+            mState = State::Terminating;
             break;
         }
         if (SDL_KEYDOWN == e.type && SDLK_ESCAPE == e.key.keysym.sym) {
-            mRunning = false;
+            mState = State::Terminating;
             break;
         }
         if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
@@ -431,7 +431,7 @@ void Root::Update()
 
 bool Root::IsRunning()
 {
-    return (GL_TRUE == mRunning);
+    return (State::Running == mState);
 }
 
 Camera * Root::GetCamera()

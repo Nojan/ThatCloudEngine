@@ -33,6 +33,13 @@ public:
     void Update();
     bool IsRunning();
 
+    enum class State {
+        Created,
+        ResourceLoading,
+        Running,
+        Terminating,
+    };
+
 private:
     Root();
     ~Root();
@@ -47,7 +54,7 @@ private:
     std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;
     SDL_Context* mSDL_ctx = nullptr;
 
-    int mRunning;
+    State mState;
 
     // Performance counter
     std::chrono::milliseconds mFrameDuration;
