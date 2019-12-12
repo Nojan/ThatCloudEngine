@@ -231,16 +231,17 @@ void Root::Init()
             {
                 resource->Load();
             }
-            for (auto& renderer : mRendererList)
-            {
-                renderer->OnLoad();
-            }
         }
     }
     if (!Global::platform()->Ready())
     {
         return;
     }
+    for (auto& renderer : mRendererList)
+    {
+        renderer->OnLoad();
+    }
+    mGameplayLoopManager->OnLoad();
     mCamera.reset(new Camera());
     mCamera->WindowResize(windowsWidth, windowsHeight);
 
