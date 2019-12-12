@@ -4,13 +4,14 @@
 
 enum class ResourceType {
     Shader,
+    File,
     Invalid,
 };
 
 class Resource {
 public:
     Resource() = delete;
-    Resource(const std::string name, ResourceType type) : mName(name), mType(type) {}
+    Resource(const std::string name, ResourceType type);
     virtual ~Resource() = default;
 
     virtual void Load() {}
