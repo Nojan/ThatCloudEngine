@@ -1,6 +1,10 @@
 #pragma once
 #include "iplatformimpl.hpp"
 #include <atomic>
+#ifndef __EMSCRIPTEN__
+#include <string>
+#include <vector>
+#endif
 
 class PlatformEmscripten : public IPlatformImpl {
 public:
@@ -21,4 +25,12 @@ public:
 
 private:
     std::atomic_uint mFileToLoad;
+#ifndef __EMSCRIPTEN__
+    struct FileFetch
+    {
+        std::string name;
+        int delay;
+    };
+    std::vector<FileFetch> mFileLoading;
+#endif
 };
