@@ -2,7 +2,9 @@
 #include "shader.hpp"
 #include "global.hpp"
 #include "HashedString.hpp"
+#include "resourcefile.hpp"
 #include "resourcemanager.hpp"
+#include "resourcecache.hpp"
 
 enum class ShaderParameterType {
     Uniform,
@@ -18,6 +20,14 @@ struct ResourceShader::ShaderParameter
 ResourceShader::ResourceShader(const std::string name) 
 : Resource(name, ResourceType::Shader) 
 {
+    ResourceCache* cache = Global::resourceManager()->Cache();
+    assert(cache);
+    const size_t string_length_max = 2048;
+    char shader_path[string_length_max];
+    snprintf(shader_path, string_length_max, "../shaders/%s.vert", name.c_str());
+    mDependencies[0] = cache->get<ResourceFile>(std::string(shader_path));
+    snprintf(shader_path, string_length_max, "../shaders/%s.frag", name.c_str());
+    mDependencies[1] = cache->get<ResourceFile>(std::string(shader_path));
 }
 
 ResourceShader::~ResourceShader()
@@ -28,6 +38,10 @@ void ResourceShader::Load()
 {
     if(mShaderProgram)
         return;
+    for(auto& dependencies : mDependencies)
+    {
+        dependencies->Load();
+    }
     mShaderProgram = Global::resourceManager()->shader(name());
     mShaderProgram->Bind();
     for (const auto& p: mParameters)

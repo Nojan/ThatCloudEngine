@@ -1,8 +1,10 @@
 #pragma once
 #include "resource.hpp"
+#include <array>
 #include <memory>
 #include <vector>
 
+class ResourceFile;
 class ShaderProgram;
 class HashedString;
 
@@ -20,4 +22,5 @@ public:
 private:
     struct ShaderParameter;
     std::vector<ShaderParameter> mParameters;
+    std::array<std::shared_ptr<ResourceFile>, 2> mDependencies;
 };
