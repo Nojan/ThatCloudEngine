@@ -189,6 +189,54 @@ void Root::Init()
         }
     }
     SDL_GL_SwapWindow(mSDL_ctx->window);
+
+    if (State::Created == mState)
+    {
+        mState = State::ResourceLoading;
+        RendererList* renderList = Global::rendererList();
+        {
+            std::shared_ptr<Skybox> renderer(Skybox::GenerateCheckered());
+            renderList->addRenderer(renderer.get());
+            mRendererList.push_back(renderer);
+        }
+        {
+            std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
+            renderList->addRenderer(renderer.get());
+            mRendererList.push_back(renderer);
+        }
+        mVisualDebugRenderer.reset(new VisualDebugRenderer());
+        {
+            renderList->addRenderer(mVisualDebugRenderer.get());
+            mRendererList.push_back(mVisualDebugRenderer);
+        }
+        {
+            std::shared_ptr<SkinMeshRenderer> renderer = std::make_shared<SkinMeshRenderer>();
+            renderList->addRenderer(renderer.get());
+            mRendererList.push_back(renderer);
+        }
+        {
+            std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
+            renderList->addRenderer(renderer.get());
+            mRendererList.push_back(renderer);
+        }
+        mGameplayLoopManager = std::make_shared<Gameplay::LoopManager>();
+        {
+            std::vector<Resource*> resources;
+            for (auto& renderer : mRendererList)
+            {
+                renderer->ListResources(resources);
+            }
+            mGameplayLoopManager->ListResources(resources);
+            for (auto& resource : resources)
+            {
+                resource->Load();
+            }
+            for (auto& renderer : mRendererList)
+            {
+                renderer->OnLoad();
+            }
+        }
+    }
     if (!Global::platform()->Ready())
     {
         return;
@@ -197,55 +245,10 @@ void Root::Init()
     mCamera->WindowResize(windowsWidth, windowsHeight);
 
     mScene.reset(new Scene());
-
-    RendererList* renderList = Global::rendererList();
-    {
-        std::shared_ptr<Skybox> renderer(Skybox::GenerateCheckered());
-        renderList->addRenderer(renderer.get());
-        mRendererList.push_back(renderer);
-    }
-    {
-        std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
-        renderList->addRenderer(renderer.get());
-        mRendererList.push_back(renderer);
-    }
-    mVisualDebugRenderer.reset(new VisualDebugRenderer());
-    {
-        renderList->addRenderer(mVisualDebugRenderer.get());
-        mRendererList.push_back(mVisualDebugRenderer);
-    }
-    {
-        std::shared_ptr<SkinMeshRenderer> renderer = std::make_shared<SkinMeshRenderer>();
-        renderList->addRenderer(renderer.get());
-        mRendererList.push_back(renderer);
-    }
-    {
-        std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
-        renderList->addRenderer(renderer.get());
-        mRendererList.push_back(renderer);
-    }
-    mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mGameplayLoopManager->Init();
 
     mUpdaterList.push_back(mCamera);
     mUpdaterList.push_back(mGameplayLoopManager);
-
-    {
-        std::vector<Resource*> resources;
-        for (auto& renderer : mRendererList)
-        {
-            renderer->ListResources(resources);
-        }
-        for (auto& resource : resources)
-        {
-            resource->Load();
-        }
-        for (auto& renderer : mRendererList)
-        {
-            renderer->OnLoad();
-        }
-    }
-    
 
     printf("Engine initialization done\n");
     gl_log_error();
