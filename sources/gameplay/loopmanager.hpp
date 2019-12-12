@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../iupdater.hpp"
+#include "../iresourceowner.hpp"
 #include "../physics_event.hpp"
 #include "../imgui/imgui_header.hpp"
 
@@ -39,10 +40,13 @@ enum GameDebugMode : uint8_t {
     Volume,
 };
 
-class LoopManager : public IUpdater, PhysicsListener {
+class LoopManager : public IUpdater, PhysicsListener, IResourceOwner {
 public:
     LoopManager();
     ~LoopManager();
+
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void Init();
     void Terminate();
@@ -74,6 +78,7 @@ private:
     std::unique_ptr<Cursor> mCursor;
     std::vector< GameEntity* > mEntities;
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
+    std::vector<Resource> mResources;
     SmoothTransition mAdditionalRadius;
     glm::vec2 mMotion = glm::vec2(0,0);
     int mCloudTextureIdx = 0;

@@ -19,6 +19,8 @@
 #include "../billboard_rendering_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
+#include "../resource.hpp"
+#include "../resourcefile.hpp"
 #include "../resourcemanager.hpp"
 #include "../sound_system.hpp"
 #include "../texture.hpp"
@@ -70,6 +72,44 @@ LoopManager::LoopManager()
 
 LoopManager::~LoopManager()
 {}
+
+void LoopManager::ListResources(std::vector<Resource *> &resources)
+{
+    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
+    const int meshesCount = numeric_cast<int>(sizeof(meshes)/sizeof(char*));
+    const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
+    mResources.reserve(numeric_cast<size_t>(7 + 60 + meshesCount + 1 + 3));
+    char filename[256];
+    for (int idx = 1; idx <= 7; ++idx)
+    {
+        sprintf(filename, "../assets/3D/cloud_1_%d.tga", idx);
+        mResources.push_back( ResourceFile(filename) );
+    }
+    for (int i = 0; i < 60; ++i)
+    {
+        sprintf(filename, "../assets/3D/wave_5_%d.tga", i);
+        mResources.push_back( ResourceFile(filename) );
+    }
+    for (int i = 0; i < meshesCount; ++i)
+    {
+        sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
+        mResources.push_back( ResourceFile(filename) );
+    }
+    mResources.push_back(ResourceFile(level_name));
+    mResources.push_back(ResourceFile("../assets/Sounds/cloud_release.ogg"));
+    mResources.push_back(ResourceFile("../assets/Sounds/cloud_consume.ogg"));
+    mResources.push_back(ResourceFile("../assets/Sounds/cloud_normaltopurified"));
+    resources.reserve(resources.size() + mResources.size());
+    for(Resource& r: mResources)
+    {
+        resources.push_back(&r);
+    }
+}
+
+void LoopManager::OnLoad()
+{
+
+}
 
 void LoopManager::Init()
 {
