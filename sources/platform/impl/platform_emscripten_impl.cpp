@@ -74,15 +74,18 @@ void PlatformEmscripten::Init()
 bool PlatformEmscripten::Ready()
 {
 #ifndef __EMSCRIPTEN__
-    for (size_t idx = mFileLoading.size() - 1; idx < mFileLoading.size(); --idx)
+    if (!mFileLoading.empty())
     {
-        FileFetch& file = mFileLoading[idx];
-        file.delay--;
-        if (file.delay <= 0)
+        mFileLoading[0].delay -= 64;
+        for (size_t idx = mFileLoading.size() - 1; idx < mFileLoading.size(); --idx)
         {
-            OnLoad(file.name.c_str());
-            mFileLoading[idx] = mFileLoading[mFileLoading.size() - 1];
-            mFileLoading.resize(mFileLoading.size() - 1);
+            FileFetch& file = mFileLoading[idx];
+            if (file.delay <= 0)
+            {
+                OnLoad(file.name.c_str());
+                mFileLoading[idx] = mFileLoading[mFileLoading.size() - 1];
+                mFileLoading.resize(mFileLoading.size() - 1);
+            }
         }
     }
 #endif
@@ -109,7 +112,7 @@ bool PlatformEmscripten::Fetch(const char *filename)
             size_t size = ftell(file);
             fseek(file, 0, SEEK_SET);
             fclose(file);
-            mFileLoading.push_back({std::string(filename), int(size)});
+            mFileLoading.push_back({std::string(filename), int(size / 1024)});
         }
         else
         {
