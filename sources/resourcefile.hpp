@@ -6,6 +6,6 @@ class ResourceFile : public Resource
 public:
     ResourceFile(const std::string& name);
 
-    void Load() override;
+    bool Load() override;
 private:
 };

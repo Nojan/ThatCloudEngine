@@ -14,7 +14,7 @@ public:
     Resource(const std::string name, ResourceType type);
     virtual ~Resource() = default;
 
-    virtual void Load() {}
+    virtual bool Load();
 
     const std::string& name() const { return mName; }
     ResourceType type() const { return mType; }

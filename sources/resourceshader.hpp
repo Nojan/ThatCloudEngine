@@ -13,7 +13,7 @@ public:
     ResourceShader(const std::string name);
     ~ResourceShader();
 
-    void Load() override;
+    bool Load() override;
 
     void PreloadAttribute(const HashedString& name);
     void PreloadUniform(const HashedString& name);

@@ -34,15 +34,25 @@ ResourceShader::~ResourceShader()
 {
 }
 
-void ResourceShader::Load()
+bool ResourceShader::Load()
 {
     if(mShaderProgram)
-        return;
+        return true;
+    bool result = true;
     for(auto& dependencies : mDependencies)
     {
-        dependencies->Load();
+        result = result && dependencies->Load();
+    }
+    if (!result)
+    {
+        return result;
     }
     mShaderProgram = Global::resourceManager()->shader(name());
+    if (!mShaderProgram)
+    {
+        result = false;
+        return result;
+    }
     mShaderProgram->Bind();
     for (const auto& p: mParameters)
     {
@@ -59,6 +69,7 @@ void ResourceShader::Load()
         }
     }
     mShaderProgram->Unbind();
+    return result;
 }
 
 void ResourceShader::PreloadAttribute(const HashedString& name)

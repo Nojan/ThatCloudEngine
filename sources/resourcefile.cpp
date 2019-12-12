@@ -8,7 +8,7 @@ ResourceFile::ResourceFile(const std::string& name)
 
 }
 
-void ResourceFile::Load()
+bool ResourceFile::Load()
 {
-    Global::platform()->Fetch(name().c_str());
+    return Global::platform()->Fetch(name().c_str());
 }
