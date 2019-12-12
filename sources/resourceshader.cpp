@@ -25,9 +25,9 @@ ResourceShader::ResourceShader(const std::string name)
     const size_t string_length_max = 2048;
     char shader_path[string_length_max];
     snprintf(shader_path, string_length_max, "../shaders/%s.vert", name.c_str());
-    mDependencies[0] = cache->get<ResourceFile>(std::string(shader_path));
+    mDependencies[0] = cache->get_or_create<ResourceFile>(std::string(shader_path));
     snprintf(shader_path, string_length_max, "../shaders/%s.frag", name.c_str());
-    mDependencies[1] = cache->get<ResourceFile>(std::string(shader_path));
+    mDependencies[1] = cache->get_or_create<ResourceFile>(std::string(shader_path));
 }
 
 ResourceShader::~ResourceShader()

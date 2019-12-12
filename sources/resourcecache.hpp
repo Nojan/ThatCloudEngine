@@ -9,6 +9,8 @@ class Resource;
 class ResourceCache {
 public:
     template<class T>
+    std::shared_ptr<T> get_or_create(const std::string& name);
+    template<class T>
     std::shared_ptr<T> get(const std::string& name);
 	
 private:
@@ -18,7 +20,7 @@ private:
 };
 
 template<class T>
-std::shared_ptr<T> ResourceCache::get(const std::string& name) {
+std::shared_ptr<T> ResourceCache::get_or_create(const std::string& name) {
     std::shared_ptr<T> resource;
     std::shared_ptr<Resource> resource_base = get_impl(name);
     if(!resource_base)
@@ -28,6 +30,17 @@ std::shared_ptr<T> ResourceCache::get(const std::string& name) {
         insert(resource_base);
     }
     else
+    {
+        resource = std::dynamic_pointer_cast<T>(resource_base);
+    }
+    return resource;
+}
+
+template<class T>
+std::shared_ptr<T> ResourceCache::get(const std::string& name) {
+    std::shared_ptr<T> resource;
+    std::shared_ptr<Resource> resource_base = get_impl(name);
+    if (resource_base)
     {
         resource = std::dynamic_pointer_cast<T>(resource_base);
     }

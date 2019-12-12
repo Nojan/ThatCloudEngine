@@ -78,7 +78,7 @@ private:
     std::unique_ptr<Cursor> mCursor;
     std::vector< GameEntity* > mEntities;
     std::vector<std::shared_ptr<Texture2D>> mCloudsTextures;
-    std::vector<Resource> mResources;
+    std::vector<std::shared_ptr<Resource>> mResources;
     SmoothTransition mAdditionalRadius;
     glm::vec2 mMotion = glm::vec2(0,0);
     int mCloudTextureIdx = 0;

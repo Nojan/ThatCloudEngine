@@ -21,6 +21,7 @@
 #include "../renderableMesh.hpp"
 #include "../resource.hpp"
 #include "../resourcefile.hpp"
+#include "../resourcecache.hpp"
 #include "../resourcemanager.hpp"
 #include "../sound_system.hpp"
 #include "../texture.hpp"
@@ -75,6 +76,7 @@ LoopManager::~LoopManager()
 
 void LoopManager::ListResources(std::vector<Resource *> &resources)
 {
+    ResourceCache* cache = Global::resourceManager()->Cache();
     const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
     const int meshesCount = numeric_cast<int>(sizeof(meshes)/sizeof(char*));
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
@@ -83,26 +85,26 @@ void LoopManager::ListResources(std::vector<Resource *> &resources)
     for (int idx = 1; idx <= 7; ++idx)
     {
         sprintf(filename, "../assets/3D/cloud_1_%d.tga", idx);
-        mResources.push_back( ResourceFile(filename) );
+        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
     }
     for (int i = 0; i < 60; ++i)
     {
         sprintf(filename, "../assets/3D/wave_5_%d.tga", i);
-        mResources.push_back( ResourceFile(filename) );
+        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
     }
     for (int i = 0; i < meshesCount; ++i)
     {
         sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
-        mResources.push_back( ResourceFile(filename) );
+        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
     }
-    mResources.push_back(ResourceFile(level_name));
-    mResources.push_back(ResourceFile("../assets/Sounds/cloud_release.ogg"));
-    mResources.push_back(ResourceFile("../assets/Sounds/cloud_consume.ogg"));
-    mResources.push_back(ResourceFile("../assets/Sounds/cloud_normaltopurified"));
+    mResources.push_back(cache->get_or_create<ResourceFile>(level_name));
+    mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_release.ogg"));
+    mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_consume.ogg"));
+    mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_normaltopurified.ogg"));
     resources.reserve(resources.size() + mResources.size());
-    for(Resource& r: mResources)
+    for(auto& r: mResources)
     {
-        resources.push_back(&r);
+        resources.push_back(r.get());
     }
 }
 
