@@ -237,11 +237,30 @@ void Root::Init()
     {
         return;
     }
-    for (auto& renderer : mRendererList)
+    // All ResourceFile should be ready
+    // Reload everything
     {
-        renderer->OnLoad();
+        std::vector<Resource*> resources;
+        for (auto& renderer : mRendererList)
+        {
+            renderer->ListResources(resources);
+        }
+        mGameplayLoopManager->ListResources(resources);
+        for (auto& resource : resources)
+        {
+            bool result = resource->Load();
+            if(!result)
+            {
+                printf("failed to load resource %s\n", resource->name().c_str());
+            }
+            assert(result);
+        }
+        for (auto& renderer : mRendererList)
+        {
+            renderer->OnLoad();
+        }
+        mGameplayLoopManager->OnLoad();
     }
-    mGameplayLoopManager->OnLoad();
     mCamera.reset(new Camera());
     mCamera->WindowResize(windowsWidth, windowsHeight);
 
