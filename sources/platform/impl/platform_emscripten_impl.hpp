@@ -17,6 +17,7 @@ public:
 public:
     void OnLoad(const char * filename);
     void OnLoadError(const char * filename);
+    void OnLoadSuccess(const char* filename, bool success);
 
 private:
     std::atomic_uint mFileToLoad;

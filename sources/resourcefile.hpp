@@ -4,8 +4,16 @@
 class ResourceFile : public Resource
 {
 public:
+    enum class State {
+        Init,
+        Loading,
+        Loaded,
+        Fail,
+    };
     ResourceFile(const std::string& name);
 
     bool Load() override;
+    void SetLoadingSuccess(bool success);
 private:
+    State mState = State::Init;
 };

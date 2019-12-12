@@ -1,4 +1,8 @@
 #include "platform_emscripten_impl.hpp"
+#include "../../global.hpp"
+#include "../../resourcecache.hpp"
+#include "../../resourcemanager.hpp"
+#include "../../resourcefile.hpp"
 
 #include <cassert>
 #ifdef __EMSCRIPTEN__
@@ -17,17 +21,13 @@ PlatformEmscripten::PlatformEmscripten()
 void PlatformEmscripten::Init()
 {
     printf("Emscripten FS init\n");
-    printf("Create dir ../asset\n");
+    printf("Create dir ../assets\n");
 #ifdef __EMSCRIPTEN__
     EM_ASM(
-        FS.mkdir('/../asset');
-    FS.mount(MEMFS, {}, '/../asset');
-    FS.mkdir('/../asset/mesh');
-    FS.mount(MEMFS, {}, '/../asset/mesh');
-    FS.mkdir('/../asset/sound');
-    FS.mount(MEMFS, {}, '/../asset/sound');
-    FS.mkdir('/../asset/texture');
-    FS.mount(MEMFS, {}, '/../asset/texture');
+        FS.mkdir('/../assets');
+        FS.mount(MEMFS, {}, '/../assets');
+        FS.mkdir('/../shaders');
+        FS.mount(MEMFS, {}, '/../shaders');
     );
 #endif
     printf("Emscripten FS init done\n");
@@ -104,10 +104,23 @@ void PlatformEmscripten::CloseFile(FILE * file) {
 void PlatformEmscripten::OnLoad(const char * filename)
 {
     printf("wget success %s\n", filename);
+    OnLoadSuccess(filename, true);
     --mFileToLoad;
 }
 
 void PlatformEmscripten::OnLoadError(const char * filename)
 {
     printf("wget error %s\n", filename);
+    OnLoadSuccess(filename, false);
+}
+
+void PlatformEmscripten::OnLoadSuccess(const char* filename, bool success)
+{
+    // Resource are not necessary in the cache.
+    // TODO use a callback to ResourceFile.
+    ResourceCache* resourceCache = Global::resourceManager()->Cache();
+    if (std::shared_ptr<ResourceFile> file = resourceCache->get<ResourceFile>(filename))
+    {
+        file->SetLoadingSuccess(success);
+    }
 }
