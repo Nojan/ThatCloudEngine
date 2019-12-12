@@ -5,7 +5,7 @@
 class IPlatformImpl {
 public:
     virtual void Init() = 0;
-    virtual bool Ready() const = 0;
+    virtual bool Ready() = 0;
     virtual void Terminate() = 0;
 
     virtual bool Fetch(const char* filename) = 0;

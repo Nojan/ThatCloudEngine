@@ -71,7 +71,7 @@ void PlatformEmscripten::Init()
     }
 }
 
-bool PlatformEmscripten::Ready() const
+bool PlatformEmscripten::Ready()
 {
     return 0 == mFileToLoad;
 }

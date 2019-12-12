@@ -7,7 +7,7 @@ void PlatformWindows::Init() {
     }
 }
 
-bool PlatformWindows::Ready() const
+bool PlatformWindows::Ready()
 {
     return true;
 }

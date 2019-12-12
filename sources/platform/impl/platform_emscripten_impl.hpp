@@ -7,7 +7,7 @@ public:
     PlatformEmscripten();
 
     void Init() override;
-    bool Ready() const override;
+    bool Ready() override;
     void Terminate() override;
 
     bool Fetch(const char* filename) override;
