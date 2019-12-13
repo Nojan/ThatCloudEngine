@@ -185,6 +185,6 @@ void ParticleRenderer::HandleMousePosition(float x, float y, float z) {
 
 #if GUI_DEBUG()
 void ParticleRenderer::debug_GUI() const {
-    ImGui::Text("Particle %d/%d", mParticleData->mCount, mParticleData->mMaxCount);
+    ImGui::Text("Particle %zu/%zu", mParticleData->mCount, mParticleData->mMaxCount);
 }
 #endif

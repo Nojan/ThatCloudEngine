@@ -550,7 +550,7 @@ void InputController::DrawGamepad()
         ImGui::SetNextWindowPos(ImVec2(b.position.x, b.position.y), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(b.size.x, b.size.y), ImGuiCond_Always);
         ImGui::SetNextWindowBgAlpha(alpha);
-        sprintf(name, "%s##%d", b.name.c_str(), idx);
+        sprintf(name, "%s##%zu", b.name.c_str(), idx);
         if (ImGui::Begin(name, nullptr, flags))
         {
             ImGui::Text("%s", b.name.c_str());
@@ -573,7 +573,7 @@ void InputController::DrawGamepad()
             ImGui::SetNextWindowSize(ImVec2(c.size.x, c.size.y), ImGuiCond_Always);
             ImGui::SetNextWindowBgAlpha(alpha);
             
-            sprintf(name, "stick##%d", idx);
+            sprintf(name, "stick##%zu", idx);
             if (ImGui::Begin(name, nullptr, flags))
             {
                 if(showControl)
