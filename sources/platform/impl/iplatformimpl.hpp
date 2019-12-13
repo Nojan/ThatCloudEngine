@@ -4,6 +4,8 @@
 
 class IPlatformImpl {
 public:
+    virtual ~IPlatformImpl() = default;
+
     virtual void Init() = 0;
     virtual bool Ready() = 0;
     virtual void Terminate() = 0;
