@@ -135,7 +135,7 @@ void LoopManager::Init()
     }
     std::vector<std::shared_ptr<Texture2D>> waveTextures;
     waveTextures.reserve(60);
-    for (size_t i = 0; i < 60; ++i)
+    for (int i = 0; i < 60; ++i)
     {
         sprintf(filename, "../assets/3D/wave_5_%d.tga", i);
         waveTextures.push_back( Global::resourceManager()->texture(filename) );

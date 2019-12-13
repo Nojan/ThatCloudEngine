@@ -18,7 +18,7 @@ public:
     static Skybox* GenerateCheckered();
 
     Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg);
-    ~Skybox();
+    virtual ~Skybox();
 
     void Render(const Scene * scene) override;
     void FlushFrame() override;
@@ -26,7 +26,7 @@ public:
     void OnLoad() override;
 
 #if GUI_DEBUG()
-    void debug_GUI() const;
+    void debug_GUI() const override;
 #endif
     const char* debug_name() const override { return "Skybox Renderer"; }
 
