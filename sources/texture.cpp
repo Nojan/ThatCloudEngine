@@ -14,7 +14,7 @@ constexpr bool is_power_of_two(uint x)
     return x && ((x & (x - 1)) == 0);
 }
 
-void Texture2D::setTexture(const std::unique_ptr<Color::rgb[]>& data, uint height, uint width)
+void Texture2D::setTexture(const Color::rgb* data, uint height, uint width)
 {
     // TODO avoid copy, or remove this method
     std::unique_ptr<uint8_t[]> d(new uint8_t[3*height*width]);
@@ -57,14 +57,14 @@ std::unique_ptr<Texture2D> Texture2D::generateUniform(uint height, uint width, C
     assert(is_power_of_two(height));
     assert(is_power_of_two(width));
     const size_t textureSize = height*width;
-    std::unique_ptr<Color::rgb[]> data((Color::rgb*)malloc(sizeof(Color::rgb)*textureSize));
+    std::unique_ptr<Color::rgb[]> data(new Color::rgb[textureSize]);
     for (size_t x = 0; x < textureSize; ++x)
     {
         data[x] = color;
     }
     std::unique_ptr<Texture2D> texture;
     texture.reset(new Texture2D());
-    texture->setTexture(std::move(data), height, width);
+    texture->setTexture(data.get(), height, width);
     return std::move(texture);
 }
 
@@ -75,7 +75,7 @@ std::unique_ptr<Texture2D> Texture2D::generateCheckeredBoard(uint count, uint he
     const size_t textureSize = height*width;
     const uint checkerHeight = height / count;
     const uint checkerWidth = width / count;
-    std::unique_ptr<Color::rgb[]> data((Color::rgb*)malloc(sizeof(Color::rgb)*textureSize));
+    std::unique_ptr<Color::rgb[]> data(new Color::rgb[textureSize]);
     for (size_t y = 0; y < height; ++y) 
     {
         const size_t yIndex = y * width;
@@ -89,7 +89,7 @@ std::unique_ptr<Texture2D> Texture2D::generateCheckeredBoard(uint count, uint he
     }
     std::unique_ptr<Texture2D> texture;
     texture.reset(new Texture2D());
-    texture->setTexture(std::move(data), height, width);
+    texture->setTexture(data.get(), height, width);
     return std::move(texture);
 }
 
