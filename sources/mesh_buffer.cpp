@@ -66,7 +66,7 @@ MeshBuffer::MeshBuffer(const VertexBufferLayout& layout, uint32_t vertexCount, u
 }
 
 MeshBuffer::~MeshBuffer() {
-    delete mBuffer;
+    free(mBuffer);
 }
 
 const char* MeshBuffer::VertexBufferComponent(VertexSemantic::value semantic) const {
