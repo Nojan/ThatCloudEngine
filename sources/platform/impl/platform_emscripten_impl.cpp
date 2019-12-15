@@ -145,10 +145,19 @@ void PlatformEmscripten::OnLoadError(const char * filename)
 
 void PlatformEmscripten::OnLoadSuccess(const char* filename, bool success)
 {
+    assert(filename);
     // Resource are not necessary in the cache.
     // TODO use a callback to ResourceFile.
+    std::string filenameInCache;
+    if (filename == strstr(filename, ".."))
+    {
+        filenameInCache = filename;
+    } else {
+        // weird emscripten behaviour: requesting ../assets/file will succeed with filename /assets/file. 
+        filenameInCache = std::string("..") + std::string(filename);
+    }
     ResourceCache* resourceCache = Global::resourceManager()->Cache();
-    if (std::shared_ptr<ResourceFile> file = resourceCache->get<ResourceFile>(filename))
+    if (std::shared_ptr<ResourceFile> file = resourceCache->get<ResourceFile>(filenameInCache))
     {
         file->SetLoadingSuccess(success);
     }
