@@ -39,9 +39,9 @@ bool ResourceShader::Load()
     if(mShaderProgram)
         return true;
     bool result = true;
-    for(auto& dependencies : mDependencies)
+    for(auto& dependency : mDependencies)
     {
-        const bool loaded = dependencies->Load();
+        const bool loaded = dependency->Load();
         result = result && loaded;
     }
     if (!result)
