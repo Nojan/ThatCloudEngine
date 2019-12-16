@@ -8,6 +8,8 @@
 
 #include "../rendering_system.hpp"
 #include "../billboard_rendering_system.hpp"
+#include "../resourcecache.hpp"
+#include "../resourcefile.hpp"
 #include "../resourcemanager.hpp"
 #include "../transform_system.hpp"
 
@@ -17,16 +19,39 @@ namespace Gameplay {
 }
 }
 
-void Cursor::Init()
+Cursor::Cursor()
 {
-    mTextures.reserve(12);
+    ResourceCache* cache = Global::resourceManager()->Cache();
     char filename[256];
+    mResources.reserve(12);
     for (int idx = 0; idx < 12; ++idx)
     {
         sprintf(filename, "../assets/3D/CursorBillboard_1_%d.tga", idx);
-        mTextures.push_back( Global::resourceManager()->texture(filename) );
+        mResources.push_back(cache->get_or_create<ResourceFile>(filename));
     }
-    
+}
+
+void Cursor::ListResources(std::vector<Resource*>& resources)
+{
+    resources.reserve(resources.size() + mResources.size());
+    for (auto& r : mResources)
+    {
+        resources.push_back(r.get());
+    }
+}
+
+void Cursor::OnLoad()
+{
+    mTextures.clear();
+    mTextures.reserve(12);
+    for (auto& r : mResources)
+    {
+        mTextures.push_back(Global::resourceManager()->texture(r->name()));
+    }
+}
+
+void Cursor::Init()
+{
     GameSystem* gameSystem = Global::gameSytem();
     GameEntity* entity = gameSystem->createEntity();
     mEntity.reset(entity);

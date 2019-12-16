@@ -106,11 +106,12 @@ void LoopManager::ListResources(std::vector<Resource *> &resources)
     {
         resources.push_back(r.get());
     }
+    mCursor->ListResources(resources);
 }
 
 void LoopManager::OnLoad()
 {
-
+    mCursor->OnLoad();
 }
 
 void LoopManager::Init()

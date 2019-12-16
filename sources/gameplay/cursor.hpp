@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../types.hpp"
+#include "../iresourceowner.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -8,10 +9,13 @@
 class Texture2D;
 class GameEntity;
 
-class Cursor {
+class Cursor : public IResourceOwner {
 public:
-    Cursor() = default;
+    Cursor();
     ~Cursor() = default;
+
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void Init();
     void Terminate();
@@ -21,6 +25,7 @@ public:
 private:
     std::unique_ptr<GameEntity> mEntity;
     std::vector<std::shared_ptr<Texture2D>> mTextures;
+    std::vector<std::shared_ptr<Resource>> mResources;
     size_t mIdx = 0;
     float mTimer = 0.f;
 };
