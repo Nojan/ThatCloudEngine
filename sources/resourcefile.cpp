@@ -9,18 +9,25 @@ ResourceFile::ResourceFile(const std::string& name)
 
 }
 
-bool ResourceFile::Load()
+bool ResourceFile::Load(Resource* owner)
 {
     if (State::Init == mState)
     {
         if ( Global::platform()->Fetch(name().c_str()) )
+        {
             mState = State::Loaded;
+        }
         else
         {
             mState = State::Loading;
         }
     }
-    return State::Loaded == mState;
+    const bool isLoaded = State::Loaded == mState;
+    if (!isLoaded && owner)
+    {
+        mOwners.push_back(owner);
+    }
+    return isLoaded;
 }
 
 void ResourceFile::SetLoadingSuccess(bool success)
@@ -34,4 +41,9 @@ void ResourceFile::SetLoadingSuccess(bool success)
     {
         mState = State::Fail;
     }
+    for (auto& owner : mOwners)
+    {
+        owner->OnDependencyLoad(this);
+    }
+    mOwners.resize(0);
 }

@@ -34,14 +34,14 @@ ResourceShader::~ResourceShader()
 {
 }
 
-bool ResourceShader::Load()
+bool ResourceShader::Load(Resource* owner)
 {
     if(mShaderProgram)
         return true;
     bool result = true;
     for(auto& dependency : mDependencies)
     {
-        const bool loaded = dependency->Load();
+        const bool loaded = dependency->Load(this);
         result = result && loaded;
     }
     if (!result)
@@ -71,6 +71,11 @@ bool ResourceShader::Load()
     }
     mShaderProgram->Unbind();
     return result;
+}
+
+void ResourceShader::OnDependencyLoad(const Resource* dependency)
+{
+    Load(nullptr);
 }
 
 void ResourceShader::PreloadAttribute(const HashedString& name)

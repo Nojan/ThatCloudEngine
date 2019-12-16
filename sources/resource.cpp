@@ -6,8 +6,13 @@ Resource::Resource(const std::string name, ResourceType type)
 , mType(type)
 {}
 
-bool Resource::Load()
+bool Resource::Load(Resource* owner)
 {
     assert(false);
     return false;
+}
+
+void Resource::OnDependencyLoad(const Resource* dependency)
+{
+    assert(false);
 }

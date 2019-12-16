@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 enum class ResourceType {
     Shader,
@@ -14,11 +15,14 @@ public:
     Resource(const std::string name, ResourceType type);
     virtual ~Resource() = default;
 
-    virtual bool Load();
+    virtual bool Load(Resource* owner = nullptr);
+    virtual void OnDependencyLoad(const Resource* dependency);
 
     const std::string& name() const { return mName; }
     ResourceType type() const { return mType; }
 private:
     const std::string mName;
     const ResourceType mType;
+protected:
+    std::vector<Resource*> mOwners;
 };

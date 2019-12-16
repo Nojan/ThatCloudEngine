@@ -12,7 +12,7 @@ public:
     };
     ResourceFile(const std::string& name);
 
-    bool Load() override;
+    bool Load(Resource* owner = nullptr) override;
     void SetLoadingSuccess(bool success);
 private:
     State mState = State::Init;
