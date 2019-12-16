@@ -21,6 +21,7 @@
 #include "../renderableMesh.hpp"
 #include "../resource.hpp"
 #include "../resourcefile.hpp"
+#include "../resourcemesh.hpp"
 #include "../resourcecache.hpp"
 #include "../resourcemanager.hpp"
 #include "../sound_system.hpp"
@@ -88,8 +89,7 @@ LoopManager::LoopManager()
     }
     for (int i = 0; i < meshesCount; ++i)
     {
-        sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
-        mResources.push_back(cache->get_or_create<ResourceFile>(filename));
+        mResources.push_back(cache->get_or_create<ResourceMesh>(meshes[i]));
     }
     mResources.push_back(cache->get_or_create<ResourceFile>(level_name));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_release.ogg"));

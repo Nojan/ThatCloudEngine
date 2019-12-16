@@ -2,6 +2,8 @@
 
 #include "renderableMesh.hpp"
 #include "global.hpp"
+#include "resourcefile.hpp"
+#include "resourcecache.hpp"
 #include "resourcemanager.hpp"
 #include "platform/platform.hpp"
 #include "resource_compiler.hpp"
@@ -94,6 +96,61 @@ void compile_mesh(const char * filepath, MeshResourceList& meshList)
         }
         
         meshList.push_back(meshResource);
+    }
+}
+
+void get_dependencies(const ResourceFile& meshfile, std::vector<std::shared_ptr<ResourceFile>>& dependencies)
+{
+    Platform* platform = Global::platform();
+    FileHandle fileHandle = platform->OpenFile(meshfile.name().c_str(), "rb");
+    FILE* file = fileHandle.get();
+    assert(file);
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLError error = doc.LoadFile(file);
+    assert(!error);
+    const tinyxml2::XMLElement* visualSceneElement = doc.FirstChildElement("ASSIMP")->FirstChildElement("Scene");
+    const tinyxml2::XMLElement* materialList = visualSceneElement->FirstChildElement("MaterialList");
+    const tinyxml2::XMLElement* meshListElement = visualSceneElement->FirstChildElement("MeshList");
+    for (const tinyxml2::XMLElement* meshElement = meshListElement->FirstChildElement("Mesh"); meshElement != nullptr; meshElement = meshElement->NextSiblingElement("Mesh"))
+    {
+        int materialId = -1;
+        if (tinyxml2::XML_NO_ERROR == meshElement->QueryIntAttribute("material_index", &materialId))
+        {
+            int materialIdx = 0;
+            for (const tinyxml2::XMLElement* materialElement = materialList->FirstChildElement("Material"); materialElement != nullptr; materialElement = materialElement->NextSiblingElement("Material"))
+            {
+                if (materialId == materialIdx)
+                {
+                    if (const tinyxml2::XMLElement* materialPropListElement = materialElement->FirstChildElement("MatPropertyList"))
+                    {
+                        for (const tinyxml2::XMLElement* materialPropElement = materialPropListElement->FirstChildElement("MatProperty"); materialPropElement != nullptr; materialPropElement = materialPropElement->NextSiblingElement("MatProperty"))
+                        {
+                            if (materialPropElement->Attribute("key", "$tex.file"))
+                            {
+                                const char* textureNameDirty = materialPropElement->GetText();
+                                // TODO fix data
+                                char textureName[64];
+                                memset(textureName, '\0', 64);
+                                for (int idx = 0; idx < 64 && *textureNameDirty != '\0'; ++textureNameDirty)
+                                {
+                                    if (isalnum(*textureNameDirty) || '.' == *textureNameDirty || '_' == *textureNameDirty)
+                                    {
+                                        textureName[idx] = *textureNameDirty;
+                                        ++idx;
+                                    }
+                                }
+                                char filename[256];
+                                sprintf(filename, "../assets/3D/%s", textureName);
+                                dependencies.push_back(Global::resourceManager()->Cache()->get_or_create<ResourceFile>(filename));
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+                ++materialIdx;
+            }
+        }
     }
 }
 

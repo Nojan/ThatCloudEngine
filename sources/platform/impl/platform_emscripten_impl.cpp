@@ -38,20 +38,6 @@ void PlatformEmscripten::Init()
         "../assets/3D/cloudboycloth.tga",
         "../assets/3D/cloudboy_normal.assxml",
         "../assets/3D/cloudboy_fast.assxml",
-        "../assets/3D/volcano.tga",
-        "../assets/3D/volcano_beach.tga",
-        "../assets/3D/city.tga",
-        "../assets/3D/paw.tga",
-        "../assets/3D/albino.tga",
-        "../assets/3D/wet.tga",
-        "../assets/3D/big.tga",
-        "../assets/3D/pacman.tga",
-        "../assets/3D/good.tga",
-        "../assets/3D/oceanbottom.tga",
-        "../assets/3D/shallowwater.tga",
-        "../assets/3D/beach.tga",
-        "../assets/3D/ocean.tga",
-        "../assets/3D/tree.tga",
     };
     const size_t count = (sizeof(url) / sizeof(url[0]));
     for (size_t idx = 0; idx < count; ++idx) {
