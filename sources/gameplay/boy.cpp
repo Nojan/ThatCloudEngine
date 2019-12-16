@@ -7,14 +7,37 @@
 #include "../platform/platform.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
+#include "../mesh_resource.hpp"
 
 #include "../physic_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
+#include "../resourcemesh.hpp"
+#include "../resourcecache.hpp"
 #include "../resourcemanager.hpp"
 #include "../transform_system.hpp"
 
-#include "../tinyxml/tinyxml2.h"
+Boy::Boy()
+{
+    ResourceCache* cache = Global::resourceManager()->Cache();
+    assert(cache);
+    mResources.push_back(cache->get_or_create<ResourceMesh>("cloudboy_slow"));
+    mResources.push_back(cache->get_or_create<ResourceMesh>("cloudboy_normal"));
+    mResources.push_back(cache->get_or_create<ResourceMesh>("cloudboy_fast"));
+}
+
+void Boy::ListResources(std::vector<Resource*>& resources)
+{
+    resources.reserve(resources.size() + mResources.size());
+    for (auto& r : mResources)
+    {
+        resources.push_back(r.get());
+    }
+}
+
+void Boy::OnLoad()
+{
+}
 
 void Boy::Init()
 {
@@ -31,14 +54,7 @@ void Boy::Init()
     GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
     renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
 
-    char filename[256];
-    sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_slow");
-    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
-    sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_normal");
-    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
-    sprintf(filename, "../assets/3D/%s.assxml", "cloudboy_fast");
-    mMeshResourceList.push_back(Global::resourceManager()->meshResource(filename));
-    renderingComponent->setupResource( mMeshResourceList.front() );
+    renderingComponent->setupResource(mResources.front()->Mesh());
 }
 
 void Boy::Terminate()
@@ -73,7 +89,7 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
 
     // Set model
     {
-        int idx = mMeshResourceList.size() - 1;
+        int idx = mResources.size() - 1;
         if (speed < 5.f)
         {
             idx = 0;
@@ -83,7 +99,7 @@ void Boy::MoveToward(const glm::vec3 & position, const float deltaTime)
             idx = 1;
         }
         GraphicMeshComponent* renderingComponent = mEntity->getComponent<GraphicMeshComponent>();
-        renderingComponent->setupResource(mMeshResourceList[idx]);
+        renderingComponent->setupResource(mResources[idx]->Mesh());
     }   
 
     // Update rotation

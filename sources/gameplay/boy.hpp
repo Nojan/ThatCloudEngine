@@ -1,16 +1,22 @@
 #pragma once
 
 #include "../types.hpp"
-#include "../mesh_resource.hpp"
+#include "../iresourceowner.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-class GameEntity;
 
-class Boy {
+class GameEntity;
+class Resource;
+class ResourceMesh;
+
+class Boy : public IResourceOwner {
 public:
-    Boy() = default;
+    Boy();
     ~Boy() = default;
+
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void Init();
     void Terminate();
@@ -22,5 +28,5 @@ public:
 
 private:
     std::unique_ptr<GameEntity> mEntity;
-    std::vector<std::shared_ptr<MeshResourceList>> mMeshResourceList;
+    std::vector<std::shared_ptr<ResourceMesh>> mResources;
 };
