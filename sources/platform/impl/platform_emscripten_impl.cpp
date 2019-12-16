@@ -31,18 +31,6 @@ void PlatformEmscripten::Init()
     );
 #endif
     printf("Emscripten FS init done\n");
-    const char * url[] = {
-        "../assets/Sounds/ingame.ogg",
-        "../assets/3D/cloudboy_slow.assxml",
-        "../assets/3D/cloudboyskin.tga",
-        "../assets/3D/cloudboycloth.tga",
-        "../assets/3D/cloudboy_normal.assxml",
-        "../assets/3D/cloudboy_fast.assxml",
-    };
-    const size_t count = (sizeof(url) / sizeof(url[0]));
-    for (size_t idx = 0; idx < count; ++idx) {
-        Fetch(url[idx]);
-    }
 }
 
 bool PlatformEmscripten::Ready()
