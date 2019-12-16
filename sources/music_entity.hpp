@@ -2,15 +2,21 @@
 
 #include "config.hpp"
 #include "game_entity.hpp"
+#include "iresourceowner.hpp"
 
 #include <atomic>
 
 struct stb_vorbis;
+class Resource;
+class ResourceFile;
 
-class MusicEntity {
+class MusicEntity : public IResourceOwner {
 public:
-    MusicEntity();
+    MusicEntity(std::shared_ptr<ResourceFile>& resourceFile);
     ~MusicEntity();
+
+    void ListResources(std::vector<Resource*>& resources) override;
+    void OnLoad() override;
 
     void Init();
     void Terminate();
@@ -22,6 +28,8 @@ public:
 
 private:
     void FreeResource();
+
+    std::shared_ptr<ResourceFile> mResourceFile;
 
     GameEntity* mEntity = nullptr;
     FILE* mFile = nullptr;

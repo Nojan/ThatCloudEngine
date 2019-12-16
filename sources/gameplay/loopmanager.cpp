@@ -67,8 +67,7 @@ void SmoothTransition::SetTarget(float value)
 }
 
 LoopManager::LoopManager()
-: mMusic(new MusicEntity())
-, mBoy(new Boy())
+: mBoy(new Boy())
 , mCursor(new Cursor())
 {
     ResourceCache* cache = Global::resourceManager()->Cache();
@@ -95,6 +94,9 @@ LoopManager::LoopManager()
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_release.ogg"));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_consume.ogg"));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_normaltopurified.ogg"));
+
+    std::shared_ptr<ResourceFile> musicFile = cache->get_or_create<ResourceFile>("../assets/Sounds/ingame.ogg");
+    mMusic = std::make_unique<MusicEntity>(musicFile);
 }
 
 LoopManager::~LoopManager()
@@ -109,12 +111,14 @@ void LoopManager::ListResources(std::vector<Resource *> &resources)
     }
     mCursor->ListResources(resources);
     mBoy->ListResources(resources);
+    mMusic->ListResources(resources);
 }
 
 void LoopManager::OnLoad()
 {
     mCursor->OnLoad();
     mBoy->OnLoad();
+    mMusic->OnLoad();
 }
 
 void LoopManager::Init()

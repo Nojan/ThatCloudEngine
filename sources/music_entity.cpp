@@ -3,14 +3,16 @@
 #include "global.hpp"
 #include "game_system.hpp"
 #include "sound_system.hpp"
+#include "resourcefile.hpp"
 #include "platform/platform.hpp"
 #include "vorbis.h"
 #include "imgui/imgui_header.hpp"
 
 #include <cassert>
 
-MusicEntity::MusicEntity()
-: mSubmittedFrame(0)
+MusicEntity::MusicEntity(std::shared_ptr<ResourceFile>& resourceFile)
+: mResourceFile(resourceFile)
+, mSubmittedFrame(0)
 , mVolume(1.f)
 {}
 
@@ -20,12 +22,21 @@ MusicEntity::~MusicEntity()
     assert(nullptr == mVorbis);
 }
 
+void MusicEntity::ListResources(std::vector<Resource*>& resources)
+{
+    resources.push_back(mResourceFile.get());
+}
+
+void MusicEntity::OnLoad()
+{
+}
+
 void MusicEntity::Init()
 {
     GameSystem* gameSystem = Global::gameSytem();
     mEntity = gameSystem->createEntity();
     gameSystem->getSystem<SoundSystem>()->attachEntity(mEntity);
-    mFile = Global::platform()->OpenFile("../assets/Sounds/ingame.ogg", "rb");
+    mFile = Global::platform()->OpenFile(mResourceFile->name().c_str(), "rb");
     assert(mFile);
     mVorbis = stb_vorbis_open_file(mFile, false, nullptr, nullptr);
     assert(mVorbis);
