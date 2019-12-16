@@ -17,17 +17,7 @@
 #include "../tinyxml/tinyxml2.h"
 
 void loadlevel(const char * filepath, CloudSpawner cloudSpawner, GridSpawner gridSpawner, glm::vec3& boyPosition, glm::vec3& cameraOffset)
-{
-    std::vector<std::shared_ptr<Texture2D>> cloudsTextures;
-    cloudsTextures.reserve(7);
-    for (int idx = 1; idx <= 7; ++idx)
-    {
-        char filename[256];
-        sprintf(filename, "../assets/3D/cloud_1_%d.tga", idx);
-
-        cloudsTextures.push_back( Global::resourceManager()->texture(filename) );
-    }
-    
+{  
     Platform* platform = Global::platform();
     FileHandle fileHandle = platform->OpenFile(filepath, "rb");
     FILE* file = fileHandle.get();
