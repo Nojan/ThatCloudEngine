@@ -69,38 +69,39 @@ LoopManager::LoopManager()
 : mMusic(new MusicEntity())
 , mBoy(new Boy())
 , mCursor(new Cursor())
-{}
-
-LoopManager::~LoopManager()
-{}
-
-void LoopManager::ListResources(std::vector<Resource *> &resources)
 {
     ResourceCache* cache = Global::resourceManager()->Cache();
-    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
-    const int meshesCount = numeric_cast<int>(sizeof(meshes)/sizeof(char*));
+    const char* meshes[] = { "islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
+    const int meshesCount = numeric_cast<int>(sizeof(meshes) / sizeof(char*));
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
     mResources.reserve(numeric_cast<size_t>(7 + 60 + meshesCount + 1 + 3));
     char filename[256];
     for (int idx = 1; idx <= 7; ++idx)
     {
         sprintf(filename, "../assets/3D/cloud_1_%d.tga", idx);
-        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
+        mResources.push_back(cache->get_or_create<ResourceFile>(filename));
     }
     for (int i = 0; i < 60; ++i)
     {
         sprintf(filename, "../assets/3D/wave_5_%d.tga", i);
-        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
+        mResources.push_back(cache->get_or_create<ResourceFile>(filename));
     }
     for (int i = 0; i < meshesCount; ++i)
     {
         sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
-        mResources.push_back( cache->get_or_create<ResourceFile>(filename) );
+        mResources.push_back(cache->get_or_create<ResourceFile>(filename));
     }
     mResources.push_back(cache->get_or_create<ResourceFile>(level_name));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_release.ogg"));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_consume.ogg"));
     mResources.push_back(cache->get_or_create<ResourceFile>("../assets/Sounds/cloud_normaltopurified.ogg"));
+}
+
+LoopManager::~LoopManager()
+{}
+
+void LoopManager::ListResources(std::vector<Resource *> &resources)
+{
     resources.reserve(resources.size() + mResources.size());
     for(auto& r: mResources)
     {
