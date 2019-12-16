@@ -46,3 +46,8 @@ void ResourceMesh::OnDependencyLoad(const Resource* dependency)
     }
     Load(nullptr);
 }
+
+std::shared_ptr<MeshResourceList> ResourceMesh::Mesh()
+{
+    return mMesh;
+}
