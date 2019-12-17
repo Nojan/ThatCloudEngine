@@ -16,6 +16,7 @@ class MusicEntity;
 class GameEntity;
 class Boy;
 class Cursor;
+class IRenderer;
 
 struct InputControl;
 
@@ -44,6 +45,8 @@ class LoopManager : public IUpdater, PhysicsListener, IResourceOwner {
 public:
     LoopManager();
     ~LoopManager();
+
+    void ListRenderer(std::vector<std::shared_ptr< IRenderer > >& rendererList);
 
     void ListResources(std::vector<Resource*>& resources) override;
     void OnLoad() override;

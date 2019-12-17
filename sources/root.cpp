@@ -4,13 +4,8 @@
 #include "input_controller.hpp"
 #include "platform/platform.hpp"
 #include "renderer_list.hpp"
-#include "billboard_renderer.hpp"
-#include "meshRenderer.hpp"
-#include "mesh_renderer.hpp"
 #include "resource.hpp"
-#include "skinMeshRenderer.hpp"
 #include "scene.hpp"
-#include "skybox.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
 #include "game_system.hpp"
@@ -193,34 +188,14 @@ void Root::Init()
     if (State::Created == mState)
     {
         mState = State::ResourceLoading;
-        RendererList* renderList = Global::rendererList();
-        {
-            std::shared_ptr<Skybox> renderer(Skybox::GenerateCheckered());
-            renderList->addRenderer(renderer.get());
-            mRendererList.push_back(renderer);
-        }
-        {
-            std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
-            renderList->addRenderer(renderer.get());
-            mRendererList.push_back(renderer);
-        }
-        mVisualDebugRenderer.reset(new VisualDebugRenderer());
-        {
-            renderList->addRenderer(mVisualDebugRenderer.get());
-            mRendererList.push_back(mVisualDebugRenderer);
-        }
-        {
-            std::shared_ptr<SkinMeshRenderer> renderer = std::make_shared<SkinMeshRenderer>();
-            renderList->addRenderer(renderer.get());
-            mRendererList.push_back(renderer);
-        }
-        {
-            std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
-            renderList->addRenderer(renderer.get());
-            mRendererList.push_back(renderer);
-        }
+        
         mGameplayLoopManager = std::make_shared<Gameplay::LoopManager>();
+        mGameplayLoopManager->ListRenderer(mRendererList);
+        mVisualDebugRenderer = std::make_shared<VisualDebugRenderer>();
+        Global::rendererList()->addRenderer(mVisualDebugRenderer.get());
+        mRendererList.push_back(mVisualDebugRenderer);
         {
+            RendererList* renderList = Global::rendererList();
             std::vector<Resource*> resources;
             for (auto& renderer : mRendererList)
             {

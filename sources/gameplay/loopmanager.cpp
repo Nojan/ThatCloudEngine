@@ -8,6 +8,7 @@
 #include "cursor.hpp"
 #include "loadlevel.hpp"
 #include "../root.hpp"
+#include "../billboard_renderer.hpp"
 #include "../camera.hpp"
 #include "../input_control.hpp"
 #include "../physic_system.hpp"
@@ -15,8 +16,10 @@
 #include "../game_system.hpp"
 #include "../global.hpp"
 #include "../music_entity.hpp"
+#include "../meshRenderer.hpp"
 #include "../animated_texture_system.hpp"
 #include "../billboard_rendering_system.hpp"
+#include "../renderer_list.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resource.hpp"
@@ -25,6 +28,7 @@
 #include "../resourcecache.hpp"
 #include "../resourcemanager.hpp"
 #include "../sound_system.hpp"
+#include "../skybox.hpp"
 #include "../texture.hpp"
 #include "../transform_system.hpp"
 
@@ -97,10 +101,41 @@ LoopManager::LoopManager()
 
     std::shared_ptr<ResourceFile> musicFile = cache->get_or_create<ResourceFile>("../assets/Sounds/ingame.ogg");
     mMusic = std::make_unique<MusicEntity>(musicFile);
+
+    {
+        GameSystem* gameSystem = Global::gameSytem();
+        gameSystem->createSystem<TransformSystem>();
+        gameSystem->createSystem<PhysicSystem>();
+        gameSystem->createSystem<BillboardRenderingSystem>();
+        gameSystem->createSystem<RenderingSystem>();
+        gameSystem->createSystem<AnimatedTextureSystem>();
+        gameSystem->createSystem<SoundSystem>();
+    }
 }
 
 LoopManager::~LoopManager()
 {}
+
+void LoopManager::ListRenderer(std::vector<std::shared_ptr<IRenderer>>& rendererList)
+{
+    RendererList* renderList = Global::rendererList();
+    {
+        std::shared_ptr<Skybox> renderer;
+        renderer.reset(Skybox::GenerateCheckered());
+        renderList->addRenderer(renderer.get());
+        rendererList.push_back(renderer);
+    }
+    {
+        std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
+        renderList->addRenderer(renderer.get());
+        rendererList.push_back(renderer);
+    }
+    {
+        std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
+        renderList->addRenderer(renderer.get());
+        rendererList.push_back(renderer);
+    }
+}
 
 void LoopManager::ListResources(std::vector<Resource *> &resources)
 {

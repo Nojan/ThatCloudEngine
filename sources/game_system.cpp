@@ -11,20 +11,9 @@
 #include "imgui/imgui_header.hpp"
 #include <cassert>
 
-#define CREATE_SYSTEM(X) {std::unique_ptr<X> system(new X()); addSystem<X>(std::move(system));}
-
 GameSystem::GameSystem()
 {
-    CREATE_SYSTEM(TransformSystem);
-    CREATE_SYSTEM(PhysicSystem);
-    CREATE_SYSTEM(BillboardRenderingSystem);
-    CREATE_SYSTEM(RenderingSystem);
-    CREATE_SYSTEM(AnimatedTextureSystem);
-    CREATE_SYSTEM(RenderingSkinSystem);
-    CREATE_SYSTEM(SoundSystem);
 }
-
-#undef CREATE_SYSTEM
 
 GameSystem::~GameSystem()
 {
