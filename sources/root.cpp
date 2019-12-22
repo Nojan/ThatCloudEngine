@@ -5,6 +5,7 @@
 #include "platform/platform.hpp"
 #include "renderer_list.hpp"
 #include "resource.hpp"
+#include "resourcefile.hpp"
 #include "scene.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
@@ -156,21 +157,77 @@ void Root::CreateContext()
 
 void Root::Init()
 {
+    std::vector<Resource*> resources;
+    if (State::Created == mState)
+    {
+        mState = State::ResourceLoading;
+
+        mGameplayLoopManager = std::make_shared<Gameplay::LoopManager>();
+        mGameplayLoopManager->ListRenderer(mRendererList);
+        mVisualDebugRenderer = std::make_shared<VisualDebugRenderer>();
+        Global::rendererList()->addRenderer(mVisualDebugRenderer.get());
+        mRendererList.push_back(mVisualDebugRenderer);
+        {
+            RendererList* renderList = Global::rendererList();
+            for (auto& renderer : mRendererList)
+            {
+                renderer->ListResources(resources);
+            }
+            mGameplayLoopManager->ListResources(resources);
+            for (auto& resource : resources)
+            {
+                resource->Load();
+            }
+        }
+    }
+    else if (State::ResourceLoading == mState) 
+    {
+        RendererList* renderList = Global::rendererList();
+        for (auto& renderer : mRendererList)
+        {
+            renderer->ListResources(resources);
+        }
+        mGameplayLoopManager->ListResources(resources);
+    }
+
+    int resourcesFileCount = 0;
+    int resourcesFileLoaded = 0;
+    for (auto& resource : resources)
+    {
+        resource->GetDependencies(resources);
+        if(ResourceType::File != resource->type())
+            continue;
+        resourcesFileCount++;
+        ResourceFile* rfile = static_cast<ResourceFile*>(resource);
+        if (ResourceFile::State::Loaded == rfile->GetState())
+        {
+            resourcesFileLoaded++;
+        }
+    }
+    
     int windowsWidth, windowsHeight;
     SDL_GetWindowSize(mSDL_ctx->window, &windowsWidth, &windowsHeight);  
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, windowsWidth, windowsHeight);
 #if IMGUI_ENABLE()
-    const int widthMargin = windowsWidth / 4;
-    const int heightMargin = windowsHeight / 4;
+    const int widthMargin = windowsWidth / 6;
+    const int heightMargin = windowsHeight / 6;
     ImGui_ImplSdl_NewFrame(mSDL_ctx->window);
     ImGui::SetNextWindowPos(ImVec2(widthMargin, heightMargin), ImGuiCond_Always); 
     ImGui::SetNextWindowSize(ImVec2(windowsWidth - ( 2 * widthMargin), windowsHeight - ( 2 * heightMargin)), ImGuiCond_Always);
     ImGui::SetNextWindowCollapsed(false, ImGuiCond_Always);     
     if (ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoInputs))
     {
-        ImGui::SetWindowFontScale(2.0f);
+        ImGui::SetWindowFontScale(1.5f);
         ImGui::Text("Please wait :)");
+        if(0 < resourcesFileCount)
+        {
+            ImGui::ProgressBar(numeric_cast<float>(resourcesFileLoaded) / numeric_cast<float>(resourcesFileCount));
+        }
+        if (resourcesFileLoaded == resourcesFileCount)
+        {
+            ImGui::Text("Compiling resources...");
+        }
     }
     ImGui::End();
     ImGui::Render();
@@ -185,29 +242,6 @@ void Root::Init()
     }
     SDL_GL_SwapWindow(mSDL_ctx->window);
 
-    if (State::Created == mState)
-    {
-        mState = State::ResourceLoading;
-        
-        mGameplayLoopManager = std::make_shared<Gameplay::LoopManager>();
-        mGameplayLoopManager->ListRenderer(mRendererList);
-        mVisualDebugRenderer = std::make_shared<VisualDebugRenderer>();
-        Global::rendererList()->addRenderer(mVisualDebugRenderer.get());
-        mRendererList.push_back(mVisualDebugRenderer);
-        {
-            RendererList* renderList = Global::rendererList();
-            std::vector<Resource*> resources;
-            for (auto& renderer : mRendererList)
-            {
-                renderer->ListResources(resources);
-            }
-            mGameplayLoopManager->ListResources(resources);
-            for (auto& resource : resources)
-            {
-                resource->Load();
-            }
-        }
-    }
     if (!Global::platform()->Ready())
     {
         return;
