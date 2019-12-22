@@ -6,6 +6,7 @@
 enum class ResourceType {
     Shader,
     File,
+    Mesh,
     Invalid,
 };
 

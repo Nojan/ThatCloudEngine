@@ -8,7 +8,7 @@
 #include <cassert>
 
 ResourceMesh::ResourceMesh(const std::string name) 
-: Resource(name, ResourceType::Shader) 
+: Resource(name, ResourceType::Mesh) 
 {
     ResourceCache* cache = Global::resourceManager()->Cache();
     assert(cache);
