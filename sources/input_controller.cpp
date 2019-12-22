@@ -119,7 +119,7 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
             mMousePositionCurrent = newMousePosition;
         }
 
-        if (SDL_MOUSEMOTION == e.type)
+        if (false && SDL_MOUSEMOTION == e.type)
         {
             const float motionx = static_cast<float>(e.motion.x - (windowSize.x / 2));
             const float motiony = static_cast<float>(e.motion.y - (windowSize.y / 2));

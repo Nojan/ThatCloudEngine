@@ -206,8 +206,7 @@ void MeshRenderer::PushToRenderQueue(std::shared_ptr<RenderableMesh>& renderable
         renderable->mMeshBuffer.reset(meshBuffer);
     }
 
-    const bool cloudIsBuggy = true;
-    if(cloudIsBuggy || ColorsChannel::RGBA == renderable->mMaterial.Texture()->colorChannel())
+    if(ColorsChannel::RGBA == renderable->mMaterial.Texture()->colorChannel())
         mRenderAlphaQueue.push_back(renderable);
     else
         mRenderQueue.push_back(renderable);
