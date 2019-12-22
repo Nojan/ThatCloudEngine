@@ -9,6 +9,11 @@ ResourceFile::ResourceFile(const std::string& name)
 
 }
 
+ResourceFile::State ResourceFile::GetState() const
+{
+    return mState;
+}
+
 bool ResourceFile::Load(Resource* owner)
 {
     if (State::Init == mState)

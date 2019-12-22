@@ -12,6 +12,8 @@ public:
     };
     ResourceFile(const std::string& name);
 
+    State GetState() const;
+
     bool Load(Resource* owner = nullptr) override;
     void SetLoadingSuccess(bool success);
 private:
