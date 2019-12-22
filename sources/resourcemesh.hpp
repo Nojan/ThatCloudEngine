@@ -13,6 +13,7 @@ public:
 
     bool Load(Resource* owner = nullptr) override;
     void OnDependencyLoad(const Resource* dependency) override;
+    void GetDependencies(std::vector<Resource*>& dependencies) override;
 
     std::shared_ptr<MeshResourceList> Mesh();
 private:

@@ -15,6 +15,7 @@ public:
 
     bool Load(Resource* owner = nullptr) override;
     void OnDependencyLoad(const Resource* dependency) override;
+    void GetDependencies(std::vector<Resource*>& dependencies) override;
 
     void PreloadAttribute(const HashedString& name);
     void PreloadUniform(const HashedString& name);

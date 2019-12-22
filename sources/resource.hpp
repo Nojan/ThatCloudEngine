@@ -18,6 +18,7 @@ public:
 
     virtual bool Load(Resource* owner = nullptr);
     virtual void OnDependencyLoad(const Resource* dependency);
+    virtual void GetDependencies(std::vector<Resource*>& dependencies);
 
     const std::string& name() const { return mName; }
     ResourceType type() const { return mType; }

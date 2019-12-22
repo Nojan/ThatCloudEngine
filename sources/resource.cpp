@@ -16,3 +16,7 @@ void Resource::OnDependencyLoad(const Resource* dependency)
 {
     assert(false);
 }
+
+void Resource::GetDependencies(std::vector<Resource*>& dependencies)
+{
+}

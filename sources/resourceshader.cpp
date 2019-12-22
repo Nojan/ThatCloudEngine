@@ -78,6 +78,15 @@ void ResourceShader::OnDependencyLoad(const Resource* dependency)
     Load(nullptr);
 }
 
+void ResourceShader::GetDependencies(std::vector<Resource*>& dependencies)
+{
+    dependencies.reserve(dependencies.size() + mDependencies.size());
+    for (auto& dependency : mDependencies)
+    {
+        dependencies.push_back(dependency.get());
+    }
+}
+
 void ResourceShader::PreloadAttribute(const HashedString& name)
 {
     mParameters.push_back({ShaderParameterType::Attribute, name});

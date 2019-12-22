@@ -47,6 +47,15 @@ void ResourceMesh::OnDependencyLoad(const Resource* dependency)
     Load(nullptr);
 }
 
+void ResourceMesh::GetDependencies(std::vector<Resource*>& dependencies)
+{
+    dependencies.reserve(dependencies.size() + mDependencies.size());
+    for (auto& dependency : mDependencies)
+    {
+        dependencies.push_back(dependency.get());
+    }
+}
+
 std::shared_ptr<MeshResourceList> ResourceMesh::Mesh()
 {
     return mMesh;
