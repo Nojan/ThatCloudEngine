@@ -6,11 +6,8 @@
 class FreeCamera : public CameraMover
 {
 public:
-    void Move(const float speed, Camera* camera) override;
-    void Event(const SDL_Event& e, Camera* camera) override;
+    void Control(const InputControl& control, Camera* camera) override;
 
-    int mMoveMask = 0;
-    bool mMousePan = false;
-    glm::vec2 mMousePosition = glm::vec2(0,0);
-    glm::vec2 mEulerAngle = glm::vec2(0,0);
+    glm::vec3 mPosition = glm::vec3(0, 0, 0);
+    glm::vec2 mEulerAngle = glm::vec2(0, 0);
 };
