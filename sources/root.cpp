@@ -192,9 +192,10 @@ void Root::Init()
 
     int resourcesFileCount = 0;
     int resourcesFileLoaded = 0;
-    for (auto& resource : resources)
+    for (size_t ridx = 0; ridx < resources.size(); ++ridx)
     {
-        resource->GetDependencies(resources);
+        resources[ridx]->GetDependencies(resources);
+        Resource* resource = resources[ridx];
         if(ResourceType::File != resource->type())
             continue;
         resourcesFileCount++;
