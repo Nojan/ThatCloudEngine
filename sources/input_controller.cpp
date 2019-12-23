@@ -58,7 +58,7 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
         ProcessGamepadEvent(e);
     }
 
-    if ((Mode::None == mMode || Mode::Mouse == mMode) && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || SDL_MOUSEWHEEL == e.type || SDL_MOUSEMOTION == e.type))
+    if ((Mode::None == mMode || Mode::Mouse == mMode) && (SDL_MOUSEBUTTONUP == e.type || SDL_MOUSEBUTTONDOWN == e.type || SDL_MOUSEWHEEL == e.type || SDL_MOUSEMOTION == e.type || SDL_KEYDOWN == e.type || SDL_KEYUP == e.type))
     {
         mMode = Mode::Mouse;
         if (mMouseClick && SDL_MOUSEBUTTONUP == e.type)
@@ -132,6 +132,40 @@ void InputController::Event(const SDL_Event & e, const glm::ivec2 windowSize)
         {
             const float value(e.wheel.y * 15.f);
             mControl.zoom += value;
+        }
+
+        const bool pressKey = (SDL_KEYDOWN == e.type);
+        const bool releaseKey = (SDL_KEYUP == e.type);
+        if (pressKey || releaseKey)
+        {
+            if (SDLK_DOWN == e.key.keysym.sym)
+            {
+                if (pressKey)
+                    mControl.move.y = 1.0f;
+                else
+                    mControl.move.y = 0.0f;
+            }
+            if (SDLK_LEFT == e.key.keysym.sym)
+            {
+                if (pressKey)
+                    mControl.move.x = -1.0f;
+                else
+                    mControl.move.x = 0.0f;
+            }
+            if (SDLK_UP == e.key.keysym.sym)
+            {
+                if (pressKey)
+                    mControl.move.y = -1.0f;
+                else
+                    mControl.move.y = 0.0f;
+            }
+            if (SDLK_RIGHT == e.key.keysym.sym)
+            {
+                if (pressKey)
+                    mControl.move.x = 1.0f;
+                else
+                    mControl.move.x = 0.0f;
+            }
         }
     }
 
