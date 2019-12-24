@@ -50,3 +50,9 @@ void BoyCamera::Control(const InputControl & control, Camera* camera)
     }
 }
 
+void BoyCamera::GetTransform(glm::vec3& position, glm::quat& orientation)
+{
+    orientation = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+    position = mOrbitPosition - orientation * Camera::forward * mDistance;
+}
+

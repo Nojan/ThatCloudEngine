@@ -44,3 +44,9 @@ void FreeCamera::Control(const InputControl& control, Camera* camera)
         camera->SetPosition(mPosition);
     }
 }
+
+void FreeCamera::GetTransform(glm::vec3& position, glm::quat& orientation)
+{
+    orientation = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+    position = mPosition;
+}

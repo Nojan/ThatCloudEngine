@@ -204,6 +204,14 @@ glm::mat4 const & Camera::ProjectionViewInv() const
 void Camera::SetCameraMover(std::unique_ptr<CameraMover>&& mover)
 {
     mMover = std::move(mover);
+    if (mMover)
+    {
+        glm::vec3 position;
+        glm::quat orientation;
+        mMover->GetTransform(position, orientation);
+        SetOrientation(orientation);
+        SetPosition(position);
+    }
 }
 
 void Camera::Event(const SDL_Event & e)

@@ -110,3 +110,10 @@ void OrbitCamera::Event(const SDL_Event& e, Camera* camera)
         camera->SetPosition(position);
     }
 }
+
+void OrbitCamera::GetTransform(glm::vec3& position, glm::quat& orientation)
+{
+    orientation = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+    const glm::vec3 direction = orientation * Camera::forward;
+    position = mOrbitPosition - direction * mDistance;;
+}
