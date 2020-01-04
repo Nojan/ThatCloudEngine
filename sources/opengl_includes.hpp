@@ -11,7 +11,7 @@
 #include "glad/glad.h"
 #endif
 #ifdef __EMSCRIPTEN__
-#include <SDL_opengles2.h>
+#include <GLES3/gl3.h>
 #endif
 #include "opengl_helpers.hpp"
 
