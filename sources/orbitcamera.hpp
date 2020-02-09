@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-class OrbitCamera : public CameraMover
+class OrbitCamera final : public CameraMover
 {
 public:
     void Move(const float speed, Camera* camera) override;

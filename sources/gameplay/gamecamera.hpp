@@ -5,7 +5,7 @@
 
 class Boy;
 
-class BoyCamera : public CameraMover
+class BoyCamera final : public CameraMover
 {
 public:
     void Move(const float speed, Camera* camera) override;

@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-class FreeCamera : public CameraMover
+class FreeCamera final : public CameraMover
 {
 public:
     void Control(const InputControl& control, Camera* camera) override;
