@@ -1,7 +1,7 @@
-#version 100 
+#version 300 es
 precision highp float;
 
-attribute vec2 vPosition;
+in vec2 vPosition;
 
 void main()
 {
