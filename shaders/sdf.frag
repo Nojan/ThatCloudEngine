@@ -11,7 +11,6 @@ uniform vec2 iResolution;
 uniform vec3 iVoxelDataCenter;// center of the voxel grid in world space units
 uniform float iVoxelDataSize; // voxel half-extent in world space units
 uniform float iVoxelDataSize_rcp; 
-uniform float iVoxelDataRes_rcp; // voxel grid resolution
 
 uniform mat4 iModelTransform;
 
@@ -154,10 +153,10 @@ vec3 gamma(in vec3 col)
 
 const float iTime = 1.0;
 #define AA 2   // make this 2 or 3 for antialiasing
-#define SHADOW 2
+#define SHADOW 1
 
-const float g_VoxelDataRayStepSize = 1.0 / 2.0;
-const float g_VoxelDataRadius = 0.01;
+const float g_VoxelDataRayStepSize = 1.0 ;
+const float g_VoxelDataRadius = 0.001;
 
 const vec3 g_lightDirection = normalize( vec3(0.4, 0.3, -0.3) );
 
@@ -173,7 +172,6 @@ vec3 projectToTextureCoord(in vec3 worldCoord)
 {
 	vec3 tc = worldCoord;
 	tc = (tc - iVoxelDataCenter) * iVoxelDataSize_rcp;
-	//tc *= (iVoxelDataRes_rcp * 0.00001 + 1.0);
 	tc = tc * vec3(0.5f, -0.5f, 0.5f) + 0.5f;
 	return tc;
 }
@@ -186,7 +184,7 @@ float voxelDistance( in vec3 worldCoord )
     // Because we do the ray-marching in world space, we need to remap into 3d texture space before sampling
     vec3 tc = projectToTextureCoord(clamped_worldCoord);
     float tcol = texture(noise_tex, tc).x;
-    float td = tcol - g_VoxelDataRadius;
+    float td = tcol;
     // Do add negative value oustide the box
     td = clamped_worldCoord != worldCoord ? max(0.0, td): td;
     return td + td_box;
@@ -225,8 +223,8 @@ RayHit castRay( in Ray r, out int stepCount )
 	
 	for(stepCount = 0; stepCount < g_RayCastMaxStep; ++stepCount)
 	{
-        float td = voxelDistance(r.o + r.d * t);
-        if (abs(td) <= (g_VoxelDataRadius * 0.1))
+        float td = voxelDistance(r.o + r.d * t) - g_VoxelDataRadius;
+        if (g_VoxelDataRadius <= td && td <= g_VoxelDataRadius * 10.0)
             break;
         
 		t += td * g_VoxelDataRayStepSize;
@@ -255,8 +253,9 @@ vec3 calcNormal( in vec3 pos, in int id )
         // @credit https://www.shadertoy.com/view/Xds3zN
         for( int i=0; i<4; i++ )
         {
+            // TODO this should depend on the voxel size and resolution
             vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
-            n += e*voxelDistance(pos+0.005*e);
+            n += e*voxelDistance(pos+0.05*e);
         }
         n = normalize(n);
     }
@@ -284,7 +283,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
         // improved technique
         // use this if you are getting artifact on the first iteration, or unroll the
         // first iteration out of the loop
-        //float y = (i==0) ? 0.0 : h*h/(2.0*ph); 
+        // float y = (i==0) ? 0.0 : h*h/(2.0*ph); 
 
         float y = h*h/(2.0*ph);
         float d = sqrt(h*h-y*y);
@@ -414,7 +413,7 @@ void main()
 #else    
         vec2 p = -1.0 + 2.0*(gl_FragCoord.xy) / iResolution.xy;
 #endif
-        p.x *= iResolution.x/ iResolution.y;
+        p.x *= -iResolution.x / iResolution.y;
 
         // ray direction
         vec3 rd = ca * normalize( vec3(p,3.0) );

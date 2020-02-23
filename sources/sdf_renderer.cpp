@@ -40,7 +40,6 @@ SDFRenderer::SDFRenderer()
     mShaderResource->PreloadUniform(HashedString("iVoxelDataCenter"));
     mShaderResource->PreloadUniform(HashedString("iVoxelDataSize"));
     mShaderResource->PreloadUniform(HashedString("iVoxelDataSize_rcp"));
-    //mShaderResource->PreloadUniform(HashedString("iVoxelDataRes_rcp"));
     FlushFrame();
 
     mVertices.mElements.resize(4);
@@ -71,7 +70,7 @@ SDFRenderer::~SDFRenderer()
 const glm::vec3 g_VoxelDataCenter(0.f);
 const float g_VoxelDataSize(0.5f);
 const float g_VoxelDataSize_rcp = 1.f / g_VoxelDataSize;
-const int g_VoxelDataResi_rcp = 32;
+const int g_VoxelDataResi_rcp = 32; // perf drop after 128
 const float g_VoxelDataRes_rcp = float(g_VoxelDataResi_rcp);
 const float g_VoxelDataRes(1.f / g_VoxelDataRes_rcp);
 
@@ -83,7 +82,6 @@ glm::vec3 projectFromTextureCoord(const glm::vec3& texCoord)
     glm::vec3 worldCoord = texCoord - 0.5f;
     worldCoord /= glm::vec3(0.5f, -0.5f, 0.5f);
     worldCoord *= g_VoxelDataSize;
-    //worldCoord *= g_VoxelDataRes_rcp;
     worldCoord += g_VoxelDataCenter;
     return worldCoord;
 }
@@ -92,7 +90,6 @@ glm::vec3 projectToTextureCoord(const glm::vec3& worldCoord)
 {
     glm::vec3 tc = worldCoord;
     tc = (tc - g_VoxelDataCenter);
-    //tc *= g_VoxelDataRes_rcp;
     tc *= g_VoxelDataSize_rcp;
     tc = tc * glm::vec3(0.5f, -0.5f, 0.5f) + 0.5f;
     assert(0.f <= tc.x && 1.f >= tc.x);
@@ -105,16 +102,15 @@ void SDFRenderer::Render(const Scene * scene)
 {
     mShaderProgram->Bind();
 
-    static GLuint noise_tex = 0;
-
-    if (0 == noise_tex)
+    if (0 == mVoxelTexId)
     {
         //create grid of random numbers:
         const int tex_width = g_VoxelDataResi_rcp;
         const int tex_height = g_VoxelDataResi_rcp;
         const int tex_depth = g_VoxelDataResi_rcp;
         const int tex_size = tex_width * tex_height * tex_depth;
-        GLfloat* noise_data = new GLfloat[tex_size];
+        mVoxelData.reset(new GLfloat[tex_size]);
+        GLfloat* noise_data = mVoxelData.get();
 
         for (int d = 0; d < tex_depth; ++d)
         for (int h = 0; h < tex_height; ++h)
@@ -132,8 +128,8 @@ void SDFRenderer::Render(const Scene * scene)
         }
 
         //create and bind texture
-        glGenTextures(1, &noise_tex);
-        glBindTexture(GL_TEXTURE_3D, noise_tex);
+        glGenTextures(1, &mVoxelTexId);
+        glBindTexture(GL_TEXTURE_3D, mVoxelTexId);
 
         //set filtering and wrapping
         glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -142,14 +138,11 @@ void SDFRenderer::Render(const Scene * scene)
         glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_R16F, tex_width, tex_height, tex_depth, 0, GL_RED, GL_FLOAT, noise_data);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_R16F, tex_width, tex_height, tex_depth, 0, GL_RED, GL_FLOAT, nullptr);
+    }
 
-        delete[] noise_data;
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_3D, noise_tex);
-    }
+    glBindTexture(GL_TEXTURE_3D, mVoxelTexId);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, g_VoxelDataResi_rcp, g_VoxelDataResi_rcp, g_VoxelDataResi_rcp, GL_RED, GL_FLOAT, mVoxelData.get());
 
     const Camera* camera = Root::Instance().GetCamera();
     glm::vec3 p;
@@ -188,11 +181,6 @@ void SDFRenderer::Render(const Scene * scene)
         GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("iVoxelDataSize_rcp"));
         glUniform1fv(uniformID, 1, &g_VoxelDataSize_rcp);
     }
-
-    //{
-    //    GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("iVoxelDataRes_rcp"));
-    //    glUniform1fv(uniformID, 1, &g_VoxelDataRes_rcp);
-    //}
 
     {
         GLuint attributeID = mShaderProgram->GetAttribLocation(HashedString("vPosition"));
