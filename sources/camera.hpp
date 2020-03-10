@@ -51,6 +51,8 @@ public:
 
     void SetOrientation(const glm::quat& orientation);
 
+    void GetTransform(glm::vec3& position, glm::quat& orientation) const;
+
     glm::vec3 const& OrthoDirection() const;
     glm::vec3 const& Direction() const;
     glm::vec3 const& Up() const;

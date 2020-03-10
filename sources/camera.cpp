@@ -137,6 +137,11 @@ void Camera::SetOrientation(const glm::quat& orientation)
     mUpdateView = true;
 }
 
+void Camera::GetTransform(glm::vec3& position, glm::quat& orientation) const
+{
+    mMover->GetTransform(position, orientation);
+}
+
 glm::vec3 const& Camera::OrthoDirection() const
 {
     return mOrthoDirection;
