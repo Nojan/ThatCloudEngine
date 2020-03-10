@@ -24,9 +24,14 @@ float sdBox(glm::vec3 p, glm::vec3 b)
     return glm::min(glm::max(d.x, glm::max(d.y, d.z)), 0.f) + glm::length(glm::max(d, 0.f));
 }
 
+namespace Constant {
+    IMGUI_VAR(Rotation, 0.f);
+}
+
+
 #if GUI_DEBUG()
 void SDFRenderer::debug_GUI() const {
-
+    ImGui::SliderFloat("Rotation", &Constant::Rotation, 0.f, 1.f);
 }
 #endif
 
@@ -121,7 +126,7 @@ void SDFRenderer::Render(const Scene * scene)
             const glm::vec3 worldPosition = projectFromTextureCoord(texCoord);
             assert(glm::length(texCoord - projectToTextureCoord(worldPosition)) < 0.1f);
             const float sphere1 = sdSphere(worldPosition, g_VoxelDataSize * 0.5f);
-            const float sphere2 = sdSphere(worldPosition + glm::vec3(0, g_VoxelDataSize * 0.5f, 0), g_VoxelDataSize * 0.2f);
+            const float sphere2 = sdSphere(worldPosition + glm::vec3(g_VoxelDataSize * 0.5f, 0, 0), g_VoxelDataSize * 0.2f);
             noise_data[i] = glm::min(sphere1, sphere2);
             //noise_data[i] = sdSphere(worldPosition, g_VoxelDataSize * 0.5f);
             //noise_data[i] = sdBox(worldPosition, glm::vec3(g_VoxelDataSize * 0.25));
@@ -152,7 +157,12 @@ void SDFRenderer::Render(const Scene * scene)
     {
         GLuint uniformID = mShaderProgram->GetUniformLocation(HashedString("camera"));
         const glm::mat3 ca(q);
-        glUniformMatrix3fv(uniformID, 1, false, glm::value_ptr(ca));
+
+        glm::mat3 vRot(glm::rotate(glm::mat4(), Constant::Rotation * glm::pi<float>() * 2.f, glm::vec3(0, 1, 0)));
+
+        vRot = ca * glm::inverse(vRot);
+
+        glUniformMatrix3fv(uniformID, 1, false, glm::value_ptr(vRot));
     }
 
     {

@@ -152,8 +152,8 @@ vec3 gamma(in vec3 col)
 // end common function
 
 const float iTime = 1.0;
-#define AA 2   // make this 2 or 3 for antialiasing
-#define SHADOW 1
+#define AA 1   // make this 2 or 3 for antialiasing
+#define SHADOW 0
 
 const float g_VoxelDataRayStepSize = 1.0 ;
 const float g_VoxelDataRadius = 0.001;
@@ -416,7 +416,7 @@ void main()
         p.x *= -iResolution.x / iResolution.y;
 
         // ray direction
-        vec3 rd = ca * normalize( vec3(p,3.0) );
+        vec3 rd = ca * normalize( vec3(p,2.0) );
 
         // render	
         vec3 col = render( makeRay(ro, rd) );

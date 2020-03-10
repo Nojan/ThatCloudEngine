@@ -95,7 +95,10 @@ void LoopManager::Terminate()
 }
 
 void LoopManager::FrameStep()
-{}
+{
+    //VisualDebugSphereCommand command(glm::vec3(0, 0, 0), 0.25f, { 1.f, 1.f, 1.f, 1.f });
+    //VisualDebug()->PushCommand(command);
+}
 
 void LoopManager::Update(const float deltaTime)
 {
