@@ -12,9 +12,10 @@ void FreeCamera::Control(const InputControl& control, Camera* camera)
     bool positionChanged = false;
     if (0.f != glm::dot(control.move, control.move))
     {
+        const float speed = camera->GetSpeed();
         const glm::vec3& direction = camera->Direction();
         const glm::vec3& orthoDirection = camera->OrthoDirection();
-        mPosition += (direction * -control.move.y) + (orthoDirection * control.move.x);
+        mPosition += (direction * -control.move.y * speed) + (orthoDirection * control.move.x * speed);
         positionChanged = true;
     }
     bool orientationChanged = false;

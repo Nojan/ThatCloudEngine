@@ -142,6 +142,11 @@ void Camera::GetTransform(glm::vec3& position, glm::quat& orientation) const
     mMover->GetTransform(position, orientation);
 }
 
+float Camera::GetSpeed() const
+{
+    return mSpeed;
+}
+
 glm::vec3 const& Camera::OrthoDirection() const
 {
     return mOrthoDirection;
