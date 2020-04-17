@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include "tinyxml/tinyxml2.h"
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <vector>
 
 namespace resource_compiler {

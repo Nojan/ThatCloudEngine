@@ -6,7 +6,6 @@
 #include "types.hpp"
 
 #include "opengl_includes.hpp"
-#include <glm/glm.hpp>
 
 #include <memory>
 #include <vector>

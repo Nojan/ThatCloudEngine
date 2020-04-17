@@ -1,5 +1,6 @@
 #include "resource_compiler.hpp"
 
+#include <glm/glm.hpp>
 #include <cassert>
 
 namespace resource_compiler {

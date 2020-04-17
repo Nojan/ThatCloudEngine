@@ -6,7 +6,6 @@
 #include "color.hpp"
 #include "types.hpp"
 
-#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 

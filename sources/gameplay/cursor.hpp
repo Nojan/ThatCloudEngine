@@ -2,7 +2,7 @@
 
 #include "../types.hpp"
 #include "../iresourceowner.hpp"
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <memory>
 #include <vector>
 
