@@ -54,8 +54,16 @@ void compile_mesh(const char * filepath, MeshResourceList& meshList)
                                         ++idx;
                                     }
                                 }
+                                char folder[256];
+                                memset(folder, '\0', sizeof(folder));
+                                if (const char* lastForwardSlash = strrchr(filepath, '/'))
+                                {
+                                    const size_t length = lastForwardSlash - filepath + 1;
+                                    assert(length < sizeof(folder));
+                                    strncpy(folder, filepath, length);
+                                }
                                 char filename[256];
-                                sprintf(filename, "../assets/3D/%s", textureName);
+                                sprintf(filename, "%s%s", folder, textureName);
                                 meshResource.m_texture = Global::resourceManager()->texture(filename);
                                 break;
                             }
@@ -139,8 +147,17 @@ void get_dependencies(const ResourceFile& meshfile, std::vector<std::shared_ptr<
                                         ++idx;
                                     }
                                 }
+                                char folder[256];
+                                memset(folder, '\0', sizeof(folder));
+                                const char* filepath = meshfile.name().c_str();
+                                if (const char* lastForwardSlash = strrchr(filepath, '/'))
+                                {
+                                    const size_t length = lastForwardSlash - filepath + 1;
+                                    assert(length < sizeof(folder));
+                                    strncpy(folder, filepath, length);
+                                }
                                 char filename[256];
-                                sprintf(filename, "../assets/3D/%s", textureName);
+                                sprintf(filename, "%s%s", folder, textureName);
                                 dependencies.push_back(Global::resourceManager()->Cache()->get_or_create<ResourceFile>(filename));
                                 break;
                             }
