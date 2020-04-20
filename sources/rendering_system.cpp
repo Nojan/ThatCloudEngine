@@ -30,6 +30,19 @@ void GraphicMeshComponent::draw(MeshRenderer* renderer)
 
 }
 
+BoundingBox3D GraphicMeshComponent::getBoundingBox() const
+{
+    BoundingBox3D result;
+    const glm::mat4 transform = mTransformComponent->Transform() * mTransformComponent->mScale;
+    for (const std::shared_ptr<RenderableMesh>& renderable : mRenderable)
+    {
+        const BoundingBox3D& bbox = renderable->mMesh->mBBox;
+        result.Add(glm::vec3(transform * glm::vec4(bbox.Min(), 1)));
+        result.Add(glm::vec3(transform * glm::vec4(bbox.Max(), 1)));
+    }
+    return result;
+}
+
 void GraphicMeshComponent::setupResource(std::shared_ptr<MeshResourceList> resource)
 {
     if(mResource == resource)

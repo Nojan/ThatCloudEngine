@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+class BoundingBox3D;
 class MeshRenderer;
 class RenderableMesh;
 class SkinMeshRenderer;
@@ -20,6 +21,7 @@ class GraphicMeshComponent : public IGraphicComponent<MeshRenderer>
 public:
     ~GraphicMeshComponent() = default;
     void draw(MeshRenderer* renderer);
+    BoundingBox3D getBoundingBox() const;
 
     void setupResource(std::shared_ptr<MeshResourceList> resource);
 
