@@ -334,7 +334,7 @@ void Root::Update()
     if (mInputController->GetInput().center)
     {
         // This is game specific. TODO move into mGameplayLoopManager
-        SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
+        //SDL_WarpMouseInWindow(mSDL_ctx->window, width / 2, height / 2);
     }
     mCamera->Control(mInputController->GetInput());
     mGameplayLoopManager->Control(mInputController->GetInput());
