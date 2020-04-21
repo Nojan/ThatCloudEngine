@@ -327,8 +327,8 @@ void Root::Update()
             mCamera->WindowResize(width, height);
         }
         mInputController->Event(e, glm::ivec2(width, height));
-        //mCamera->Event(e); // TODO use Control(mInputController)
-        mGameplayLoopManager->Event(e); // TODO use Control(mInputController)
+        mCamera->Event(e); 
+        mGameplayLoopManager->Event(e);
     }
     mInputController->EndEvents();
     if (mInputController->GetInput().center)
