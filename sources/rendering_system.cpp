@@ -30,17 +30,25 @@ void GraphicMeshComponent::draw(MeshRenderer* renderer)
 
 }
 
-BoundingBox3D GraphicMeshComponent::getBoundingBox() const
+BoundingBox3D GraphicMeshComponent::getLocalBoundingBox() const
 {
     BoundingBox3D result;
-    const glm::mat4 transform = mTransformComponent->Transform() * mTransformComponent->mScale;
     for (const std::shared_ptr<RenderableMesh>& renderable : mRenderable)
     {
         const BoundingBox3D& bbox = renderable->mMesh->mBBox;
-        result.Add(glm::vec3(transform * glm::vec4(bbox.Min(), 1)));
-        result.Add(glm::vec3(transform * glm::vec4(bbox.Max(), 1)));
+        result.Add(bbox.Min());
+        result.Add(bbox.Max());
     }
     return result;
+}
+
+BoundingBox3D GraphicMeshComponent::getBoundingBox() const
+{
+    const BoundingBox3D localAABB = getLocalBoundingBox();
+    const glm::mat4 transform = mTransformComponent->Transform() * mTransformComponent->mScale;
+    const glm::vec4 min(transform* glm::vec4(localAABB.Min(), 1));
+    const glm::vec4 max(transform * glm::vec4(localAABB.Max(), 1));
+    return BoundingBox3D(glm::vec3(min), glm::vec3(max));
 }
 
 void GraphicMeshComponent::setupResource(std::shared_ptr<MeshResourceList> resource)
