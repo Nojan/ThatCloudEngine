@@ -21,6 +21,7 @@ class GraphicMeshComponent : public IGraphicComponent<MeshRenderer>
 public:
     ~GraphicMeshComponent() = default;
     void draw(MeshRenderer* renderer);
+    BoundingBox3D getLocalBoundingBox() const;
     BoundingBox3D getBoundingBox() const;
 
     void setupResource(std::shared_ptr<MeshResourceList> resource);
