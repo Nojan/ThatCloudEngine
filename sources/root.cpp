@@ -3,6 +3,7 @@
 #include "camera.hpp"
 #include "input_controller.hpp"
 #include "platform/platform.hpp"
+#include "render_manager.hpp"
 #include "renderer_list.hpp"
 #include "resource.hpp"
 #include "resourcefile.hpp"
@@ -161,18 +162,14 @@ void Root::Init()
     if (State::Created == mState)
     {
         mState = State::ResourceLoading;
-
+        mRenderManager = std::make_unique<RenderManager>();
         mGameplayLoopManager = std::make_shared<Gameplay::LoopManager>();
-        mGameplayLoopManager->ListRenderer(mRendererList);
+        mGameplayLoopManager->ListRenderer(mRenderManager->mRendererList);
         mVisualDebugRenderer = std::make_shared<VisualDebugRenderer>();
         Global::rendererList()->addRenderer(mVisualDebugRenderer.get());
-        mRendererList.push_back(mVisualDebugRenderer);
+        mRenderManager->mRendererList.push_back(mVisualDebugRenderer);
         {
-            RendererList* renderList = Global::rendererList();
-            for (auto& renderer : mRendererList)
-            {
-                renderer->ListResources(resources);
-            }
+            mRenderManager->ListResources(resources);
             mGameplayLoopManager->ListResources(resources);
             for (auto& resource : resources)
             {
@@ -182,11 +179,7 @@ void Root::Init()
     }
     else if (State::ResourceLoading == mState) 
     {
-        RendererList* renderList = Global::rendererList();
-        for (auto& renderer : mRendererList)
-        {
-            renderer->ListResources(resources);
-        }
+        mRenderManager->ListResources(resources);
         mGameplayLoopManager->ListResources(resources);
     }
 
@@ -248,10 +241,7 @@ void Root::Init()
         return;
     }
     {
-        for (auto& renderer : mRendererList)
-        {
-            renderer->OnLoad();
-        }
+        mRenderManager->OnLoad();
         mGameplayLoopManager->OnLoad();
     }
     mCamera.reset(new Camera());
@@ -272,11 +262,12 @@ void Root::Terminate()
 {
     printf("Engine terminate...\n");
     mGameplayLoopManager->Terminate();
-    mRendererList.clear();
+    mRenderManager->mRendererList.clear();
     mUpdaterList.clear();
 
     mCamera.reset();
     mVisualDebugRenderer.reset();
+    mRenderManager.reset();
     mGameplayLoopManager.reset();
     
     Global::Unload();
@@ -305,7 +296,7 @@ void Root::Update()
     lastFrameDuration += mFrameLeftover;
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     //glClearDepth(1.0f); 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     SDL_Event e;
     int width, height;
     SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
@@ -369,14 +360,11 @@ void Root::Update()
         mInputController->Update(frameStep);
     }
     
-    for (auto& renderer : mRendererList)
+    if (!disableRenderer)
     {
-        if (!disableRenderer)
-        {
-            renderer->Render(mScene.get());
-        }
-        renderer->FlushFrame();
+        mRenderManager->Render(mScene.get());
     }
+    mRenderManager->FlushFrame();
     IMGUI_ONLY(mInputController->DrawGamepad());
     mFrameLeftover = lastFrameDuration;
 #if GUI_DEBUG()
@@ -414,11 +402,7 @@ void Root::Update()
         }
         if (ImGui::CollapsingHeader("Renderer"))
         {
-            for (auto& renderer : mRendererList)
-            {
-                if (ImGui::CollapsingHeader(renderer->debug_name()))
-                    renderer->debug_GUI();
-            }
+            mRenderManager->debug_GUI();
         }
         Global::gameSytem()->debug_GUI();
         if (ImGui::CollapsingHeader("Gameplay"))

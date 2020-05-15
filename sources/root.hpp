@@ -8,7 +8,7 @@
 class Camera;
 class InputController;
 class IUpdater;
-class IRenderer;
+class RenderManager;
 class Scene;
 class ParticleUpdater;
 class VisualDebugRenderer;
@@ -48,7 +48,7 @@ private:
     std::shared_ptr<Camera> mCamera;
     std::unique_ptr<Scene> mScene;
     std::unique_ptr<InputController> mInputController;
-    std::vector<std::shared_ptr< IRenderer > > mRendererList;
+    std::unique_ptr<RenderManager> mRenderManager;
     std::vector<std::shared_ptr< IUpdater > > mUpdaterList;
     std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;
