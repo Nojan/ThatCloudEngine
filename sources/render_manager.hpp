@@ -11,6 +11,9 @@ class Scene;
 
 class RenderManager : public IResourceOwner {
 public:
+    RenderManager();
+    virtual ~RenderManager();
+
     void Render(const Scene* scene);
     void FlushFrame();
 
@@ -23,4 +26,5 @@ public:
 
 public:
     std::vector<std::shared_ptr< IRenderer > > mRendererList;
+    std::unique_ptr<IRenderer> mFinalRender;
 };
