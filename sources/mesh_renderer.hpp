@@ -29,6 +29,8 @@ public:
 
 protected:
     void Render(const MeshBuffer* mesh);
+    void PrepareAttribute(const MeshBuffer* mesh, const uint16_t componentIdx);
+    void Draw(const MeshBuffer* mesh);
 
 protected:
     std::shared_ptr<ShaderProgram> mShaderProgram;

@@ -83,18 +83,34 @@ void GenericMeshRenderer::Render(const MeshBuffer* mesh)
     const size_t componentCount = meshLayout.GetComponentCount();
     for (uint16_t componentIdx = 0; componentIdx < componentCount; ++componentIdx)
     {
-        const VertexBufferLayout::Component& vertexComponent = meshLayout.GetComponent(componentIdx);
-        const char* vertexComponentName = VertexSemantic::str[vertexComponent.mSemantic];
-        const GLint attributeID = mShaderProgram->GetAttribLocation(HashedString(vertexComponentName));
-        const GLint vertexComponentCount = VertexType::ComponentCount[vertexComponent.mType];
-        const uint32_t vboId = meshBuffer.VboId(componentIdx);
-        const GLenum glType = VertexType::ToGLType[vertexComponent.mType];
-        const GLboolean glNormalized = VertexType::ToGLNormalized[vertexComponent.mType];
-        const GLsizei stride = meshBuffer.Stride();
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glEnableVertexAttribArray(attributeID);
-        glVertexAttribPointer(attributeID, vertexComponentCount, glType, glNormalized, stride, (void*)0);
+        PrepareAttribute(mesh, componentIdx);
     }
+    Draw(mesh);
+}
+
+void GenericMeshRenderer::PrepareAttribute(const MeshBuffer* mesh, const uint16_t componentIdx)
+{
+    assert(mesh);
+    const MeshBufferGpu& meshBuffer = *dynamic_cast<const MeshBufferGpu*>(mesh);
+    const VertexBufferLayout& meshLayout = meshBuffer.Layout();
+    assert(componentIdx < meshLayout.GetComponentCount());
+    const VertexBufferLayout::Component& vertexComponent = meshLayout.GetComponent(componentIdx);
+    const char* vertexComponentName = VertexSemantic::str[vertexComponent.mSemantic];
+    const GLint attributeID = mShaderProgram->GetAttribLocation(HashedString(vertexComponentName));
+    const GLint vertexComponentCount = VertexType::ComponentCount[vertexComponent.mType];
+    const uint32_t vboId = meshBuffer.VboId(componentIdx);
+    const GLenum glType = VertexType::ToGLType[vertexComponent.mType];
+    const GLboolean glNormalized = VertexType::ToGLNormalized[vertexComponent.mType];
+    const GLsizei stride = meshBuffer.Stride();
+    glBindBuffer(GL_ARRAY_BUFFER, vboId);
+    glEnableVertexAttribArray(attributeID);
+    glVertexAttribPointer(attributeID, vertexComponentCount, glType, glNormalized, stride, (void*)0);
+}
+
+void GenericMeshRenderer::Draw(const MeshBuffer* mesh)
+{
+    assert(mesh);
+    const MeshBufferGpu& meshBuffer = *dynamic_cast<const MeshBufferGpu*>(mesh);
     const bool indexed = (MeshIndexType::u16 == meshBuffer.IndexType() || MeshIndexType::u32 == meshBuffer.IndexType());
     if (indexed)
     {
