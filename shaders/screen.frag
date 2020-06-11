@@ -5,8 +5,15 @@ varying vec2 UV;
 
 uniform sampler2D textureSampler;
 
+float decodeFloat(vec4 color) 
+{
+	const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);
+	return dot(color, bitShift);
+}
+
 void main()
 {
-    vec3 col = texture2D(textureSampler, UV).rgb;
-    gl_FragColor = vec4(col, 1.0);
+	float depth = decodeFloat(texture2D(textureSampler, UV));
+	depth = pow(depth, 4.0);
+	gl_FragColor = vec4(vec3(depth), 1.0);
 } 

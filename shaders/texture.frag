@@ -2,36 +2,70 @@
 precision highp float;
 // Interpolated values from the vertex shaders
 varying vec2 UV;
-varying vec3 vertexNormal_eyespace;
-varying vec3 lightDirection;
-varying vec3 eye;
+varying vec3 vertexNormalMS;
+varying vec3 positionMS;
+varying vec4 shadowCoord;
 
 uniform sampler2D textureSampler;
+uniform sampler2D shadowMap;
+uniform vec3 lightPositionMS;
 uniform vec4 lightDiffuse;
 uniform vec4 lightSpecular;
 
-vec4 blinn_phong(const in vec3 fragNormal, 
-const in vec3 lightDir,  const in vec3 eye) {
-    vec4 diffuse = vec4(0.5);
-    vec4 ambient = lightDiffuse;
-    vec4 specular = lightSpecular;
-    float shininess = 2.0;
-    
-    float intensity = max(dot(fragNormal, lightDir), 0.0);
-    vec4 spec = vec4(0.0);
-    if (0.0 < intensity) {
-        vec3 h = normalize(lightDir + eye);
-        float intSpec = max(dot(h, fragNormal), 0.0);
-        spec = specular * pow(intSpec, shininess);
+float decodeFloat(vec4 color) 
+{
+	const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);
+	return dot(color, bitShift);
+}
+
+float shadow()
+{
+    float texelSize = 1.0 / 1024.0;
+    const float minBias = 0.005;
+    const float maxBias = 0.05;
+    float bias = minBias; //max(maxBias * (1.0 - dot(vertexNormalMS, lightPositionMS)), minBias);
+    float visibility = 1.0;
+    vec3 shadow = shadowCoord.xyz / shadowCoord.w;
+    int shadowHit = 1;
+    for(int i = -1; i <= 1; ++i)
+    {
+        for(int j = -1; j <= 1; ++j)
+        {
+            float depth = decodeFloat( texture2D(shadowMap, shadow.xy + vec2(i, j) * texelSize) );
+            if ( depth < shadow.z - bias)
+            {
+                shadowHit += 1;
+            }
+        }
     }
-    return max(intensity * diffuse + spec, ambient);
+
+    visibility /= float(shadowHit);
+    return visibility;
+}
+
+vec4 blinn_phong(const in vec3 fragNormalMS, const in vec3 lightPositionMS, const in vec3 positionMS, const in float visibility) 
+{
+    vec4 diffuseColor = lightDiffuse * vec4(vec3(visibility), 1.0);
+    vec4 ambient = vec4(vec3(0.1), 1.0);
+    vec4 specularColor = lightSpecular * vec4(vec3(visibility), 1.0);
+    float shininess = 32.0;
+    vec3 lightDir = normalize(lightPositionMS - positionMS);
+    float diffuseIntensity = max(dot(fragNormalMS, lightDir), 0.0);
+    vec4 diffuse = diffuseIntensity * diffuseColor;
+    float specularIntensity = 0.0;
+    if (0.0 < diffuseIntensity) {
+        vec3 h = normalize(fragNormalMS + lightPositionMS);
+        float intSpec = max(dot(h, fragNormalMS), 0.0);
+        specularIntensity = pow(intSpec, shininess);
+    }
+    vec4 specular = specularIntensity * specularColor;
+    return ambient + diffuse + specular;
 }
 
 void main() {
-    vec3 vertexNormal_eyespace_normalized = normalize(vertexNormal_eyespace);
-    vec3 lightDirectionNormalized = normalize(lightDirection);
-    vec3 eye_normalized = normalize(eye);
-    vec4 color = blinn_phong(vertexNormal_eyespace_normalized, lightDirectionNormalized, eye_normalized);
-    color = color * texture2D( textureSampler, fract(vec2(UV.x, 1. - UV.y)) ); // 1. - UV.y seems to be specific to Cloud
-    gl_FragColor = color;
+    float visibility = shadow();
+
+    vec4 color = blinn_phong(normalize(vertexNormalMS), lightPositionMS, positionMS, visibility);
+    color = color * texture2D(textureSampler , fract(vec2(UV.x, UV.y)) );
+    gl_FragColor = vec4(color.rgb, 1.0);
 }

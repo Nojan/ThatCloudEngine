@@ -3,25 +3,24 @@
 #include "config.hpp"
 #include "color.hpp"
 #include "mesh_renderer.hpp"
-#include "types.hpp"
-
 #include "opengl_includes.hpp"
 
+#include <glm/fwd.hpp>
 #include <memory>
-#include <vector>
 
-class RenderableMesh;
 class ShaderProgram;
 class ResourceShader;
-class Texture2D;
+class RenderableMesh;
 
-class MeshRenderer : public GenericMeshRenderer {
+class ShadowRenderer : public GenericMeshRenderer
+{
 public:
-    MeshRenderer();
-    ~MeshRenderer();
+    ShadowRenderer();
+    virtual ~ShadowRenderer() = default;
 
-	void Render(const Scene* scene) override;
+    void Render(const Scene* scene) override;
     void FlushFrame() override;
+
     void ListResources(std::vector<Resource*>& resources) override;
     void OnLoad() override;
 
@@ -30,17 +29,13 @@ public:
     void PushToRenderQueue(std::shared_ptr<RenderableMesh>& renderable);
 
 #if GUI_DEBUG()
-    void debug_GUI() const override;
+    void debug_GUI() const override {};
 #endif
-    const char* debug_name() const override { return "Mesh Renderer"; }
-
-    unsigned int mShadowMap = 0;
-
+    const char* debug_name() const  override { return "ShadowMapRender"; };
 private:
-    void Render(const RenderableMesh& renderable, const Scene* scene);
+    void Render(const RenderableMesh& renderable, const glm::mat4& depthVP);
 
 private:
     std::unique_ptr<ResourceShader> mShaderResource;
     std::vector<std::shared_ptr<RenderableMesh>> mRenderQueue;
-    std::vector<std::shared_ptr<RenderableMesh>> mRenderAlphaQueue;
 };

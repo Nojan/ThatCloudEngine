@@ -4,6 +4,7 @@
 #include "renderer_list.hpp"
 #include "renderableMesh.hpp"
 #include "renderableSkinMesh.hpp"
+#include "shadowRenderer.hpp"
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
 
@@ -86,6 +87,23 @@ void RenderingSystem::FrameStep()
     for (auto& component : mComponents)
     {
         component->draw(mRenderer);
+    }
+    if (ShadowRenderer* shadowRenderer = Global::rendererList()->getRenderer<ShadowRenderer>())
+    {
+        for (auto& component : mComponents)
+        {
+            if (component->mRenderable.empty() || !component->mEnable)
+                return;
+
+            for (std::shared_ptr<RenderableMesh>& renderable : component->mRenderable)
+            {
+                renderable->mTransform = component->mTransformComponent->Transform();
+                renderable->mScale = component->mTransformComponent->mScale;
+                //renderable->mScale = glm::mat4(5.f);
+                renderable->mScale[3][3] = 1.f;
+                shadowRenderer->PushToRenderQueue(renderable);
+            }
+        }
     }
 }
 

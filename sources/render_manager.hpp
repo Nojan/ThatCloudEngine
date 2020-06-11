@@ -7,6 +7,7 @@
 #include "iresourceowner.hpp"
 
 class IRenderer;
+class ShadowRenderer;
 class Scene;
 
 class RenderManager : public IResourceOwner {
@@ -14,7 +15,7 @@ public:
     RenderManager();
     virtual ~RenderManager();
 
-    void Render(const Scene* scene);
+    void Render(const Scene* scene, int screen_width, int screen_height);
     void FlushFrame();
 
     void ListResources(std::vector<Resource*>& resources);
@@ -26,5 +27,6 @@ public:
 
 public:
     std::vector<std::shared_ptr< IRenderer > > mRendererList;
-    std::unique_ptr<IRenderer> mFinalRender;
+    std::unique_ptr<class FinalRender> mFinalRender;
+    std::unique_ptr<ShadowRenderer> mShadowRender;
 };

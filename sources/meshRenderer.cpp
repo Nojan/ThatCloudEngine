@@ -34,10 +34,12 @@ MeshRenderer::MeshRenderer()
     mShaderResource->PreloadAttribute(HashedString("Normal"));
     mShaderResource->PreloadAttribute(HashedString("TexCoord0"));
     mShaderResource->PreloadUniform(HashedString("textureSampler"));
+    mShaderResource->PreloadUniform(HashedString("shadowMap"));
     mShaderResource->PreloadUniform(HashedString("mvp"));
-    mShaderResource->PreloadUniform(HashedString("mv"));
-    mShaderResource->PreloadUniform(HashedString("viewNormal"));
-    mShaderResource->PreloadUniform(HashedString("lightPosition"));
+    mShaderResource->PreloadUniform(HashedString("model"));
+    mShaderResource->PreloadUniform(HashedString("depthMVP"));
+    mShaderResource->PreloadUniform(HashedString("modelNormal"));
+    mShaderResource->PreloadUniform(HashedString("lightPositionMS"));
     mShaderResource->PreloadUniform(HashedString("lightDiffuse"));
     mShaderResource->PreloadUniform(HashedString("lightSpecular"));
 }
@@ -66,6 +68,23 @@ void MeshRenderer::Render(const Scene* scene)
     glEnable(GL_DEPTH_TEST);
     mShaderProgram->Bind();
 
+    const DirectionalLight& dirLight = scene->GetDirectionalLight();
+    {
+        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightDiffuse"));
+        glUniform4fv(lightPosition_ID, 1, &(color.r));
+    }
+    {
+        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mSpecularColor, 1.f);
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightSpecular"));
+        glUniform4fv(lightPosition_ID, 1, &(color.r));
+    }
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mShadowMap);
+        GLint textureSampler_ID = mShaderProgram->GetUniformLocation(HashedString("shadowMap"));
+        glUniform1i(textureSampler_ID, 1);
+    }
     for (const std::shared_ptr<RenderableMesh>& renderable: mRenderQueue)
     {
         assert(renderable);
@@ -114,7 +133,8 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
     if (renderable.mMesh->mIndex.empty())
         return;
     const glm::mat4& modelTransform = renderable.mTransform;
-    const glm::mat4 modelTransformAndScale = renderable.mTransform *renderable.mScale;
+    const glm::mat4 modelTransformAndScale = renderable.mTransform * renderable.mScale;
+    const Camera* camera = Root::Instance().GetCamera();
     {
         const std::shared_ptr<Texture2D>& texture = renderable.mMaterial.Texture();
         GPUBufferHandle& bufferHandle = texture->BufferHandle();
@@ -146,35 +166,42 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
     }
     {
         GLint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
-        glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * modelTransformAndScale;
+        glm::mat4 mvp = camera->ProjectionView() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); 
     }
     {
-        GLint matrixMV_ID = mShaderProgram->GetUniformLocation(HashedString("mv"));
-        glm::mat4 mv = Root::Instance().GetCamera()->View() * modelTransformAndScale;
-        glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); 
+        GLint matrixMV_ID = mShaderProgram->GetUniformLocation(HashedString("model"));
+        glm::mat4 model = modelTransformAndScale;
+        glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(model));
     }
     {
-        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation(HashedString("viewNormal"));
-        glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
-        glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); 
+        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation(HashedString("modelNormal"));
+        glm::mat3 m = glm::mat3(modelTransform);
+        glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(m)); 
     }
     const DirectionalLight& dirLight = scene->GetDirectionalLight();
     {
-        const glm::vec4 lightPosition(dirLight.mDirection, 1.f);
-        const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightPosition"));
-        glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); 
+        const glm::vec3 lightDirection = dirLight.mDirection * 100.f;
+        const glm::vec3 lightPositionMS = glm::vec3(glm::mat3(modelTransform) * lightDirection);
+        GLint uniform_ID = mShaderProgram->GetUniformLocation(HashedString("lightPositionMS"));
+        glUniform3fv(uniform_ID, 1, glm::value_ptr(lightPositionMS));
     }
+    // Shadow
     {
-        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightDiffuse"));
-        glUniform4fv(lightPosition_ID, 1, &(color.r));
-    }
-    {
-        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mSpecularColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightSpecular"));
-        glUniform4fv(lightPosition_ID, 1, &(color.r));
+        const glm::mat4 biasMatrix(
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
+            0.5, 0.5, 0.5, 1.0
+        );
+
+        const glm::vec3 lightInvDir = glm::normalize(dirLight.mDirection);
+        const glm::mat4 depthProjectionMatrix = glm::ortho<float>(-15, 15, -15, 15, -15, 15);
+        const glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        const glm::mat4 depthMVP = biasMatrix * depthProjectionMatrix * depthViewMatrix * modelTransformAndScale;
+
+        GLint uniformID = mShaderProgram->GetUniformLocation(HashedString("depthMVP"));
+        glUniformMatrix4fv(uniformID, 1, GL_FALSE, glm::value_ptr(depthMVP));
     }
     GenericMeshRenderer::Render(renderable.mMeshBuffer.get());
 }

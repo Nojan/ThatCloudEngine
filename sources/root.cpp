@@ -362,7 +362,7 @@ void Root::Update()
     
     if (!disableRenderer)
     {
-        mRenderManager->Render(mScene.get());
+        mRenderManager->Render(mScene.get(), width, height);
     }
     mRenderManager->FlushFrame();
     IMGUI_ONLY(mInputController->DrawGamepad());
