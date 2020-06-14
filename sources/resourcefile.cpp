@@ -21,6 +21,7 @@ bool ResourceFile::Load(Resource* owner)
         if ( Global::platform()->Fetch(name().c_str()) )
         {
             mState = State::Loaded;
+            owner->OnDependencyLoad(this);
         }
         else
         {
