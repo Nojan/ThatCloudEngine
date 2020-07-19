@@ -1,5 +1,6 @@
 #include "halfcone.hpp"
 
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 VisualDebugHalfCone::VisualDebugHalfCone(const glm::vec3& positionBottom, const glm::vec3& positionTop, const float radiusBottom, const float radiusTop, const Color::rgbap& color)
@@ -21,12 +22,16 @@ void VisualDebugHalfCone::ApplyCommand(std::vector<glm::vec3>& vertexFill, std::
     //top circle vertex
     vertexFill.push_back(mPositionTop);
     colorFill.push_back(mColor);
+
+    const glm::vec3 normal = glm::normalize(mPositionTop - mPositionBottom);
+    const glm::vec3 tx = glm::normalize(fabsf(normal.x) > fabsf(normal.z) ? glm::vec3(-normal.y, normal.x, 0.0) : glm::vec3(0.0, -normal.z, normal.y));
+    const glm::vec3 ty = glm::cross(normal, tx);
     for (uint i = 0; i < subdivision; ++i) {
         const float angle = static_cast<float>(i) * angleIncr;
         const float cosAngle = cos(angle);
         const float sinAngle = sin(angle);
-        const glm::vec3 normal(cosAngle, 0, sinAngle);
-        vertexFill.push_back(mPositionTop + normal*mRadiusTop);
+        const glm::vec3 ortho = tx * cosAngle + ty *sinAngle;
+        vertexFill.push_back(mPositionTop + ortho *mRadiusTop);
         colorFill.push_back(mColor);
     }
     //bottom circle vertex
@@ -36,8 +41,8 @@ void VisualDebugHalfCone::ApplyCommand(std::vector<glm::vec3>& vertexFill, std::
         const float angle = static_cast<float>(i) * angleIncr;
         const float cosAngle = cos(angle);
         const float sinAngle = sin(angle);
-        const glm::vec3 normal(cosAngle, 0, sinAngle);
-        vertexFill.push_back(mPositionBottom + normal*mRadiusBottom);
+        const glm::vec3 ortho = tx * cosAngle + ty * sinAngle;
+        vertexFill.push_back(mPositionBottom + ortho *mRadiusBottom);
         colorFill.push_back(mColor);
     }
     //top circle index
