@@ -118,10 +118,38 @@ void SelectSystem::FrameStep()
     GameEntity* selectedEntity = mComponents[mSelected].mEntity;
     BoundingBox3D selectedBBox = selectedEntity->getComponent<GraphicMeshComponent>()->getBoundingBox();
     const glm::vec3 center = selectedBBox.Center();
-    const glm::vec3 extent = selectedBBox.Extent() * 0.55f;
-    BoundingBox3D scaledBBox(center - extent, center + extent);
-    VisualDebugBoundingBoxCommand command(scaledBBox, { 1, 0, 0, 1 }, glm::mat4(1.0f), true);
-    VisualDebug()->PushCommand(command);
+    {
+        const glm::vec3 extent = selectedBBox.Extent() * 0.55f;
+        BoundingBox3D scaledBBox(center - extent, center + extent);
+        VisualDebugBoundingBoxCommand command(scaledBBox, { 1, 0, 0, 1 }, glm::mat4(1.0f), true);
+        VisualDebug()->PushCommand(command);
+    }
+
+    return;
+    // Todo handle to move stuff around
+    {
+        const glm::vec3 direction(0.0f, 0.0f, 1.f);
+        const Color::rgbap color = {1.0f, 0.0f, 0.0f, 1.0f};
+        BoundingBox3D axis(center, center + direction);
+        VisualDebugBoundingBoxCommand command(axis, color, glm::mat4(1.0f), true);
+        VisualDebug()->PushCommand(command);
+    }
+
+    {
+        const glm::vec3 direction(0.0f, 1.0f, 0.f);
+        const Color::rgbap color = { 1.0f, 0.0f, 0.0f, 1.0f };
+        BoundingBox3D axis(center, center + direction);
+        VisualDebugBoundingBoxCommand command(axis, color, glm::mat4(1.0f), true);
+        VisualDebug()->PushCommand(command);
+    }
+
+    {
+        const glm::vec3 direction(1.0f, 0.0f, 0.f);
+        const Color::rgbap color = { 1.0f, 0.0f, 0.0f, 1.0f };
+        BoundingBox3D axis(center, center + direction);
+        VisualDebugBoundingBoxCommand command(axis, color, glm::mat4(1.0f), true);
+        VisualDebug()->PushCommand(command);
+    }
 }
 
 void SelectSystem::attachEntity(GameEntity* entity)

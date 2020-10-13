@@ -61,6 +61,9 @@ public:
 #endif
 
 private:
+    std::vector< GameEntity* > mEntities;
+    std::vector<std::shared_ptr<Resource>> mResources;
+    bool mSpacePressed = false;
 };
 
 } // namespace

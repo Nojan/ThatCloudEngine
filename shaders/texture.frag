@@ -23,7 +23,7 @@ float shadow()
     float texelSize = 1.0 / 1024.0;
     const float minBias = 0.005;
     const float maxBias = 0.05;
-    float bias = minBias; //max(maxBias * (1.0 - dot(vertexNormalMS, lightPositionMS)), minBias);
+    float bias = maxBias; //max(maxBias * (1.0 - dot(vertexNormalMS, lightPositionMS)), minBias);
     float visibility = 1.0;
     vec3 shadow = shadowCoord.xyz / shadowCoord.w;
     int shadowHit = 1;

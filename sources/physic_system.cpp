@@ -1,14 +1,22 @@
 #include "physic_system.hpp"
 
 #include "transform_system.hpp"
+#include "types.hpp"
 #include "game_entity.hpp"
 
 #include <cassert>
+#include <algorithm>
+
+PhysicComponent::ContactManifold::ContactManifold(const glm::vec3& a, const glm::vec3& b)
+: position(b)
+{
+    const glm::vec3 diff = a - b;
+    distance = glm::length(diff);
+    normal = diff / distance;
+}
 
 PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
-, mEntity(nullptr)
-, mInvMass(1)
 , mForceAccum(0)
 , mLinearVelocity(0,0,0,0)
 , mLinearAcceleration(0,0,0,1)
@@ -19,6 +27,7 @@ PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 : mTransformComponent(ref.mTransformComponent)
 , mEntity(ref.mEntity)
 , mInvMass(ref.mInvMass)
+, mInvI(ref.mInvI)
 , mRadius(ref.mRadius)
 , mForceAccum(ref.mForceAccum)
 , mLinearVelocity(ref.mLinearVelocity)
@@ -39,15 +48,23 @@ void PhysicComponent::SetMass(const float mass)
 {
     assert(0 <= mass);
     if (0 == mass)
-        mInvMass = FLT_MAX;
+    {
+        mInvMass = 0.f;
+        mInvI = 0.f;
+    }
     else
+    {
         mInvMass = 1.f / mass;
+        const float inertia = (2.f / 5.f) * (mRadius * mRadius);
+        mInvI = 1.f / inertia;
+    }
 }
 
 void PhysicComponent::SetRadius(const float radius)
 {
     assert(0.0f <= radius);
     mRadius = radius;
+    SetMass(mInvMass == 0.f ? 0.f : 1.f / mInvMass);
 }
 
 void PhysicComponent::Reset()
@@ -56,12 +73,124 @@ void PhysicComponent::Reset()
     mLinearVelocity = glm::vec4(0, 0, 0, 0);
     mLinearAcceleration = glm::vec4(0, 0, 0, 1);
     mAngularVelocity = glm::vec4(0, 0, 0, 0);
+    mContacts.clear();
+}
+
+void PhysicComponent::ResolveContacts(const float deltaTime, const float invDeltaTime)
+{
+    const glm::vec3 position(mTransformComponent->mPosition);
+    const float k_allowedPenetration = -0.05f;
+    const float k_biasFactor = true ? 0.2f : 0.0f;
+    auto skipContact = [&k_allowedPenetration](const ContactManifold& c) -> bool
+    {
+        return 0 <= (c.distance + k_allowedPenetration);
+    };
+
+    // Pre Step
+    {
+        for (size_t i = 0; i < mContacts.size(); ++i)
+        {
+            ContactManifold& c = mContacts[i];
+            if (skipContact(c))
+            {
+                c.bias = 0.f;
+                c.Pn = 0.f;
+                c.Pt = 0.f;
+                continue;
+            }
+            const glm::vec3 r = c.position - position;
+            const glm::vec3 cNormal = c.normal;
+
+            // Precompute normal mass, tangent mass, and bias.
+            const float rn = glm::dot(r, cNormal);
+            const float kNormal = mInvMass + mInvI * (glm::dot(r, r) - rn * rn);
+            c.massNormal = 1.0f / kNormal;
+
+            const glm::vec3 cTangeant = glm::normalize(fabsf(cNormal.x) > fabsf(cNormal.z) ? glm::vec3(-cNormal.y, cNormal.x, 0.0) : glm::vec3(0.0, -cNormal.z, cNormal.y));
+            const float rt = glm::dot(r, cTangeant);
+            const float kTangent = mInvMass + mInvI * (glm::dot(r, r) - rt * rt);
+            c.massTangent = 1.0f / kTangent;
+
+            c.bias = -k_biasFactor * invDeltaTime * std::min(0.0f, c.distance + k_allowedPenetration);
+            
+            const glm::vec3 P = c.Pn * cNormal + c.Pt * cTangeant;
+            mLinearVelocity += glm::vec4(mInvMass * P, 0.f);
+            mAngularVelocity += glm::vec4(mInvI * glm::cross(r, P), 0.f);
+        }
+    }
+
+    // Perform iterations
+    for (int i = 0; i < 10; ++i)
+    {
+        for (size_t i = 0; i < mContacts.size(); ++i)
+        {
+            ContactManifold& c = mContacts[i];
+            if (skipContact(c))
+            {
+                continue;
+            }
+            const glm::vec3 r = c.position - position;
+            const glm::vec3 cNormal = c.normal;
+            const glm::vec3 P = c.Pn * cNormal;
+
+            // Relative velocity at contact
+            glm::vec3 dv = glm::vec3(mLinearVelocity) + glm::cross(glm::vec3(mAngularVelocity), r);
+
+            // Compute normal impulse
+            const float vn = glm::dot(dv, cNormal);
+
+            float dPn = c.massNormal * (-vn + c.bias);
+            // Clamp the accumulated impulse
+            {
+                const float Pn0 = c.Pn;
+                c.Pn = glm::max(Pn0 + dPn, 0.0f);
+                dPn = c.Pn - Pn0;
+            }
+
+            // Apply contact impulse
+            const glm::vec3 Pn = dPn * cNormal;
+
+            mLinearVelocity += glm::vec4(mInvMass * Pn, 0.f);
+            mAngularVelocity += glm::vec4(mInvI * glm::cross(r, Pn), 0.f);
+
+            // Relative velocity at contact
+            dv = glm::vec3(mLinearVelocity) + glm::cross(glm::vec3(mAngularVelocity), r);
+
+            const glm::vec3 tangent = glm::normalize(fabsf(cNormal.x) > fabsf(cNormal.z) ? glm::vec3(-cNormal.y, cNormal.x, 0.0) : glm::vec3(0.0, -cNormal.z, cNormal.y));
+            const float vt = glm::dot(dv, tangent);
+            float dPt = c.massTangent * (-vt);
+
+            {
+                const float friction = 0.5f;
+                
+                // Compute friction impulse
+                float maxPt = friction * c.Pn;
+
+                // Clamp friction
+                float oldTangentImpulse = c.Pt;
+                c.Pt = glm::clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
+                dPt = c.Pt - oldTangentImpulse;
+            }
+
+            // Apply contact impulse
+            const glm::vec3 Pt = dPt * tangent;
+
+            mLinearVelocity += glm::vec4(mInvMass * Pt, 0.f);
+            mAngularVelocity += glm::vec4(mInvI * glm::cross(r, Pt), 0.f);
+        }
+    }
 }
 
 void PhysicComponent::Integrate(const float deltaTime)
 {
     if (!IsValid() || !HasFiniteMass())
         return;
+
+    const glm::mat4 previousTransform = mTransformComponent->Transform();
+    assert(false == glm::any(glm::isnan(previousTransform[0])));
+    assert(false == glm::any(glm::isnan(previousTransform[1])));
+    assert(false == glm::any(glm::isnan(previousTransform[2])));
+    assert(false == glm::any(glm::isnan(previousTransform[3])));
 
     const glm::vec4 force(mForceAccum, 0.f);
     mLinearAcceleration += force*mInvMass;
@@ -70,7 +199,8 @@ void PhysicComponent::Integrate(const float deltaTime)
     mLinearVelocity.w = 0.f;
     const glm::vec4 position = mTransformComponent->Position();
     assert(1.f == position.w);
-    const glm::vec4 nextPosition = position + mLinearVelocity*deltaTime;
+    const glm::vec4 linearDisplacement = mLinearVelocity * deltaTime;
+    const glm::vec4 nextPosition = position + linearDisplacement;
     mTransformComponent->SetPosition(nextPosition);
 
     const glm::quat& currentOrientation = mTransformComponent->Rotation();
@@ -86,6 +216,30 @@ void PhysicComponent::Integrate(const float deltaTime)
     const glm::vec4 drag(0.9999f);
     mLinearVelocity = mLinearVelocity * drag;
     mAngularVelocity = mAngularVelocity  * drag;
+
+    if (!mContacts.empty())
+    {
+        const glm::mat4 previousTransformInv = glm::inverse(previousTransform);
+        assert(false == glm::any(glm::isnan(previousTransformInv[0])));
+        assert(false == glm::any(glm::isnan(previousTransformInv[1])));
+        assert(false == glm::any(glm::isnan(previousTransformInv[2])));
+        assert(false == glm::any(glm::isnan(previousTransformInv[3])));
+        const glm::mat4 transformDiff = previousTransformInv * mTransformComponent->Transform();
+        for (int idx = numeric_cast<int>(mContacts.size() - 1); 0 <= idx; --idx)
+        {
+            ContactManifold& c = mContacts[idx];
+            const glm::vec3 contactDisplacement = glm::vec3(transformDiff * glm::vec4(c.position, 1.f)) - c.position;
+            const float displacementProjection = glm::dot(c.normal, contactDisplacement);
+            c.distance += displacementProjection;
+            if (0.1f < fabsf(c.distance) || 0.01f < glm::dot(contactDisplacement, contactDisplacement))
+            {
+                const size_t lastIdx = mContacts.size() - 1;
+                std::swap(mContacts[idx], mContacts[lastIdx]);
+                mContacts.resize(lastIdx);
+            }
+        }
+    }
+
 }
 
 void PhysicComponent::AddForce(const glm::vec3& force)
@@ -130,6 +284,7 @@ void PhysicSystem::Update(const float deltaTime)
         PhysicComponent& ci = mComponents[idx];
         if (!ci.IsValid() || !ci.HasFiniteMass())
             continue;
+        ci.AddForce(glm::vec3(0.f, -9.81f, 0.f));
         const float radius = ci.mRadius;
         const float radiusSq = radius * radius;
         const glm::vec4& ciPosition = ci.mTransformComponent->mPosition;
@@ -160,8 +315,10 @@ void PhysicSystem::Update(const float deltaTime)
         ci.SetLinearVelocity(ciVelocity);
     }
     
+    const float invDeltaTime = 1.f / deltaTime;
     for (auto& component : mComponents)
     {
+        component.ResolveContacts(deltaTime, invDeltaTime);
         component.Integrate(deltaTime);
     }
 }
