@@ -16,6 +16,8 @@ public:
     void Add(const glm::vec3& point);
     bool Inside(const glm::vec3& point) const;
 
+    glm::vec3 GetPoint(const int idx) const;
+
 private:
     glm::vec3 mMin;
     glm::vec3 mMax;

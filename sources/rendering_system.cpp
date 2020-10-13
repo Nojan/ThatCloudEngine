@@ -47,9 +47,13 @@ BoundingBox3D GraphicMeshComponent::getBoundingBox() const
 {
     const BoundingBox3D localAABB = getLocalBoundingBox();
     const glm::mat4 transform = mTransformComponent->Transform() * mTransformComponent->mScale;
-    const glm::vec4 min(transform* glm::vec4(localAABB.Min(), 1));
-    const glm::vec4 max(transform * glm::vec4(localAABB.Max(), 1));
-    return BoundingBox3D(glm::vec3(min), glm::vec3(max));
+    BoundingBox3D result;
+    for (int idx = 0; idx < 8; ++idx)
+    {
+        result.Add(glm::vec3(transform * glm::vec4(localAABB.GetPoint(idx), 1.f)));
+    }
+    assert(result.Valid());
+    return result;
 }
 
 void GraphicMeshComponent::setupResource(std::shared_ptr<MeshResourceList> resource)

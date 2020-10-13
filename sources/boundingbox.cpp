@@ -75,3 +75,14 @@ bool BoundingBox3D::Inside(const glm::vec3 & point) const
     return result;
 }
 
+glm::vec3 BoundingBox3D::GetPoint(const int idx) const
+{
+    assert(0 <= idx);
+    assert(8 > idx);
+    glm::vec3 result = mMin;
+    if (idx & 1) result[0] = mMax[0];
+    if (idx & 2) result[1] = mMax[1];
+    if (idx & 4) result[2] = mMax[2];
+    return result;
+}
+
