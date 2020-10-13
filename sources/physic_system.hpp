@@ -12,6 +12,21 @@ class TransformComponent;
 class PhysicComponent
 {
 public:
+    struct ContactManifold {
+        ContactManifold() = default;
+        ContactManifold(const glm::vec3& a, const glm::vec3& b);
+
+        glm::vec3 position;
+        glm::vec3 normal;
+        float distance = 0.f;
+        float Pn = 0.f;	 // accumulated normal impulse
+        float Pt = 0.f;	 // accumulated tangent impulse
+        float Pnb = 0.f; // accumulated normal impulse for position bias
+        float massNormal = 0.f;
+        float massTangent = 0.f;
+        float bias = 0.f;
+    };
+
     PhysicComponent();
     PhysicComponent(const PhysicComponent& ref);
 
@@ -23,6 +38,7 @@ public:
 
     void Reset();
 
+    void ResolveContacts(const float deltaTime, const float invDeltaTime);
     void Integrate(const float deltaTime);
     void AddForce(const glm::vec3& force);
 
@@ -32,11 +48,13 @@ public:
     const glm::vec4& AngularVelocity() const;
     void SetAngularVelocity(const glm::vec4& velocity);
 
-    TransformComponent* mTransformComponent;
+    TransformComponent* mTransformComponent = nullptr;
+    std::vector<ContactManifold> mContacts;
 private:
-    GameEntity* mEntity; 
-    float mInvMass;
-    float mRadius = 0.0f;
+    GameEntity* mEntity = nullptr; 
+    float mInvMass = 0.f;
+    float mInvI = 0.f;
+    float mRadius = 1.f;
     glm::vec4 mLinearVelocity;
     glm::vec4 mLinearAcceleration;
     glm::vec4 mAngularVelocity;
