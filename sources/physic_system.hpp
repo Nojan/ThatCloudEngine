@@ -91,6 +91,10 @@ public:
 
     PhysicsListener* m_listener = nullptr;
 
+#if GUI_DEBUG()
+    void debug_GUI() const override;
+#endif
+
     const char* debug_name() const override { return "Physics"; }
 
 private:

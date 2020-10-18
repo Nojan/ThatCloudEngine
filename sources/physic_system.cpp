@@ -3,9 +3,53 @@
 #include "transform_system.hpp"
 #include "types.hpp"
 #include "game_entity.hpp"
+#include "imgui/imgui_header.hpp"
 
+#include "visualdebug.hpp"
+
+#include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 #include <algorithm>
+
+
+#if GUI_DEBUG()
+void PhysicSystem::debug_GUI() const
+{
+    for (size_t idx = 0; idx < mComponents.size(); ++idx)
+    {
+        ImGui::PushID(idx);
+        std::vector<PhysicComponent::ContactManifold>& contacts = const_cast<PhysicComponent&>(mComponents[idx]).mContacts;
+        for (int ci = (int)contacts.size() - 1; 0 <= ci; --ci)
+        {
+            ImGui::PushID(ci);
+            if (ImGui::SmallButton("Destroy"))
+            {
+                std::swap(contacts[ci], contacts[contacts.size() - 1]);
+                contacts.resize(contacts.size() - 1);
+            }
+            else
+            {
+                PhysicComponent::ContactManifold& contact = contacts[ci];
+                if (ImGui::IsItemHovered())
+                {
+                    VisualDebugSphereCommand sphere(contact.position, 0.1f, { 0, 1, 0, 1 });
+                    VisualDebug()->PushCommand(sphere);
+                }
+                ImGui::InputFloat("distance", &contact.distance);
+                ImGui::InputFloat3("normal", glm::value_ptr(contact.normal));
+                ImGui::InputFloat("acc normal impulse", &contact.Pn);
+                ImGui::InputFloat("acc tangent impulse", &contact.Pt);
+                ImGui::InputFloat("mass normal", &contact.massNormal);
+                ImGui::InputFloat("mass tangent", &contact.massTangent);
+                ImGui::InputFloat("bias", &contact.bias);
+            }
+            ImGui::PopID();
+            ImGui::Separator();
+        }
+        ImGui::PopID();
+    }
+}
+#endif
 
 PhysicComponent::ContactManifold::ContactManifold(const glm::vec3& a, const glm::vec3& b)
 : position(b)
