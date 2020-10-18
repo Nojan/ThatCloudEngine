@@ -21,7 +21,6 @@ public:
         float distance = 0.f;
         float Pn = 0.f;	 // accumulated normal impulse
         float Pt = 0.f;	 // accumulated tangent impulse
-        float Pnb = 0.f; // accumulated normal impulse for position bias
         float massNormal = 0.f;
         float massTangent = 0.f;
         float bias = 0.f;
