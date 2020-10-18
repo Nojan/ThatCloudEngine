@@ -398,6 +398,7 @@ void LoopManager::FrameStep()
         }
     }
 
+#if 1
     for (size_t i = 0; i < colliders.size(); ++i)
     {
         const PhysShapeCollider& colliderA = colliders[i];
@@ -477,6 +478,41 @@ void LoopManager::FrameStep()
             }
         }
     }
+#else
+    // generate perfect contact points without GJK and contact caching.
+    // This validate the collision procedure
+    if(!colliders.empty())
+    {
+        const float plane_height = 0.0580530018f;
+        const PhysShapeCollider& collider = colliders.front();
+        if (const PhysConvexShape* shape = dynamic_cast<const PhysConvexShape*>(collider.shape.get()))
+        {
+            if (PhysicComponent* physicComponent = collider.entity->getComponent<PhysicComponent>())
+            {
+                const glm::mat4 transform = physicComponent->mTransformComponent->Transform();
+                physicComponent->mContacts.clear();
+                for (const glm::vec3& v : shape->mVertices)
+                {
+                    glm::vec3 pointA = glm::vec3(transform * glm::vec4(v, 1.f));
+                    glm::vec3 pointB = pointA;
+                    pointB[1] = plane_height;
+                    PhysicComponent::ContactManifold contact(pointA, pointB);
+                    physicComponent->mContacts.push_back(contact);
+                }
+                if (4 < physicComponent->mContacts.size())
+                {
+                    auto sortByDistance = [](const PhysicComponent::ContactManifold& a, const PhysicComponent::ContactManifold& b) -> bool
+                    {
+                        return a.distance < b.distance;
+                    };
+                    std::sort(physicComponent->mContacts.begin(), physicComponent->mContacts.end(), sortByDistance);
+                    physicComponent->mContacts.resize(4);
+                }
+            }
+            
+        }
+    }
+#endif
     for (size_t i = 0; i < colliders.size(); ++i)
     {
         if (PhysicComponent* physicComponent = colliders[i].entity->getComponent<PhysicComponent>())
