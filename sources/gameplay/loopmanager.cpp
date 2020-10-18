@@ -330,6 +330,7 @@ void LoopManager::FrameStep()
                     if (PhysicComponent* physics = selected->getComponent<PhysicComponent>())
                     {
                         physics->mContacts.clear();
+                        physics->SetAngularVelocity(glm::vec4(0.1f, 0.1f, 0.1f, 0.f)); // TMP add some rotation to test the collision system
                     }
                 }
             }
