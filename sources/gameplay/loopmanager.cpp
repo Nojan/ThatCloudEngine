@@ -348,6 +348,21 @@ void LoopManager::FrameStep()
         collider.entity = entity;
         collider.transform = transform->Transform();
         collider.bbox = renderingComponent->getLocalBoundingBox();
+        auto findVertice = [](const std::vector<glm::vec3>& collection, const glm::vec3& vertex) -> size_t
+        {
+            size_t result = -1;
+            for(size_t idx = 0; idx < collection.size(); ++idx)
+            {
+                const glm::vec3 diff = collection[idx] - vertex;
+                const float magnitude = glm::dot(diff, diff);
+                if (magnitude < 0.0001f)
+                {
+                    result = idx;
+                    break; 
+                }
+            }
+            return result;
+        };
         if (entity != mEntities.back())
         {
             std::unique_ptr<PhysConvexShape> shape = std::make_unique<PhysConvexShape>();
@@ -355,7 +370,10 @@ void LoopManager::FrameStep()
             {
                 for (const glm::vec3 vertex : mesh->mMesh->mVertex)
                 {
-                    shape->mVertices.push_back(vertex);
+                    if (size_t(-1) == findVertice(shape->mVertices, vertex))
+                    {
+                        shape->mVertices.push_back(vertex);
+                    }
                 }
             }
             collider.shape = std::move(shape);
