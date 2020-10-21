@@ -302,6 +302,9 @@ void Root::Update()
     SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
     mInputController->BeginEvents();
     while (SDL_PollEvent(&e) != 0) {
+#if GUI_DEBUG()
+        ImGui_ImplSdl_ProcessEvent(&e);
+#endif
         if (SDL_QUIT == e.type) {
             mState = State::Terminating;
             break;
