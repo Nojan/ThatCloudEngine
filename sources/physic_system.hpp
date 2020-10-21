@@ -14,10 +14,15 @@ class PhysicComponent
 public:
     struct ContactManifold {
         ContactManifold() = default;
-        ContactManifold(const glm::vec3& a, const glm::vec3& b);
+        ContactManifold(const glm::vec3& a, const glm::vec3& b, PhysicComponent* bodyA, PhysicComponent* bodyB);
 
+        PhysicComponent* bodyA = nullptr;
+        PhysicComponent* bodyB = nullptr;
+        glm::vec3 localPositionA;
+        glm::vec3 localPositionB;
         glm::vec3 position;
         glm::vec3 normal;
+        glm::vec3 tangeant;
         float distance = 0.f;
         float Pn = 0.f;	 // accumulated normal impulse
         float Pt = 0.f;	 // accumulated tangent impulse
@@ -36,6 +41,7 @@ public:
     void SetRadius(const float radius);
 
     void Reset();
+    void ClearContactsCache();
 
     void ResolveContacts(const float deltaTime, const float invDeltaTime);
     void Integrate(const float deltaTime);
@@ -49,6 +55,7 @@ public:
 
     TransformComponent* mTransformComponent = nullptr;
     std::vector<ContactManifold> mContacts;
+    std::vector<int> mContactIdx;
 private:
     GameEntity* mEntity = nullptr; 
     float mInvMass = 0.f;
@@ -85,6 +92,9 @@ public:
     virtual ~PhysicSystem();
 
     void Update(const float deltaTime) override;
+    int CreateContact(const PhysicComponent::ContactManifold& contact);
+    void RemoveContact(int idx);
+    void ClearContactsCache(PhysicComponent* component);
 
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;
@@ -99,4 +109,5 @@ public:
 
 private:
     std::vector<PhysicComponent> mComponents;
+    std::vector<PhysicComponent::ContactManifold> mContactsCache;
 };

@@ -35,6 +35,13 @@ void PhysicSystem::debug_GUI() const
                     VisualDebugSphereCommand sphere(contact.position, 0.1f, { 0, 1, 0, 1 });
                     VisualDebug()->PushCommand(sphere);
                 }
+                {
+                    const glm::mat4 transformInv = glm::inverse(mComponents[idx].mTransformComponent->Transform());
+                    const glm::vec3 contactPosition = contact.position + contact.normal * contact.distance;
+                    const glm::vec3 contactLocalPosition = glm::vec3(transformInv * glm::vec4(contactPosition, 1.f));
+                    const glm::vec3 diff = contactLocalPosition - contact.localPositionA;
+                    ImGui::Text("Position Err %f", glm::dot(diff, diff));
+                }
                 ImGui::InputFloat("distance", &contact.distance);
                 ImGui::InputFloat3("normal", glm::value_ptr(contact.normal));
                 ImGui::InputFloat("acc normal impulse", &contact.Pn);
@@ -51,12 +58,32 @@ void PhysicSystem::debug_GUI() const
 }
 #endif
 
-PhysicComponent::ContactManifold::ContactManifold(const glm::vec3& a, const glm::vec3& b)
-: position(b)
+PhysicComponent::ContactManifold::ContactManifold(const glm::vec3& a, const glm::vec3& b, PhysicComponent* bodyA, PhysicComponent* bodyB)
+: bodyA(bodyA)
+, bodyB(bodyB)
+, position(b)
 {
     const glm::vec3 diff = a - b;
     distance = glm::length(diff);
     normal = diff / distance;
+    tangeant = glm::normalize(fabsf(normal.x) > fabsf(normal.z) ? glm::vec3(-normal.y, normal.x, 0.0) : glm::vec3(0.0, -normal.z, normal.y));
+    auto computeLocalPosition = [](const glm::mat4& transform, const glm::vec3& point) -> glm::vec3
+    {
+        const glm::mat4 transformInv = glm::inverse(transform);
+        assert(false == glm::any(glm::isnan(transformInv[0])));
+        assert(false == glm::any(glm::isnan(transformInv[1])));
+        assert(false == glm::any(glm::isnan(transformInv[2])));
+        assert(false == glm::any(glm::isnan(transformInv[3])));
+        return glm::vec3(transformInv * glm::vec4(point, 1.f));
+    };
+    if (bodyA)
+    {
+        localPositionA = computeLocalPosition(bodyA->mTransformComponent->Transform(), a);
+    }
+    if (bodyB)
+    {
+        localPositionB = computeLocalPosition(bodyB->mTransformComponent->Transform(), b);
+    }
 }
 
 PhysicComponent::PhysicComponent()
@@ -120,6 +147,16 @@ void PhysicComponent::Reset()
     mContacts.clear();
 }
 
+void PhysicComponent::ClearContactsCache()
+{
+    for (int idx = numeric_cast<int>(mContactIdx.size()) - 1; 0 <= idx; --idx)
+    {
+        const int contactIdx = mContactIdx[idx];
+
+    }
+    assert(mContactIdx.empty());
+}
+
 void PhysicComponent::ResolveContacts(const float deltaTime, const float invDeltaTime)
 {
     const glm::vec3 position(mTransformComponent->mPosition);
@@ -150,7 +187,7 @@ void PhysicComponent::ResolveContacts(const float deltaTime, const float invDelt
             const float kNormal = mInvMass + mInvI * (glm::dot(r, r) - rn * rn);
             c.massNormal = 1.0f / kNormal;
 
-            const glm::vec3 cTangeant = glm::normalize(fabsf(cNormal.x) > fabsf(cNormal.z) ? glm::vec3(-cNormal.y, cNormal.x, 0.0) : glm::vec3(0.0, -cNormal.z, cNormal.y));
+            const glm::vec3 cTangeant = c.tangeant;
             const float rt = glm::dot(r, cTangeant);
             const float kTangent = mInvMass + mInvI * (glm::dot(r, r) - rt * rt);
             c.massTangent = 1.0f / kTangent;
@@ -200,7 +237,7 @@ void PhysicComponent::ResolveContacts(const float deltaTime, const float invDelt
             // Relative velocity at contact
             dv = glm::vec3(mLinearVelocity) + glm::cross(glm::vec3(mAngularVelocity), r);
 
-            const glm::vec3 tangent = glm::normalize(fabsf(cNormal.x) > fabsf(cNormal.z) ? glm::vec3(-cNormal.y, cNormal.x, 0.0) : glm::vec3(0.0, -cNormal.z, cNormal.y));
+            const glm::vec3 tangent = c.tangeant;
             const float vt = glm::dot(dv, tangent);
             float dPt = c.massTangent * (-vt);
 
@@ -268,19 +305,39 @@ void PhysicComponent::Integrate(const float deltaTime)
         assert(false == glm::any(glm::isnan(previousTransformInv[1])));
         assert(false == glm::any(glm::isnan(previousTransformInv[2])));
         assert(false == glm::any(glm::isnan(previousTransformInv[3])));
-        const glm::mat4 transformDiff = previousTransformInv * mTransformComponent->Transform();
+        const glm::mat4 transform = mTransformComponent->Transform();
+        const glm::mat4 transformDiff = transform * previousTransformInv;
         for (int idx = numeric_cast<int>(mContacts.size() - 1); 0 <= idx; --idx)
         {
             ContactManifold& c = mContacts[idx];
-            const glm::vec3 contactDisplacement = glm::vec3(transformDiff * glm::vec4(c.position, 1.f)) - c.position;
-            const float displacementProjection = glm::dot(c.normal, contactDisplacement);
-            c.distance += displacementProjection;
-            if (0.1f < fabsf(c.distance) || 0.01f < glm::dot(contactDisplacement, contactDisplacement))
+            const glm::vec3 contactPosition = glm::vec3(transform * glm::vec4(c.localPositionA, 1.f));
+            const glm::vec3 diff = contactPosition - c.position;
+            const glm::vec3 diffNormalize = glm::normalize(diff);
+            if (glm::dot(diffNormalize, c.normal) < 0.9f) // revoir ce critere. Quand la distance entre les points est courte, la normal n'est si importante.
             {
                 const size_t lastIdx = mContacts.size() - 1;
                 std::swap(mContacts[idx], mContacts[lastIdx]);
                 mContacts.resize(lastIdx);
             }
+            else
+            {
+                c.distance = glm::dot(c.normal, diff);
+            }
+
+            //assert(glm::dot(diff, diff) < 0.001f);
+
+            //const glm::vec3 contactDisplacement = glm::vec3(transformDiff * glm::vec4(contactPosition, 1.f)) - contactPosition;
+            //const float displacementProjection = glm::dot(c.normal, contactDisplacement);
+            //c.distance += displacementProjection;
+            //const glm::vec3 tangent = c.tangeant;
+            //const float displacementTangeantProjection = glm::dot(tangent, contactDisplacement);
+            //c.position += c.tangeant * displacementTangeantProjection;
+            //if (0.01f < fabsf(displacementProjection) || 0.005f < fabsf(displacementTangeantProjection))
+            //{
+            //    const size_t lastIdx = mContacts.size() - 1;
+            //    std::swap(mContacts[idx], mContacts[lastIdx]);
+            //    mContacts.resize(lastIdx);
+            //}
         }
     }
 
@@ -367,6 +424,46 @@ void PhysicSystem::Update(const float deltaTime)
     }
 }
 
+int PhysicSystem::CreateContact(const PhysicComponent::ContactManifold& contact)
+{
+    return 0;
+}
+
+void PhysicSystem::RemoveContact(int idx)
+{
+    assert(0 <= idx);
+    assert(idx < numeric_cast<int>(mContactsCache.size()));
+    auto removeFromComponent = [](PhysicComponent* component, int contactIdx) -> void
+    {
+        if (component)
+        {
+            std::vector<int>& contactsCacheIdx = component->mContactIdx;
+            for (int idx = numeric_cast<int>(contactsCacheIdx.size()) - 1; 0 <= idx; --idx)
+            {
+                if (contactIdx == contactsCacheIdx[idx])
+                {
+                    const size_t lastIdx = contactsCacheIdx.size() - 1;
+                    std::swap(contactsCacheIdx[idx], contactsCacheIdx[lastIdx]);
+                    contactsCacheIdx.resize(lastIdx);
+                }
+            }
+        }
+    };
+    PhysicComponent::ContactManifold& contact = mContactsCache[idx];
+    removeFromComponent(contact.bodyA, idx);
+    removeFromComponent(contact.bodyB, idx);
+    contact = PhysicComponent::ContactManifold();
+}
+
+void PhysicSystem::ClearContactsCache(PhysicComponent* component)
+{
+    std::vector<int>& contactsCacheIdx = component->mContactIdx;
+    for (int idx = numeric_cast<int>(contactsCacheIdx.size()) - 1; 0 <= idx; --idx)
+    {
+        RemoveContact(contactsCacheIdx[idx]);
+    }
+}
+
 void PhysicSystem::attachEntity(GameEntity* entity)
 {
     PhysicComponent& component = IComponentSystem::attachComponent<PhysicComponent>(entity, mComponents);
@@ -378,5 +475,9 @@ void PhysicSystem::attachEntity(GameEntity* entity)
 
 void PhysicSystem::detachEntity(GameEntity* entity)
 {
+    if(PhysicComponent* component = entity->getComponent<PhysicComponent>())
+    {
+        ClearContactsCache(component);
+    }
     IComponentSystem::detachComponent<PhysicComponent>(entity, mComponents);
 }

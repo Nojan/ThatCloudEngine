@@ -461,12 +461,12 @@ void LoopManager::FrameStep()
 
                 if (PhysicComponent* physicComponent = colliderA.entity->getComponent<PhysicComponent>())
                 {
-                    PhysicComponent::ContactManifold contact(pointA, pointB);
+                    PhysicComponent::ContactManifold contact(pointA, pointB, physicComponent, nullptr);
                     addContactToPhysicComponent(physicComponent->mContacts, contact);
                 }
                 if (PhysicComponent* physicComponent = colliderB.entity->getComponent<PhysicComponent>())
                 {
-                    PhysicComponent::ContactManifold contact(pointB, pointA);
+                    PhysicComponent::ContactManifold contact(pointB, pointA, physicComponent, nullptr);
                     addContactToPhysicComponent(physicComponent->mContacts, contact);
                 }
                 
