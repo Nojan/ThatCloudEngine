@@ -126,7 +126,48 @@ void LoopManager::Init()
         mEntities.push_back(entity);
         gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
         TransformComponent* transform = entity->getComponent<TransformComponent>();
-        transform->SetPosition(glm::vec4(-1.f, 3.f, 0.f, 1.f));
+        transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/plane.assxml"));
+
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+        PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
+        physicComponent->Reset();
+        physicComponent->SetMass(0.f);
+
+        //gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
+    }
+
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(-1.f, 2.f, 0.f, 1.f));
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/cube.assxml"));
+
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+        PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
+        physicComponent->Reset();
+        physicComponent->SetMass(1.f);
+
+        gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
+    }
+
+    if(false)
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(-1.f, 4.f, 0.f, 1.f));
 
         gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
         GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
@@ -173,20 +214,7 @@ void LoopManager::Init()
         gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
     }
 
-    {
-        GameEntity* entity = gameSystem->createEntity();
-        mEntities.push_back(entity);
-        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
-        TransformComponent* transform = entity->getComponent<TransformComponent>();
-        transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
-        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/plane.assxml"));
-
-        //gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
-    }
 }
 
 void LoopManager::Terminate()
@@ -285,8 +313,13 @@ int FindBestMatch(const PhysicComponent::ContactManifold& contact, const std::ve
     float bestMatch = 0.01f;
     auto computeMatch = [](const PhysicComponent::ContactManifold& a, const PhysicComponent::ContactManifold& b) -> float
     {
-        const glm::vec3 diff = a.position - b.position;
-        return glm::dot(diff, diff);// + fabsf(1.f - glm::dot(a.normal, b.normal));
+        float result = FLT_MAX;
+        if (a.bodyA == b.bodyA && a.bodyB == b.bodyB)
+        {
+            const glm::vec3 diff = a.position - b.position;
+            result = glm::dot(diff, diff); // + fabsf(1.f - glm::dot(a.normal, b.normal));
+         }
+        return result;
     };
     for (int idx = 0, endIdx = numeric_cast<int>(collections.size()); idx < endIdx; ++idx)
     {
@@ -329,7 +362,7 @@ void LoopManager::FrameStep()
                     transform->SetPosition(glm::vec4(newPosition, 1.f));
                     if (PhysicComponent* physics = selected->getComponent<PhysicComponent>())
                     {
-                        physics->mContacts.clear();
+                        physics->SetLinearVelocity(glm::vec4(0.f));
                         physics->SetAngularVelocity(glm::vec4(0.1f, 0.1f, 0.1f, 0.f)); // TMP add some rotation to test the collision system
                     }
                 }
@@ -364,7 +397,7 @@ void LoopManager::FrameStep()
             }
             return result;
         };
-        if (entity != mEntities.back())
+        if (true || entity != mEntities.back())
         {
             std::unique_ptr<PhysConvexShape> shape = std::make_unique<PhysConvexShape>();
             for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
@@ -399,83 +432,17 @@ void LoopManager::FrameStep()
     }
 
 #if 1
+    PhysicSystem* physicSystem = gameSystem->getSystem<PhysicSystem>();
     for (size_t i = 0; i < colliders.size(); ++i)
     {
         const PhysShapeCollider& colliderA = colliders[i];
         for (size_t j = i + 1; j < colliders.size(); ++j)
         {
             const PhysShapeCollider& colliderB = colliders[j];
-            glm::vec3 pointA, pointB;
-            if (TestIntersection(&colliderA, &colliderB, &pointA, &pointB))
-            {
-                VisualDebugBoundingBoxCommand commandA(colliderA.bbox, { 0, 1, 0, 1 }, colliderA.transform, true);
-                VisualDebugBoundingBoxCommand commandB(colliderB.bbox, { 0, 1, 0, 1 }, colliderB.transform, true);
-                VisualDebug()->PushCommand(commandA);
-                VisualDebug()->PushCommand(commandB);
-            }
-            else
-            {
-                auto sortContact = [](const PhysicComponent::ContactManifold& a, const PhysicComponent::ContactManifold& b) -> bool
-                {
-                    return a.distance < b.distance;
-                };
-                auto triangleAreaEstimate = [](const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) -> float
-                {
-                    const glm::vec3 ab = b - a;
-                    const glm::vec3 ac = c - a; 
-                    const glm::vec3 cross = glm::cross(ab, ac);
-                    const float parallelogrameAreaSquared = glm::dot(cross, cross);
-                    return parallelogrameAreaSquared;
-                };
-                auto addContactToPhysicComponent = [&](std::vector<PhysicComponent::ContactManifold>& contacts, const PhysicComponent::ContactManifold& contact)
-                {
-                    const int bestMatchIdx = FindBestMatch(contact, contacts);
-                    if (0 <= bestMatchIdx)
-                    {
-                        contacts[bestMatchIdx] = contact;
-                    }
-                    else
-                    {
-                        if (3 < contacts.size())
-                        {
-                            std::sort(contacts.begin(), contacts.end(), sortContact);
-                            const float currentArea = triangleAreaEstimate(contacts[1].position, contacts[2].position, contacts[3].position);
-                            int bestIdx = -1;
-                            for (int cIdx = 1; cIdx <= 3; ++cIdx)
-                            {
-                                const float area = triangleAreaEstimate(1 == cIdx ? contact.position : contacts[1].position, 2 == cIdx ? contact.position : contacts[2].position, 3 == cIdx ? contact.position : contacts[3].position);
-                                if (currentArea < area)
-                                {
-                                    bestIdx = cIdx;
-                                }
-                                if (0 < bestIdx)
-                                {
-                                    contacts[bestIdx] = contact;
-                                }
-                            }
-                        }
-                        else
-                            contacts.push_back(contact);
-                    }
-                };
-
-                if (PhysicComponent* physicComponent = colliderA.entity->getComponent<PhysicComponent>())
-                {
-                    PhysicComponent::ContactManifold contact(pointA, pointB, physicComponent, nullptr);
-                    addContactToPhysicComponent(physicComponent->mContacts, contact);
-                }
-                if (PhysicComponent* physicComponent = colliderB.entity->getComponent<PhysicComponent>())
-                {
-                    PhysicComponent::ContactManifold contact(pointB, pointA, physicComponent, nullptr);
-                    addContactToPhysicComponent(physicComponent->mContacts, contact);
-                }
-                
-                VisualDebugSegmentCommand command(pointA, pointB, { 0, 1, 0, 1 });
-                VisualDebug()->PushCommand(command);
-                VisualDebugSphereCommand sphere(pointB, 0.01f, { 0, 1, 0, 1 });
-                VisualDebug()->PushCommand(sphere);
-                
-            }
+            const GjkInput input = GjkMakeInput(*colliderA.shape, *colliderB.shape, colliderA.transform, colliderB.transform);
+            const GjkContact c = GJKComputeContact(input);
+            const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, colliderA.entity->getComponent<PhysicComponent>(), colliderB.entity->getComponent<PhysicComponent>());
+            physicSystem->CreateContact(contact);
         }
     }
 #else
@@ -513,17 +480,6 @@ void LoopManager::FrameStep()
         }
     }
 #endif
-    for (size_t i = 0; i < colliders.size(); ++i)
-    {
-        if (PhysicComponent* physicComponent = colliders[i].entity->getComponent<PhysicComponent>())
-        {
-            for (size_t i = 0; i < physicComponent->mContacts.size(); ++i)
-            {
-                const PhysicComponent::ContactManifold& contact = physicComponent->mContacts[i];
-                DrawContactManifold(contact);
-            }
-        }
-    }
 }
 
 void LoopManager::Update(const float deltaTime)

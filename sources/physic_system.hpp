@@ -15,6 +15,7 @@ public:
     struct ContactManifold {
         ContactManifold() = default;
         ContactManifold(const glm::vec3& a, const glm::vec3& b, PhysicComponent* bodyA, PhysicComponent* bodyB);
+        ContactManifold(const float distance, const glm::vec3& normal, const glm::vec3& b, PhysicComponent* bodyA, PhysicComponent* bodyB);
 
         PhysicComponent* bodyA = nullptr;
         PhysicComponent* bodyB = nullptr;
@@ -40,10 +41,12 @@ public:
     void SetMass(const float mass);
     void SetRadius(const float radius);
 
-    void Reset();
-    void ClearContactsCache();
+    const glm::mat4& GetTransform() const;
+    const glm::mat4& GetTransformInv() const;
+    bool UpdateTransform();
 
-    void ResolveContacts(const float deltaTime, const float invDeltaTime);
+    void Reset();
+
     void Integrate(const float deltaTime);
     void AddForce(const glm::vec3& force);
 
@@ -54,7 +57,6 @@ public:
     void SetAngularVelocity(const glm::vec4& velocity);
 
     TransformComponent* mTransformComponent = nullptr;
-    std::vector<ContactManifold> mContacts;
     std::vector<int> mContactIdx;
 private:
     GameEntity* mEntity = nullptr; 
@@ -65,6 +67,9 @@ private:
     glm::vec4 mLinearAcceleration;
     glm::vec4 mAngularVelocity;
     glm::vec3 mForceAccum;
+
+    glm::mat4 mTransform;
+    glm::mat4 mTransformInv;
 
     friend class PhysicSystem;
 };

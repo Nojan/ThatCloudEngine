@@ -55,7 +55,7 @@ void GJKClosestPointOnShape(const GjkInput& input, const GjkSimplex& simplex, gl
 struct GjkContact {
     glm::vec3 position; // position on B
     glm::vec3 normal; // normal from B to A
-    float distance; // positive mean penetration
+    float distance; // negative mean penetration
 };
 
 GjkContact GJKComputeContact(const GjkInput& input);

@@ -560,20 +560,37 @@ void GJKClosestPointOnShape(const GjkInput& input, const GjkSimplex& simplex, gl
     pointB = glm::vec3(transformedPointB);
 }
 
+void EPAComputeFaceNormalDistance(const std::vector<GjkSimplexVertex>& vertices, const uint8_t aIdx, const uint8_t bIdx, const uint8_t cIdx, glm::vec3& normal, float& distance)
+{
+    const glm::vec3& a = vertices[aIdx].mVertex;
+    const glm::vec3& b = vertices[bIdx].mVertex;
+    const glm::vec3& c = vertices[cIdx].mVertex;
+
+    const glm::vec3 ab = b - a;
+    const glm::vec3 ac = c - a;
+    normal = glm::normalize(glm::cross(ac, ab));
+    distance = glm::dot(normal, a);
+    if (distance < 0)
+    {
+        distance *= -1.f;
+        normal *= -1.f;
+    }
+}
+
+void EPAValidateFace(const std::vector<GjkSimplexVertex>& vertices, const uint8_t aIdx, const uint8_t bIdx, const uint8_t cIdx)
+{
+    glm::vec3 normal;
+    float distance;
+    EPAComputeFaceNormalDistance(vertices, aIdx, bIdx, cIdx, normal, distance);
+    assert(0 <= distance);
+}
+
 void EPAComputeFaceNormalDistance(const std::vector<GjkSimplexVertex>& vertices, const EPAHalfEdgeMesh& mesh, const EPAHalfEdgeFace& face, glm::vec3& normal, float& distance)
 {
     const EPAHalfEdge& edgeA = mesh.halfEdges[face.halfEdge];
     const EPAHalfEdge& edgeB = mesh.halfEdges[edgeA.next];
     const EPAHalfEdge& edgeC = mesh.halfEdges[edgeB.next];
-
-    const glm::vec3& a = vertices[edgeA.vertex].mVertex;
-    const glm::vec3& b = vertices[edgeB.vertex].mVertex;
-    const glm::vec3& c = vertices[edgeC.vertex].mVertex;
-
-    const glm::vec3 ab = b - a;
-    const glm::vec3 ac = c - a;
-    normal = glm::normalize(glm::cross(ab, ac));
-    distance = glm::dot(normal, a);
+    EPAComputeFaceNormalDistance(vertices, edgeA.vertex, edgeB.vertex, edgeC.vertex, normal, distance);
 }
 
 uint8_t EPAClosestFaceFromOrigin(const std::vector<GjkSimplexVertex>& vertices, const EPAHalfEdgeMesh& mesh, glm::vec3& normal, float& distance)
@@ -642,16 +659,22 @@ GjkContact GJKComputeContact(const GjkInput& input)
             const uint8_t idxC = 2;
             const uint8_t idxD = 3;
 
-            vertices.push_back(simplex.mVertices[idxA]);
-            vertices.push_back(simplex.mVertices[idxB]);
-            vertices.push_back(simplex.mVertices[idxC]);
-            vertices.push_back(simplex.mVertices[idxD]);
+            vertices.push_back(simplex.mVertices[0]);
+            vertices.push_back(simplex.mVertices[1]);
+            vertices.push_back(simplex.mVertices[2]);
+            vertices.push_back(simplex.mVertices[3]);
 
+            EPAValidateFace(vertices, idxA, idxB, idxC);
+            EPAValidateFace(vertices, idxA, idxC, idxD);
+            EPAValidateFace(vertices, idxA, idxD, idxB);
+            EPAValidateFace(vertices, idxB, idxD, idxC);
             EPAPushFace(mesh, idxA, idxB, idxC);
             EPAPushFace(mesh, idxA, idxC, idxD);
             EPAPushFace(mesh, idxA, idxD, idxB);
             EPAPushFace(mesh, idxB, idxD, idxC);
         }
+        std::vector<EPAEdge> contours;
+        contours.reserve(6);
 
         constexpr float tolerance = 0.00001f;
         constexpr int max_iteration = 100;
@@ -681,39 +704,76 @@ GjkContact GJKComputeContact(const GjkInput& input)
                 const glm::vec3 v2_B(input.transformB * glm::vec4(input.shapeB.GetPoint(v2.mIdxB), 1.f));
                 const glm::vec3 point = v0_B * uvw.x + v1_B * uvw.y + v2_B * uvw.z;
                 contact.position = point;
-                contact.distance = distance;
+                contact.distance = -distance;
                 contact.normal = -faceNormal;
                 break;
             }
             vertices.push_back(vertex);
             const uint8_t a(vertices.size() - 1);
-            uint8_t b(-1);
-            uint8_t c(-1);
-            uint8_t d(-1);
-            // Remove the face
+            contours.clear();
+            for (uint8_t faceIdx = 0; faceIdx < mesh.facesCount; ++faceIdx)
             {
-                EPAHalfEdgeFace& face = mesh.faces[faceIdx];
-                assert(uint8_t(-1) != face.halfEdge);
-                EPAHalfEdge& edgeB = mesh.halfEdges[face.halfEdge];
-                EPAHalfEdge& edgeC = mesh.halfEdges[edgeB.next];
-                EPAHalfEdge& edgeD = mesh.halfEdges[edgeC.next];
-                assert(edgeD.next == face.halfEdge);
-                b = edgeB.vertex;
-                c = edgeC.vertex;
-                d = edgeD.vertex;
+                const EPAHalfEdgeFace& face = mesh.faces[faceIdx];
+                if (uint8_t(-1) == face.halfEdge)
+                    continue;
+                float d;
+                glm::vec3 n;
+                EPAComputeFaceNormalDistance(vertices, mesh, face, n, d);
+                const glm::vec3& faceVertex = vertices[mesh.halfEdges[face.halfEdge].vertex].mVertex;
+                if (0.f <= glm::dot(n, vertex.mVertex - faceVertex))
+                {
+                    uint8_t b(-1);
+                    uint8_t c(-1);
+                    uint8_t d(-1);
+                    // Remove the face
+                    {
+                        EPAHalfEdgeFace& face = mesh.faces[faceIdx];
+                        assert(uint8_t(-1) != face.halfEdge);
+                        EPAHalfEdge& edgeB = mesh.halfEdges[face.halfEdge];
+                        EPAHalfEdge& edgeC = mesh.halfEdges[edgeB.next];
+                        EPAHalfEdge& edgeD = mesh.halfEdges[edgeC.next];
+                        assert(edgeD.next == face.halfEdge);
+                        b = edgeB.vertex;
+                        c = edgeC.vertex;
+                        d = edgeD.vertex;
 
-                edgeB.face = -1;
-                edgeC.face = -1;
-                edgeD.face = -1;
-                face.halfEdge = -1;
+                        edgeB.face = -1;
+                        edgeC.face = -1;
+                        edgeD.face = -1;
+                        face.halfEdge = -1;
+                    }
+                    assert(uint8_t(-1) != b);
+                    assert(uint8_t(-1) != c);
+                    assert(uint8_t(-1) != d);
+                    auto expandContour = [](std::vector<EPAEdge>& contours, const uint8_t begin, const uint8_t end)
+                    {
+                        bool removed = false;
+                        for (int contourIdx = int(contours.size()) - 1; 0 <= contourIdx; --contourIdx)
+                        {
+                            const EPAEdge& contourEdge = contours[contourIdx];
+                            if ((contourEdge.vertexBegin == end && contourEdge.vertexEnd == begin))
+                            {
+                                contours[contourIdx] = contours[contours.size() - 1];
+                                contours.resize(contours.size() - 1);
+                                removed = true;
+                                break;
+                            }
+                        }
+                        if (!removed)
+                        {
+                            contours.push_back({ begin, end });
+                        }
+                    };
+                    expandContour(contours, b, c);
+                    expandContour(contours, c, d);
+                    expandContour(contours, d, b);
+                }
             }
-            assert(uint8_t(-1) != b);
-            assert(uint8_t(-1) != c);
-            assert(uint8_t(-1) != d);
-            // Create 3 new faces
-            EPAPushFace(mesh, a, b, c);
-            EPAPushFace(mesh, a, c, d);
-            EPAPushFace(mesh, a, d, b);
+            for (const auto& edge : contours)
+            {
+                EPAValidateFace(vertices, a, edge.vertexBegin, edge.vertexEnd);
+                EPAPushFace(mesh, a, edge.vertexBegin, edge.vertexEnd);
+            }
             ++i;
         }
 
@@ -735,7 +795,7 @@ GjkContact GJKComputeContact(const GjkInput& input)
         {
             contact.normal = diff / contact.distance;
         }
-        contact.distance = -contact.distance;
+        contact.distance = contact.distance;
     }
     return contact;
 }

@@ -12,6 +12,11 @@ struct EPAHalfEdge {
     uint8_t vertex = -1;
 };
 
+struct EPAEdge {
+    uint8_t vertexBegin = -1;
+    uint8_t vertexEnd = -1;
+};
+
 struct EPAHalfEdgeFace {
     uint8_t halfEdge = -1;
 };
