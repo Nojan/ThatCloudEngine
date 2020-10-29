@@ -182,9 +182,8 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
     const DirectionalLight& dirLight = scene->GetDirectionalLight();
     {
         const glm::vec3 lightDirection = dirLight.mDirection * 100.f;
-        const glm::vec3 lightPositionMS = glm::vec3(glm::mat3(modelTransform) * lightDirection);
         GLint uniform_ID = mShaderProgram->GetUniformLocation(HashedString("lightPositionMS"));
-        glUniform3fv(uniform_ID, 1, glm::value_ptr(lightPositionMS));
+        glUniform3fv(uniform_ID, 1, glm::value_ptr(lightDirection));
     }
     // Shadow
     {
