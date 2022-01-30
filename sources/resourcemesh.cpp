@@ -14,7 +14,7 @@ ResourceMesh::ResourceMesh(const std::string name)
     assert(cache);
     const size_t string_length_max = 2048;
     char mesh_path[string_length_max];
-    snprintf(mesh_path, string_length_max, "../assets/3D/%s.assxml", name.c_str());
+    snprintf(mesh_path, string_length_max, "../assets/%s.assxml", name.c_str());
     mDependencies.push_back(cache->get_or_create<ResourceFile>(std::string(mesh_path)));
 }
 
