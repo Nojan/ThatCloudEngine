@@ -66,10 +66,10 @@ LoopManager::LoopManager()
 {
     ResourceCache* cache = Global::resourceManager()->Cache();
     mResources.push_back(cache->get_or_create<ResourceMesh>("cube"));
-    mResources.push_back(cache->get_or_create<ResourceMesh>("diamond"));
-    mResources.push_back(cache->get_or_create<ResourceMesh>("triangle"));
-    mResources.push_back(cache->get_or_create<ResourceMesh>("sphere"));
-    mResources.push_back(cache->get_or_create<ResourceMesh>("funnel"));
+    //mResources.push_back(cache->get_or_create<ResourceMesh>("diamond"));
+    //mResources.push_back(cache->get_or_create<ResourceMesh>("triangle"));
+    //mResources.push_back(cache->get_or_create<ResourceMesh>("sphere"));
+    //mResources.push_back(cache->get_or_create<ResourceMesh>("funnel"));
     mResources.push_back(cache->get_or_create<ResourceMesh>("plane"));
 
     {
@@ -161,7 +161,7 @@ void LoopManager::Init()
         gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
     }
 
-    if(false)
+    if(true)
     {
         GameEntity* entity = gameSystem->createEntity();
         mEntities.push_back(entity);

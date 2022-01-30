@@ -90,9 +90,9 @@ void Root::CreateContext()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #else
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #endif        
     const int windowsWidth = 800;
     const int windowsHeight = 600;
@@ -376,7 +376,7 @@ void Root::Update()
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
         ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
-        if (false)
+        if (true)
         {
             ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
             ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
