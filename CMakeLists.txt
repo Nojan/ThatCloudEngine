@@ -15,10 +15,9 @@ if( EMSCRIPTEN )
 	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/html )
 
 	set( CMAKE_EXECUTABLE_SUFFIX ".html" )
-	#add_definitions( -s USE_SDL=2 -s LEGACY_GL_EMULATION=1 -std=c++1y )
-	add_definitions( -s USE_SDL=2 )
 	# RELEASE
-	set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-O2 -s USE_SDL=2 -s TOTAL_MEMORY=67108864 -s USE_WEBGL2=1" )
+	set_target_properties( ${TARGET_NAME} PROPERTIES COMPILE_FLAGS "-O2 -s USE_SDL=2 -s TOTAL_MEMORY=67108864 -s USE_WEBGL2=1" )
+	set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-O2 -s USE_SDL=2" )
 	# DEV
 	# set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-s USE_SDL=2" )
 	set_property( TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 14 )

@@ -11,6 +11,8 @@ pushd %~dp0
 set MAKE="make"
 
 call emcmake cmake -DCMAKE_BUILD_TYPE=Release -D"CMAKE_MAKE_PROGRAM:PATH=%MAKE%" .. -G "MinGW Makefiles"
-call emmake %MAKE%
+call emmake %MAKE% -j2
 
 copy /b index.html +,,
+
+@rem Create a server with %EMSDK_PYTHON% -m http.server or emrun index.html --serve_root ..
