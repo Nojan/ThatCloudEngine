@@ -241,99 +241,6 @@ public:
     std::vector<uint> mIndex;
 };
 
-bool TestIntersection(const PhysShapeCollider* colliderA, const PhysShapeCollider* colliderB, glm::vec3* pointA, glm::vec3* pointB)
-{
-    const PhysMeshShape* meshShapeA = dynamic_cast<const PhysMeshShape*>(colliderA->shape.get());
-    const PhysMeshShape* meshShapeB = dynamic_cast<const PhysMeshShape*>(colliderB->shape.get());
-    if (!meshShapeA && !meshShapeB)
-    {
-        GjkInput input = GjkMakeInput(*colliderA->shape, *colliderB->shape, colliderA->transform, colliderB->transform);
-        GjkSimplex simplex;
-        const bool result = GJkTestIntersection(input, simplex);
-        if (!result)
-        {
-            GJKClosestPointOnShape(input, simplex, *pointA, *pointB);
-        }
-        return result;
-    }
-    else if (meshShapeA && meshShapeB)
-    {
-
-    }
-    else
-    {
-        if (meshShapeB)
-        {
-            std::swap(meshShapeA, meshShapeB);
-            std::swap(colliderA, colliderB);
-            std::swap(pointA, pointB);
-        }
-        float shortestDistance = FLT_MAX;
-        for (size_t idx = 0; idx < meshShapeA->mIndex.size(); idx += 3)
-        {
-            const uint vertexIdx[3] = { meshShapeA->mIndex[idx + 0], meshShapeA->mIndex[idx + 1], meshShapeA->mIndex[idx + 2] };
-
-            PhysConvexShape subMesh;
-            subMesh.mVertices.push_back(meshShapeA->mVertices[vertexIdx[0]]);
-            subMesh.mVertices.push_back(meshShapeA->mVertices[vertexIdx[1]]);
-            subMesh.mVertices.push_back(meshShapeA->mVertices[vertexIdx[2]]);
-            GjkInput input = GjkMakeInput(subMesh, *colliderB->shape, colliderA->transform, colliderB->transform);
-            GjkSimplex simplex;
-            if (GJkTestIntersection(input, simplex))
-            {
-               return true;
-            }
-            glm::vec3 subPointA, subPointB;
-            GJKClosestPointOnShape(input, simplex, subPointA, subPointB);
-            const glm::vec3 diff = subPointB - subPointA;
-            const float distance = glm::dot(diff, diff);
-            if (distance < shortestDistance)
-            {
-                shortestDistance = distance;
-                *pointA = subPointA;
-                *pointB = subPointB;
-            }
-        }
-        return false;
-    }
-    return true;
-}
-
-static void DrawContactManifold(const PhysicComponent::ContactManifold& contact)
-{
-    const Color::rgbap color = { 1, 1, 1, 1 };
-    VisualDebugRenderer* visualDebug = VisualDebug();
-    visualDebug->PushCommand(VisualDebugSegmentCommand(contact.position, contact.position + contact.normal, color));
-    visualDebug->PushCommand(VisualDebugHalfCone(contact.position + (contact.normal * 0.8f), contact.position + contact.normal, 0.1f, 0.f, color));
-}
-
-int FindBestMatch(const PhysicComponent::ContactManifold& contact, const std::vector<PhysicComponent::ContactManifold>& collections)
-{
-    int result = -1;
-    float bestMatch = 0.01f;
-    auto computeMatch = [](const PhysicComponent::ContactManifold& a, const PhysicComponent::ContactManifold& b) -> float
-    {
-        float result = FLT_MAX;
-        if (a.bodyA == b.bodyA && a.bodyB == b.bodyB)
-        {
-            const glm::vec3 diff = a.position - b.position;
-            result = glm::dot(diff, diff); // + fabsf(1.f - glm::dot(a.normal, b.normal));
-         }
-        return result;
-    };
-    for (int idx = 0, endIdx = numeric_cast<int>(collections.size()); idx < endIdx; ++idx)
-    {
-        const PhysicComponent::ContactManifold& candidate = collections[idx];
-        const float match = computeMatch(contact, candidate);
-        if (match < bestMatch)
-        {
-            bestMatch = match;
-            result = idx;
-        }
-    }
-    return result;
-}
-
 void LoopManager::FrameStep()
 {
     const Camera* camera = Root::Instance().GetCamera();
@@ -370,6 +277,7 @@ void LoopManager::FrameStep()
         }
     }
 
+    // TODO: move everything into physics system
     std::vector<PhysShapeCollider> colliders;
     for (GameEntity* entity : mEntities)
     {
