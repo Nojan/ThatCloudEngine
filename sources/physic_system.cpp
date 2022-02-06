@@ -170,6 +170,8 @@ void PhysicComponent::SetMass(const float mass)
         const float inertia = (2.f / 5.f) * (mRadius * mRadius);
         mInvI = 1.f / inertia;
     }
+    assert(std::isfinite(mInvMass));
+    assert(std::isfinite(mInvI));
 }
 
 void PhysicComponent::SetRadius(const float radius)
