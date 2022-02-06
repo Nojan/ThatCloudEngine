@@ -76,7 +76,8 @@ protected:
         {
             if (!Component::Initialized(componentList[i]))
             {
-                componentList[i] = T();
+                componentList[i].Initialize();
+                assert(Component::Initialized(componentList[i]));
                 break;
             }
         }
@@ -98,7 +99,8 @@ protected:
         T* entityComponent = entity->getComponent<T>();
         if (nullptr == entityComponent)
             return;
-        *entityComponent = Component::UnitializedValue<T>();
+        entityComponent->Invalidate();
+        assert(!Component::Initialized(*entityComponent));
         entity->removeComponent<T>();
     }
 };

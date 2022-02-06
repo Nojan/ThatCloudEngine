@@ -5,16 +5,29 @@
 #include <cassert>
 
 TransformComponent::TransformComponent()
-: mPosition(0.f, 0.f, 0.f, std::numeric_limits<float>::quiet_NaN())
-, mScale(1.f)
-, mRotation(1,0,0,0)
-{}
+{
+    Initialize();
+}
 
 TransformComponent::TransformComponent(const TransformComponent& ref)
 : mPosition(ref.mPosition)
 , mScale(ref.mScale)
 , mRotation(ref.mRotation)
 {
+}
+
+void TransformComponent::Initialize()
+{
+    mPosition = glm::vec4(0.f, 0.f, 0.f, 0.f);
+    mScale = glm::mat4(1.f);
+    mRotation = glm::quat(1, 0, 0, 0);
+}
+
+void TransformComponent::Invalidate()
+{
+    mPosition = glm::vec4(0.f, 0.f, 0.f, std::numeric_limits<float>::quiet_NaN());
+    mScale = glm::mat4(1.f);
+    mRotation = glm::quat(1, 0, 0, 0);
 }
 
 const glm::vec4& TransformComponent::Position() const

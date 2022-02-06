@@ -111,12 +111,9 @@ PhysicComponent::ContactManifold::ContactManifold(const float distance, const gl
 }
 
 PhysicComponent::PhysicComponent()
-: mTransformComponent(nullptr)
-, mForceAccum(0)
-, mLinearVelocity(0,0,0,0)
-, mLinearAcceleration(0,0,0,1)
-, mAngularVelocity(0,0,0,0)
-{}
+{
+    Initialize();
+}
 
 PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 : mTransformComponent(ref.mTransformComponent)
@@ -129,9 +126,27 @@ PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 , mLinearAcceleration(ref.mLinearAcceleration)
 {}
 
+PhysicComponent::~PhysicComponent()
+{
+    Invalidate();
+}
+
+void PhysicComponent::Initialize()
+{
+    mTransformComponent = nullptr;
+    mRadius = 0.f;
+    Reset();
+}
+
+void PhysicComponent::Invalidate()
+{
+    mRadius = std::numeric_limits<float>::quiet_NaN();
+    mTransformComponent = nullptr;
+}
+
 bool PhysicComponent::IsValid() const
 {
-    return nullptr != mTransformComponent;
+    return !std::isnan(mRadius);
 }
 
 bool PhysicComponent::HasFiniteMass() const

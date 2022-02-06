@@ -55,6 +55,7 @@ bool Ray::intersect(const Ray& r, const BoundingBox3D& bbox, float& tmin, float&
 
 SelectComponent::SelectComponent()
 {
+    Initialize();
 }
 
 SelectComponent::SelectComponent(const SelectComponent& ref)
@@ -62,9 +63,19 @@ SelectComponent::SelectComponent(const SelectComponent& ref)
 {
 }
 
+void SelectComponent::Initialize()
+{
+    mEntity = nullptr;
+}
+
+void SelectComponent::Invalidate()
+{
+    mEntity = (GameEntity*)(0xDEADBEEF);
+}
+
 bool SelectComponent::Invalid() const
 {
-    return nullptr == mEntity;
+    return (GameEntity*)(0xDEADBEEF) == mEntity;
 }
 
 SelectSystem::SelectSystem()

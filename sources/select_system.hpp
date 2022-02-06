@@ -12,6 +12,9 @@ public:
     SelectComponent();
     SelectComponent(const SelectComponent& ref);
 
+    void Initialize();
+    void Invalidate();
+
     bool Invalid() const;
 
     GameEntity* mEntity = nullptr;

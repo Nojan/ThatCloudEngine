@@ -34,6 +34,10 @@ public:
 
     PhysicComponent();
     PhysicComponent(const PhysicComponent& ref);
+    ~PhysicComponent();
+
+    void Initialize();
+    void Invalidate();
 
     bool IsValid() const;
 

@@ -13,6 +13,9 @@ public:
     TransformComponent();
     TransformComponent(const TransformComponent& ref);
 
+    void Initialize();
+    void Invalidate();
+
     bool Invalid() const;
 
     const glm::vec4& Position() const;

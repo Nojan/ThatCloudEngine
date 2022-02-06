@@ -22,9 +22,8 @@
 #include "camera.hpp"
 
 SoundComponent::SoundComponent()
-: mValid(true)
 {
-    mSoundPlay.reserve(8);
+    Initialize();
 }
 
 SoundComponent::SoundComponent(const SoundComponent& ref)
@@ -35,6 +34,19 @@ SoundComponent::SoundComponent(const SoundComponent& ref)
 SoundComponent::~SoundComponent()
 {
     mValid = false;
+}
+
+void SoundComponent::Initialize()
+{
+    mValid = true;
+    mSoundPlay.reserve(8);
+}
+
+void SoundComponent::Invalidate()
+{
+    mValid = false;
+    mSoundStreams.clear();
+    mSoundPlay.clear();
 }
 
 uint16_t SoundComponent::AddResource(std::shared_ptr<SoundStream> resource)
