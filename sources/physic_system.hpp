@@ -8,6 +8,7 @@
 #include <vector>
 
 class TransformComponent;
+class PhysShape;
 
 class PhysicComponent
 {
@@ -61,6 +62,7 @@ public:
     void SetAngularVelocity(const glm::vec4& velocity);
 
     TransformComponent* mTransformComponent = nullptr;
+    std::unique_ptr<PhysShape> mCollider;
     std::vector<int> mContactIdx;
 private:
     GameEntity* mEntity = nullptr; 

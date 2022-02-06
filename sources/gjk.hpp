@@ -6,6 +6,7 @@
 
 class PhysShape {
 public:
+    virtual ~PhysShape() = default;
     virtual int FarthestPointInDirection(const glm::vec3 direction) const = 0;
     virtual const glm::vec3& GetPoint(const int idx) const = 0;
 };

@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "game_entity.hpp"
 #include "imgui/imgui_header.hpp"
+#include "gjk.hpp"
 
 #include "visualdebug.hpp"
 
@@ -142,6 +143,7 @@ void PhysicComponent::Invalidate()
 {
     mRadius = std::numeric_limits<float>::quiet_NaN();
     mTransformComponent = nullptr;
+    mCollider.reset();
 }
 
 bool PhysicComponent::IsValid() const

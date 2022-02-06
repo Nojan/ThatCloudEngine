@@ -224,7 +224,7 @@ void LoopManager::Terminate()
 
 struct PhysShapeCollider {
     GameEntity* entity = nullptr;
-    std::unique_ptr<PhysShape> shape;
+    PhysShape* shape = nullptr;
     BoundingBox3D bbox;
     glm::mat4 transform;
 };
@@ -285,6 +285,9 @@ void LoopManager::FrameStep()
         GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
         if(!transform || !renderingComponent)
             continue;
+        PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
+        if (!physicComponent)
+            continue;
         colliders.emplace_back();
         PhysShapeCollider& collider = colliders.back();
         collider.entity = entity;
@@ -305,7 +308,12 @@ void LoopManager::FrameStep()
             }
             return result;
         };
-        if (true || entity != mEntities.back())
+        if (physicComponent->mCollider)
+        {
+            collider.shape = physicComponent->mCollider.get();
+            continue;
+        }
+        if (physicComponent->HasFiniteMass())
         {
             std::unique_ptr<PhysConvexShape> shape = std::make_unique<PhysConvexShape>();
             for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
@@ -318,7 +326,7 @@ void LoopManager::FrameStep()
                     }
                 }
             }
-            collider.shape = std::move(shape);
+            physicComponent->mCollider = std::move(shape);
         }
         else
         {
@@ -335,8 +343,9 @@ void LoopManager::FrameStep()
                     shape->mIndex.push_back(startIndex + index);
                 }
             }
-            collider.shape = std::move(shape);
+            physicComponent->mCollider = std::move(shape);
         }
+        collider.shape = physicComponent->mCollider.get();
     }
 
 #if 1
