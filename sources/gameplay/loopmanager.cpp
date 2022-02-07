@@ -3,7 +3,8 @@
 #include "../root.hpp"
 #include "../boundingbox.hpp"
 #include "../camera.hpp"
-#include "../freecam.hpp"
+#include "../input_control.hpp"
+#include "../cameramover.hpp"
 #include "../global.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
@@ -62,6 +63,78 @@ void SmoothTransition::SetTarget(float value)
     mTargetValue = value;
 }
 
+class CameraOrbitEntity : public CameraMover {
+public:
+    void Move(const float speed, Camera* camera) override;
+    void Control(const InputControl& control, Camera* camera) override;
+
+    void GetTransform(glm::vec3& position, glm::quat& orientation) override;
+
+    TransformComponent* mFollow = nullptr;
+    glm::vec3 mOrbitPosition = glm::vec3(0, 0, 0);
+    glm::vec2 mMousePosition = glm::vec2(0, 0);
+    glm::vec2 mEulerAngle = glm::vec2(0, 0);
+    float mDistance = 5.f;
+};
+
+void CameraOrbitEntity::Move(const float speed, Camera* camera)
+{
+    if (mFollow)
+        camera->SetPosition(glm::vec3(mFollow->Position()) - camera->Direction() * mDistance);
+}
+
+void CameraOrbitEntity::Control(const InputControl& control, Camera* camera)
+{
+    bool positionChanged = false;
+    if (mFollow)
+    {
+        const glm::vec3 followPosition(mFollow->Position());
+        if (followPosition != mOrbitPosition)
+        {
+            positionChanged = true;
+            mOrbitPosition = followPosition;
+        }
+    }
+    if (0 != control.zoom)
+    {
+        mDistance = glm::clamp(mDistance - control.zoom, 5.f, 500.f);
+        positionChanged = true;
+    }
+    bool orientationChanged = false;
+    if (0.f != glm::dot(control.view, control.view))
+    {
+        mEulerAngle.x -= control.view.y;
+        mEulerAngle.y += control.view.x;
+        if (mEulerAngle.x < glm::pi<float>())
+            mEulerAngle.x += 2.f * glm::pi<float>();
+        if (mEulerAngle.x > glm::pi<float>())
+            mEulerAngle.x -= 2.f * glm::pi<float>();
+        if (mEulerAngle.y < glm::pi<float>())
+            mEulerAngle.y += 2.f * glm::pi<float>();
+        if (mEulerAngle.y > glm::pi<float>())
+            mEulerAngle.y -= 2.f * glm::pi<float>();
+    
+        orientationChanged = true;
+    }
+    if (orientationChanged)
+    {
+        const glm::quat r = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+        camera->SetOrientation(r);
+        positionChanged = true;
+    }
+    if (positionChanged)
+    {
+        const glm::vec3 position = mOrbitPosition - camera->Direction() * mDistance;
+        camera->SetPosition(position);
+    }
+}
+
+void CameraOrbitEntity::GetTransform(glm::vec3& position, glm::quat& orientation)
+{
+    orientation = glm::normalize(glm::quat(glm::vec3(mEulerAngle, 0.f)));
+    position = mOrbitPosition - orientation * Camera::forward * mDistance;
+}
+
 LoopManager::LoopManager()
 {
     ResourceCache* cache = Global::resourceManager()->Cache();
@@ -71,6 +144,7 @@ LoopManager::LoopManager()
     mResources.push_back(cache->get_or_create<ResourceMesh>("sphere"));
     mResources.push_back(cache->get_or_create<ResourceMesh>("funnel"));
     mResources.push_back(cache->get_or_create<ResourceMesh>("plane"));
+    mResources.push_back(cache->get_or_create<ResourceMesh>("world"));
 
     {
         GameSystem* gameSystem = Global::gameSytem();
@@ -117,9 +191,33 @@ void LoopManager::Init()
 {
     GameSystem* gameSystem = Global::gameSytem();
     Camera* camera = Root::Instance().GetCamera();
-    std::unique_ptr<FreeCamera> cameraMover = std::make_unique<FreeCamera>();
-    cameraMover->mPosition = -5.0f * Camera::forward + 2.0f * Camera::up;
+    std::unique_ptr<CameraOrbitEntity> cameraMover = std::make_unique<CameraOrbitEntity>();
+    cameraMover->mOrbitPosition = -5.0f * Camera::forward + 2.0f * Camera::up;
+    mCamera = cameraMover.get();
     camera->SetCameraMover(std::move(cameraMover));
+
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities.push_back(entity);
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(0.f, 15.f, 0.f, 1.f));
+
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/cube.assxml"));
+
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+        PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
+        physicComponent->Reset();
+        physicComponent->SetRadius(1.f);
+        physicComponent->SetMass(1.f);
+
+        gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
+        mPlayer = entity;
+        mCamera->mFollow = transform;
+    }
 
     {
         GameEntity* entity = gameSystem->createEntity();
@@ -131,7 +229,7 @@ void LoopManager::Init()
         gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
         GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/plane.assxml"));
+        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/world.assxml"));
 
         gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
         PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
@@ -139,26 +237,6 @@ void LoopManager::Init()
         physicComponent->SetMass(0.f);
 
         //gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
-    }
-
-    {
-        GameEntity* entity = gameSystem->createEntity();
-        mEntities.push_back(entity);
-        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
-        TransformComponent* transform = entity->getComponent<TransformComponent>();
-        transform->SetPosition(glm::vec4(-1.f, 2.f, 0.f, 1.f));
-
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
-        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-        renderingComponent->setupResource(Global::resourceManager()->meshResource("../assets/cube.assxml"));
-
-        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
-        PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
-        physicComponent->Reset();
-        physicComponent->SetMass(1.f);
-
-        gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
     }
 
     if(false)
@@ -421,7 +499,15 @@ void LoopManager::Event(const SDL_Event& e)
 
 void Gameplay::LoopManager::Control(const InputControl& input)
 {
-
+    if(!mPlayer)
+        return;
+    PhysicComponent* playerPhysic = mPlayer->getComponent<PhysicComponent>();
+    const float moveMag = glm::dot(input.move, input.move);
+    if (0.1f < moveMag)
+    {
+        const glm::vec3 moveLocal = input.move.x * Camera::right + input.move.y * Camera::forward;
+        playerPhysic->AddForce(moveLocal * 5.f);
+    }
 }
 
 #if GUI_DEBUG()

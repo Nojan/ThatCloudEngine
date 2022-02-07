@@ -62,6 +62,8 @@ public:
 
 private:
     std::vector< GameEntity* > mEntities;
+    GameEntity* mPlayer = nullptr;
+    class CameraOrbitEntity* mCamera = nullptr;
     std::vector<std::shared_ptr<Resource>> mResources;
     bool mSpacePressed = false;
 };
