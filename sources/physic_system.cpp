@@ -590,7 +590,7 @@ int PhysicSystem::CreateContact(const PhysicComponent::ContactManifold& contact)
             for (int idx = 0; idx < collections.size(); ++idx )
             {
                 const PhysicComponent::ContactManifold& c = collections[idx];
-                if (c.bodyA == contact.bodyA && c.bodyB == contact.bodyB)
+                if (c.bodyA == contact.bodyA && c.bodyB == contact.bodyB && c.bodyAKey == contact.bodyAKey && c.bodyBKey == contact.bodyBKey)
                 {
                     found.push_back(idx);
                 }

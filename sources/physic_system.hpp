@@ -2,6 +2,7 @@
 
 #include "icomponentsystem.hpp"
 #include "physics_event.hpp"
+#include "types.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -20,6 +21,8 @@ public:
 
         PhysicComponent* bodyA = nullptr;
         PhysicComponent* bodyB = nullptr;
+        uint bodyAKey = 0;
+        uint bodyBKey = 0;
         glm::vec3 localPositionA;
         glm::vec3 localPositionB;
         glm::vec3 position;
