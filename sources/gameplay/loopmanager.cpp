@@ -434,10 +434,34 @@ void LoopManager::FrameStep()
         for (size_t j = i + 1; j < colliders.size(); ++j)
         {
             const PhysShapeCollider& colliderB = colliders[j];
-            const GjkInput input = GjkMakeInput(*colliderA.shape, *colliderB.shape, colliderA.transform, colliderB.transform);
-            const GjkContact c = GJKComputeContact(input);
-            const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, colliderA.entity->getComponent<PhysicComponent>(), colliderB.entity->getComponent<PhysicComponent>());
-            physicSystem->CreateContact(contact);
+            if (const PhysMeshShape* meshShape = dynamic_cast<const PhysMeshShape*>(colliderB.shape))
+            {
+                PhysConvexShape triangleShape;
+                triangleShape.mVertices.resize(3);
+                uint bodyKey = 0;
+                for (size_t idx = 0; (idx + 2) < meshShape->mIndex.size(); idx+=3)
+                {
+                    bodyKey++;
+
+                    triangleShape.mVertices[0] = meshShape->mVertices[meshShape->mIndex[idx + 0]];
+                    triangleShape.mVertices[1] = meshShape->mVertices[meshShape->mIndex[idx + 1]];
+                    triangleShape.mVertices[2] = meshShape->mVertices[meshShape->mIndex[idx + 2]];
+
+                    const GjkInput input = GjkMakeInput(*colliderA.shape, triangleShape, colliderA.transform, colliderB.transform);
+                    const GjkContact c = GJKComputeContact(input);
+                    PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, colliderA.entity->getComponent<PhysicComponent>(), colliderB.entity->getComponent<PhysicComponent>());
+
+                    contact.bodyBKey = bodyKey;
+                    physicSystem->CreateContact(contact);
+                }
+            }
+            else
+            {
+                const GjkInput input = GjkMakeInput(*colliderA.shape, *colliderB.shape, colliderA.transform, colliderB.transform);
+                const GjkContact c = GJKComputeContact(input);
+                const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, colliderA.entity->getComponent<PhysicComponent>(), colliderB.entity->getComponent<PhysicComponent>());
+                physicSystem->CreateContact(contact);
+            }
         }
     }
 #else
