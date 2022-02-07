@@ -318,7 +318,7 @@ void LoopManager::FrameStep()
             std::unique_ptr<PhysConvexShape> shape = std::make_unique<PhysConvexShape>();
             for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
             {
-                for (const glm::vec3 vertex : mesh->mMesh->mVertex)
+                for (const glm::vec3& vertex : mesh->mMesh->mVertex)
                 {
                     if (size_t(-1) == findVertice(shape->mVertices, vertex))
                     {
@@ -334,7 +334,7 @@ void LoopManager::FrameStep()
             for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
             {
                 const uint startIndex = shape->mIndex.size();
-                for (const glm::vec3 vertex : mesh->mMesh->mVertex)
+                for (const glm::vec3& vertex : mesh->mMesh->mVertex)
                 {
                     shape->mVertices.push_back(vertex);
                 }
