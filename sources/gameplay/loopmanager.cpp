@@ -525,12 +525,42 @@ void Gameplay::LoopManager::Control(const InputControl& input)
 {
     if(!mPlayer)
         return;
+    if (!mCamera)
+        return;
     PhysicComponent* playerPhysic = mPlayer->getComponent<PhysicComponent>();
+    
+    glm::vec3 cameraPosition;
+    glm::quat cameraRotation;
+    mCamera->GetTransform(cameraPosition, cameraRotation);
+
+    const glm::vec3 cameraForward = cameraRotation * Camera::forward;
+    const glm::vec3 cameraRight = cameraRotation * Camera::right;
+
+    const glm::vec3 forward = cameraForward - glm::dot(cameraForward, Camera::up) * Camera::up;
+    const glm::vec3 right = cameraRight - glm::dot(cameraRight, Camera::up) * Camera::up;
     const float moveMag = glm::dot(input.move, input.move);
     if (0.1f < moveMag)
     {
-        const glm::vec3 moveLocal = input.move.x * Camera::right + input.move.y * Camera::forward;
+        const glm::vec3 moveLocal = input.move.x * right + input.move.y * forward * -1.f;
         playerPhysic->AddForce(moveLocal * 5.f);
+    }
+
+    if (bool showDebug = false)
+    {
+        const glm::vec3 position(playerPhysic->GetTransform()[3]);
+        VisualDebugRenderer* visualDebug = VisualDebug();
+        auto drawArrow = [visualDebug](const glm::vec3& begin, const glm::vec3& end, const Color::rgbap& color, const float radius = 0.1f, const float ratio = 0.8f)
+        {
+            const glm::vec3 dir = end - begin;
+            const float mag = glm::length(dir);
+            if (mag == 0.f)
+                return;
+            const glm::vec3 normal = dir / mag;
+            visualDebug->PushCommand(VisualDebugSegmentCommand(begin, end, color));
+            visualDebug->PushCommand(VisualDebugHalfCone(begin + (normal * mag * ratio), end, radius, 0.f, color));
+        };
+        drawArrow(position, position + forward, { 0, 1, 0, 1 });
+        drawArrow(position, position + right, { 1, 0, 0, 1 });
     }
 }
 
