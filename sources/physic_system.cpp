@@ -317,8 +317,22 @@ void PhysicSystem::Update(const float deltaTime)
 
         ci.IntegrateForcesAcceleration(deltaTime);
         const glm::mat4 current = ci.GetTransform();
-    }
+        glm::vec3 predictPosition;
+        glm::quat predictOrientation;
+        ci.Predict(deltaTime, predictPosition, predictOrientation);
+        glm::mat4 predict = glm::mat4_cast(predictOrientation);
+        predict[3] = glm::vec4(predictPosition, 1.f);
 
+        assert(ci.mCollider->mAabb.Valid());
+        const BoundingBox3D begin = ci.mCollider->mAabb.Transform(current);
+        const BoundingBox3D end = ci.mCollider->mAabb.Transform(predict);
+        BoundingBox3D sweep = begin;
+        sweep.Add(end.Min());
+        sweep.Add(end.Max());
+
+        ci.mSweep = BoundingBox3D(sweep.Min() - glm::vec3(1.f, 1.f, 1.f), sweep.Max() + glm::vec3(1.f, 1.f, 1.f)); // TODO: reduce margin
+        assert(ci.mSweep.Valid());
+    }
 
     for (size_t idx = 0; idx < componentsSize; ++idx)
     {
@@ -355,6 +369,9 @@ void PhysicSystem::Update(const float deltaTime)
                     const GjkInput input = GjkMakeInput(*ci.mCollider, triangleShape, ci.GetTransform(), cj.GetTransform());
                     const GjkContact c = GJKComputeContact(input);
 
+                    if (!ci.mSweep.Inside(c.position)) // TODO: compute contact intersection with sweep box 
+                        continue;
+
                     PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
                     contact.bodyBKey = bodyKey;
                     CreateContact(contact);
@@ -365,6 +382,9 @@ void PhysicSystem::Update(const float deltaTime)
                 const GjkInput input = GjkMakeInput(*ci.mCollider, *cj.mCollider, ci.GetTransform(), cj.GetTransform());
                 const GjkContact c = GJKComputeContact(input);
                 const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
+                if (!ci.mSweep.Inside(c.position)) // TODO: compute contact intersection with sweep box 
+                    continue;
+
                 CreateContact(contact);
             }
         }
@@ -379,6 +399,9 @@ void PhysicSystem::Update(const float deltaTime)
             const GjkInput input = GjkMakeInput(*ci.mCollider, *cj.mCollider, ci.GetTransform(), cj.GetTransform());
             const GjkContact c = GJKComputeContact(input);
             const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
+            if (!ci.mSweep.Inside(c.position) && !cj.mSweep.Inside(c.position)) // TODO: compute contact intersection with sweep box 
+                continue;
+
             CreateContact(contact);
         }
     }

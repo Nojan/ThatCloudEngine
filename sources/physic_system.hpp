@@ -1,5 +1,6 @@
 #pragma once
 
+#include "boundingbox.hpp"
 #include "icomponentsystem.hpp"
 #include "physics_event.hpp"
 #include "types.hpp"
@@ -69,6 +70,7 @@ public:
     TransformComponent* mTransformComponent = nullptr;
     std::unique_ptr<PhysShape> mCollider;
     std::vector<int> mContactIdx;
+    BoundingBox3D mSweep;
 private:
     GameEntity* mEntity = nullptr; 
     float mInvMass = 0.f;
