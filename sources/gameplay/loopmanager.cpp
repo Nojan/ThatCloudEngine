@@ -3,6 +3,7 @@
 #include "../root.hpp"
 #include "../boundingbox.hpp"
 #include "../camera.hpp"
+#include "../collider_resource.hpp"
 #include "../input_control.hpp"
 #include "../cameramover.hpp"
 #include "../global.hpp"
@@ -196,6 +197,20 @@ void LoopManager::Init()
     mCamera = cameraMover.get();
     camera->SetCameraMover(std::move(cameraMover));
 
+    std::array<const Mesh*, 8> colliderMesh;
+    auto BuildColliderFromRenderable = [&colliderMesh](GraphicMeshComponent* renderingComponent, PhysicComponent* physicComponent)
+    {
+        ColliderDescriptor descriptor;
+        descriptor.mesh = std::span(colliderMesh.begin(), std::min(colliderMesh.size(), renderingComponent->mRenderable.size()));
+        descriptor.asConvex = physicComponent->HasFiniteMass();
+        assert(renderingComponent->mRenderable.size() < colliderMesh.size());
+        for (size_t idx = 0, endIdx = descriptor.mesh.size(); idx < endIdx; idx++)
+        {
+            colliderMesh[idx] = renderingComponent->mRenderable[idx]->mMesh.get();
+        }
+        physicComponent->mCollider = MakeCollider(descriptor);
+    };
+
     {
         GameEntity* entity = gameSystem->createEntity();
         mEntities.push_back(entity);
@@ -213,6 +228,8 @@ void LoopManager::Init()
         physicComponent->Reset();
         physicComponent->SetRadius(1.f);
         physicComponent->SetMass(1.f);
+
+        BuildColliderFromRenderable(renderingComponent, physicComponent);
 
         gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
         mPlayer = entity;
@@ -235,6 +252,8 @@ void LoopManager::Init()
         PhysicComponent* physicComponent = entity->getComponent<PhysicComponent>();
         physicComponent->Reset();
         physicComponent->SetMass(0.f);
+
+        BuildColliderFromRenderable(renderingComponent, physicComponent);
 
         //gameSystem->getSystem<SelectSystem>()->attachEntity(entity);
     }
@@ -314,11 +333,6 @@ struct PhysManifold {
     float distance = 0.f;
 };
 
-class PhysMeshShape : public PhysConvexShape {
-public:
-    std::vector<uint> mIndex;
-};
-
 void LoopManager::FrameStep()
 {
     const Camera* camera = Root::Instance().GetCamera();
@@ -371,59 +385,11 @@ void LoopManager::FrameStep()
         collider.entity = entity;
         collider.transform = transform->Transform();
         collider.bbox = renderingComponent->getLocalBoundingBox();
-        auto findVertice = [](const std::vector<glm::vec3>& collection, const glm::vec3& vertex) -> size_t
-        {
-            size_t result = -1;
-            for(size_t idx = 0; idx < collection.size(); ++idx)
-            {
-                const glm::vec3 diff = collection[idx] - vertex;
-                const float magnitude = glm::dot(diff, diff);
-                if (magnitude < 0.0001f)
-                {
-                    result = idx;
-                    break; 
-                }
-            }
-            return result;
-        };
+
         if (physicComponent->mCollider)
         {
             collider.shape = physicComponent->mCollider.get();
-            continue;
         }
-        if (physicComponent->HasFiniteMass())
-        {
-            std::unique_ptr<PhysConvexShape> shape = std::make_unique<PhysConvexShape>();
-            for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
-            {
-                for (const glm::vec3& vertex : mesh->mMesh->mVertex)
-                {
-                    if (size_t(-1) == findVertice(shape->mVertices, vertex))
-                    {
-                        shape->mVertices.push_back(vertex);
-                    }
-                }
-            }
-            physicComponent->mCollider = std::move(shape);
-        }
-        else
-        {
-            std::unique_ptr<PhysMeshShape> shape = std::make_unique<PhysMeshShape>();
-            for (const std::shared_ptr<RenderableMesh>& mesh : renderingComponent->mRenderable)
-            {
-                const uint startIndex = shape->mIndex.size();
-                for (const glm::vec3& vertex : mesh->mMesh->mVertex)
-                {
-                    shape->mVertices.push_back(vertex);
-                }
-                for (const uint index : mesh->mMesh->mIndex)
-                {
-                    shape->mIndex.push_back(startIndex + index);
-                }
-            }
-            physicComponent->mCollider = std::move(shape);
-        }
-        collider.shape = physicComponent->mCollider.get();
     }
 
 #if 1

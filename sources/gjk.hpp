@@ -19,6 +19,11 @@ public:
     std::vector<glm::vec3> mVertices;
 };
 
+class PhysMeshShape : public PhysConvexShape {
+public:
+    std::vector<unsigned int> mIndex;
+};
+
 struct GjkInput {
     const PhysShape& shapeA;
     const PhysShape& shapeB;
