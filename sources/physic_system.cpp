@@ -298,6 +298,70 @@ void PhysicSystem::Update(const float deltaTime)
         PhysicComponent& ci = mComponents[idx];
         if (!ci.IsValid() || !ci.HasFiniteMass())
             continue;
+        if (!ci.mCollider)
+            continue;
+
+        // TODO: only create contacts that intersect the sweep box
+
+        // test against static geometry
+        for (size_t jdx = 0; jdx < componentsSize; ++jdx)
+        {
+            if (idx == jdx)
+                continue;
+            PhysicComponent& cj = mComponents[jdx];
+            if (!cj.IsValid() || cj.HasFiniteMass() || !cj.mCollider)
+                continue;
+
+            if (const PhysMeshShape* meshShape = dynamic_cast<const PhysMeshShape*>(cj.mCollider.get()))
+            {
+                PhysConvexShape triangleShape;
+                triangleShape.mVertices.resize(3);
+                uint bodyKey = 0;
+                for (size_t idx = 0; (idx + 2) < meshShape->mIndex.size(); idx += 3)
+                {
+                    bodyKey++;
+
+                    triangleShape.mVertices[0] = meshShape->mVertices[meshShape->mIndex[idx + 0]];
+                    triangleShape.mVertices[1] = meshShape->mVertices[meshShape->mIndex[idx + 1]];
+                    triangleShape.mVertices[2] = meshShape->mVertices[meshShape->mIndex[idx + 2]];
+
+                    const GjkInput input = GjkMakeInput(*ci.mCollider, triangleShape, ci.GetTransform(), cj.GetTransform());
+                    const GjkContact c = GJKComputeContact(input);
+
+                    PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
+                    contact.bodyBKey = bodyKey;
+                    CreateContact(contact);
+                }
+            }
+            else
+            {
+                const GjkInput input = GjkMakeInput(*ci.mCollider, *cj.mCollider, ci.GetTransform(), cj.GetTransform());
+                const GjkContact c = GJKComputeContact(input);
+                const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
+                CreateContact(contact);
+            }
+        }
+
+        // test against dynamic geometry
+        for (size_t jdx = idx + 1; jdx < componentsSize; ++jdx)
+        {
+            PhysicComponent& cj = mComponents[jdx];
+            if (!cj.IsValid() || !cj.HasFiniteMass() || !cj.mCollider)
+                continue;
+
+            const GjkInput input = GjkMakeInput(*ci.mCollider, *cj.mCollider, ci.GetTransform(), cj.GetTransform());
+            const GjkContact c = GJKComputeContact(input);
+            const PhysicComponent::ContactManifold contact(c.distance, c.normal, c.position, &ci, &cj);
+            CreateContact(contact);
+        }
+    }
+
+
+    for (size_t idx = 0; idx < componentsSize; ++idx)
+    {
+        PhysicComponent& ci = mComponents[idx];
+        if (!ci.IsValid() || !ci.HasFiniteMass())
+            continue;
         if (ci.UpdateTransform())
         {
             ClearContactsCache(&ci);
