@@ -55,6 +55,8 @@ public:
 
     void Reset();
 
+    void IntegrateForcesAcceleration(const float deltaTime);
+    void Predict(const float deltaTime, glm::vec3& position, glm::quat& orientation);
     void Integrate(const float deltaTime);
     void AddForce(const glm::vec3& force);
 

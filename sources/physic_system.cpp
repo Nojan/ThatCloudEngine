@@ -222,33 +222,48 @@ void PhysicComponent::Reset()
     mContactIdx.clear();
 }
 
-void PhysicComponent::Integrate(const float deltaTime)
+void PhysicComponent::IntegrateForcesAcceleration(const float deltaTime)
 {
     if (!IsValid() || !HasFiniteMass())
         return;
 
     const glm::vec4 force(mForceAccum, 0.f);
-    mLinearAcceleration += force*mInvMass;
+    mLinearAcceleration += force * mInvMass;
     assert(0.f == mLinearVelocity.w);
-    mLinearVelocity += mLinearAcceleration*deltaTime;
+    mLinearVelocity += mLinearAcceleration * deltaTime;
     mLinearVelocity.w = 0.f;
-    const glm::vec4 position = mTransformComponent->Position();
-    assert(1.f == position.w);
-    const glm::vec4 linearDisplacement = mLinearVelocity * deltaTime;
-    const glm::vec4 nextPosition = position + linearDisplacement;
-    mTransformComponent->SetPosition(nextPosition);
-
-    const glm::quat& currentOrientation = mTransformComponent->Rotation();
-    const glm::quat angularVelocityQuat(0, mAngularVelocity.x, mAngularVelocity.y, mAngularVelocity.z);
-    const glm::quat spin = deltaTime * 0.5f * angularVelocityQuat * currentOrientation;
-    const glm::quat newOrientation = currentOrientation + spin;
-    mTransformComponent->SetRotation(glm::normalize(newOrientation));
-
-    UpdateTransform();
 
     //Reset
     mForceAccum = glm::vec3(0.f);
     mLinearAcceleration = glm::vec4(0.f);
+}
+
+void PhysicComponent::Predict(const float deltaTime, glm::vec3& position, glm::quat& orientation)
+{
+    const glm::vec4 p = mTransformComponent->Position();
+    assert(1.f == p.w);
+    const glm::vec4 linearDisplacement = mLinearVelocity * deltaTime;
+    position = glm::vec3(p + linearDisplacement);
+
+    const glm::quat& currentOrientation = mTransformComponent->Rotation();
+    const glm::quat angularVelocityQuat(0, mAngularVelocity.x, mAngularVelocity.y, mAngularVelocity.z);
+    const glm::quat spin = deltaTime * 0.5f * angularVelocityQuat * currentOrientation;
+    orientation = glm::normalize(currentOrientation + spin);
+}
+
+void PhysicComponent::Integrate(const float deltaTime)
+{
+    if (!IsValid() || !HasFiniteMass())
+        return;
+
+    glm::vec3 predictedPosition;
+    glm::quat predictedOrientation;
+    Predict(deltaTime, predictedPosition, predictedOrientation);
+    mTransformComponent->SetPosition(glm::vec4(predictedPosition, 1.f));
+    mTransformComponent->SetRotation(predictedOrientation);
+
+    UpdateTransform();
+
     //Drag
     const glm::vec4 drag(0.9999f);
     mLinearVelocity = mLinearVelocity * drag;
@@ -293,6 +308,18 @@ void PhysicSystem::Update(const float deltaTime)
 {
     assert(0 <= deltaTime);
     const size_t componentsSize = mComponents.size();
+    // Update Sweepbox
+    for (size_t idx = 0; idx < componentsSize; ++idx)
+    {
+        PhysicComponent& ci = mComponents[idx];
+        if (!ci.IsValid() || !ci.mCollider)
+            continue;
+
+        ci.IntegrateForcesAcceleration(deltaTime);
+        const glm::mat4 current = ci.GetTransform();
+    }
+
+
     for (size_t idx = 0; idx < componentsSize; ++idx)
     {
         PhysicComponent& ci = mComponents[idx];
