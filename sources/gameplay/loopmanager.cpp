@@ -533,11 +533,11 @@ void Gameplay::LoopManager::Control(const InputControl& input)
     glm::quat cameraRotation;
     mCamera->GetTransform(cameraPosition, cameraRotation);
 
-    const glm::vec3 cameraForward = cameraRotation * Camera::forward;
-    const glm::vec3 cameraRight = cameraRotation * Camera::right;
+    const glm::vec3 cameraForward = glm::normalize(cameraRotation * Camera::forward);
+    const glm::vec3 cameraRight = glm::normalize(cameraRotation * Camera::right);
 
-    const glm::vec3 forward = cameraForward - glm::dot(cameraForward, Camera::up) * Camera::up;
-    const glm::vec3 right = cameraRight - glm::dot(cameraRight, Camera::up) * Camera::up;
+    const glm::vec3 forward = glm::normalize(cameraForward - glm::dot(cameraForward, Camera::up) * Camera::up);
+    const glm::vec3 right = glm::normalize(cameraRight - glm::dot(cameraRight, Camera::up) * Camera::up);
     const float moveMag = glm::dot(input.move, input.move);
     if (0.1f < moveMag)
     {
