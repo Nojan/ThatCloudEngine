@@ -47,6 +47,24 @@ bool BoundingBox3D::Valid() const
     return res;
 }
 
+BoundingBox3D BoundingBox3D::Transform(const glm::mat4& t) const
+{
+    BoundingBox3D result;
+    for (int i = 0; i < 3; i++) {
+        result.mMin[i] = result.mMax[i] = t[3][i];
+        for (int j = 0; j < 3; j++) {
+            float e = t[i][j] * mMin[j];
+            float f = t[i][j] * mMax[j];
+            if (e < f) {
+                std::swap(e, f);
+            }
+            result.mMin[i] += e;
+            result.mMax[i] += f;
+        }
+    }
+    return result;
+}
+
 void BoundingBox3D::Add(const glm::vec3& point)
 {
     if (!Valid())

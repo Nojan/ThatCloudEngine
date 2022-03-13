@@ -13,6 +13,8 @@ public:
     glm::vec3 Extent() const;
     bool Valid() const;
 
+    BoundingBox3D Transform(const glm::mat4& t) const;
+
     void Add(const glm::vec3& point);
     bool Inside(const glm::vec3& point) const;
 
