@@ -32,6 +32,7 @@ std::unique_ptr<PhysShape> MakeCollider(const ColliderDescriptor& descriptor)
                 if (size_t(-1) == findVertice(shape->mVertices, vertex))
                 {
                     shape->mVertices.push_back(vertex);
+                    shape->mAabb.Add(vertex);
                 }
             }
         }
@@ -46,6 +47,7 @@ std::unique_ptr<PhysShape> MakeCollider(const ColliderDescriptor& descriptor)
             for (const glm::vec3& vertex : mesh->mVertex)
             {
                 shape->mVertices.push_back(vertex);
+                shape->mAabb.Add(vertex);
             }
             for (const uint index : mesh->mIndex)
             {

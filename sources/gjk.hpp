@@ -1,4 +1,5 @@
 #pragma once
+#include "boundingbox.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -9,6 +10,7 @@ public:
     virtual ~PhysShape() = default;
     virtual int FarthestPointInDirection(const glm::vec3 direction) const = 0;
     virtual const glm::vec3& GetPoint(const int idx) const = 0;
+    BoundingBox3D mAabb;
 };
 
 class PhysConvexShape : public PhysShape {
