@@ -26,8 +26,8 @@ public:
         uint bodyBKey = 0;
         glm::vec3 localPositionA;
         glm::vec3 localPositionB;
-        glm::vec3 position;
-        glm::vec3 normal;
+        glm::vec3 position; // world position on B
+        glm::vec3 normal; // normal from B to A
         glm::vec3 tangeant;
         float distance = 0.f;
         float Pn = 0.f;	 // accumulated normal impulse
