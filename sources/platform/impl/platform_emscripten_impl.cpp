@@ -5,6 +5,7 @@
 #include "../../resourcefile.hpp"
 
 #include <cassert>
+#include <cstring>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
