@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14)
 set( TARGET_NAME Cloud )
 project( ${TARGET_NAME} )
 set (CMAKE_CXX_STANDARD 14)
@@ -7,6 +7,16 @@ file(GLOB_RECURSE sources_files sources/*)
 
 include_directories(externals/glm)
 include_directories(externals)
+
+include(FetchContent)
+FetchContent_Declare (
+	tracy
+	GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+	GIT_TAG v0.9
+	GIT_SHALLOW TRUE
+	GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable (tracy)
 
 add_executable(${TARGET_NAME} ${sources_files})
 if( EMSCRIPTEN )
@@ -28,6 +38,7 @@ else()
 	include_directories(externals)
 	target_link_libraries(${TARGET_NAME} PRIVATE SDL2::SDL2)
 endif()
+	target_link_libraries(${TARGET_NAME} PRIVATE Tracy::TracyClient)
 
 if (CMAKE_HOST_WIN32 AND NOT EMSCRIPTEN)
     add_definitions(-DNOMINMAX)
