@@ -8,6 +8,16 @@ file(GLOB_RECURSE sources_files sources/*)
 
 include_directories(externals)
 
+include(FetchContent)
+FetchContent_Declare (
+	tracy
+	GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+	GIT_TAG v0.9
+	GIT_SHALLOW TRUE
+	GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable (tracy)
+
 add_executable(${TARGET_NAME} ${sources_files})
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
@@ -36,7 +46,7 @@ else()
 		OUTPUT "$<TARGET_FILE_DIR:${TARGET_NAME}>/data_root.txt"
 		CONTENT "${CMAKE_SOURCE_DIR}")
 endif()
-
+	target_link_libraries(${TARGET_NAME} PRIVATE Tracy::TracyClient)
 
 if (CMAKE_HOST_WIN32 AND NOT EMSCRIPTEN)
     add_definitions(-DNOMINMAX)
