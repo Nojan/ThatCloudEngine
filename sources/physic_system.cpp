@@ -634,8 +634,8 @@ void PhysicSystem::Update(const float deltaTime)
     auto drawContactManifold = [visualDebug](const PhysicComponent::ContactManifold& contact)
     {
         const Color::rgbap color = { 1, 1, 1, 1 };
-        visualDebug->PushCommand(VisualDebugSegmentCommand(contact.position, contact.position + contact.normal, color));
-        visualDebug->PushCommand(VisualDebugHalfCone(contact.position + (contact.normal * 0.8f), contact.position + contact.normal, 0.1f, 0.f, color));
+        visualDebug->PushCommand(VisualDebugSegmentCommand(contact.position, contact.position + contact.normal * contact.distance, color));
+        visualDebug->PushCommand(VisualDebugHalfCone(contact.position + (contact.normal * contact.distance * 0.8f), contact.position + contact.normal * contact.distance, 0.1f, 0.f, color));
     };
 
     for (int idx = numeric_cast<int>(mContactsCache.size()) - 1; 0 <= idx; --idx)
@@ -661,6 +661,14 @@ void PhysicSystem::Update(const float deltaTime)
                 drawContactManifold(c);
         }
     }
+
+    // temp
+    //for (auto& component : mComponents)
+    //{
+    //    ClearContactsCache(&component);
+    //}
+    
+    
 }
 
 int PhysicSystem::CreateContact(const PhysicComponent::ContactManifold& contact)
@@ -781,6 +789,13 @@ int PhysicSystem::CreateContact(const PhysicComponent::ContactManifold& contact)
         }
     }
     return result;
+}
+
+const PhysicComponent::ContactManifold& PhysicSystem::GetContact(int idx) const
+{
+    assert(0 <= idx);
+    assert(idx < numeric_cast<int>(mContactsCache.size()));
+    return mContactsCache[idx];
 }
 
 void PhysicSystem::RemoveContact(int idx)

@@ -55,7 +55,7 @@ BoundingBox3D BoundingBox3D::Transform(const glm::mat4& t) const
         for (int j = 0; j < 3; j++) {
             float e = t[i][j] * mMin[j];
             float f = t[i][j] * mMax[j];
-            if (e < f) {
+            if (e > f) {
                 std::swap(e, f);
             }
             result.mMin[i] += e;

@@ -390,7 +390,8 @@ void LoopManager::Event(const SDL_Event& e)
         mSpacePressed = false;
     }
 }
-
+static int supportContact = 0;
+static int totalContact = 0;
 void Gameplay::LoopManager::Control(const InputControl& input)
 {
     if(!mPlayer)
@@ -415,7 +416,7 @@ void Gameplay::LoopManager::Control(const InputControl& input)
         playerPhysic->AddForce(moveLocal * 5.f);
     }
 
-    if (bool showDebug = false)
+    if (bool showDebug = true)
     {
         const glm::vec3 position(playerPhysic->GetTransform()[3]);
         VisualDebugRenderer* visualDebug = VisualDebug();
@@ -432,12 +433,41 @@ void Gameplay::LoopManager::Control(const InputControl& input)
         drawArrow(position, position + forward, { 0, 1, 0, 1 });
         drawArrow(position, position + right, { 1, 0, 0, 1 });
     }
+
+    if (const PhysicSystem* physicsSystem = Global::gameSytem()->getSystem<PhysicSystem>())
+    {
+        const glm::vec3 position(playerPhysic->GetTransform()[3]);
+        VisualDebugRenderer* visualDebug = VisualDebug();
+        auto drawArrow = [visualDebug](const glm::vec3& begin, const glm::vec3& end, const Color::rgbap& color, const float radius = 0.1f, const float ratio = 0.8f)
+        {
+            const glm::vec3 dir = end - begin;
+            const float mag = glm::length(dir);
+            if (mag == 0.f)
+                return;
+            const glm::vec3 normal = dir / mag;
+            visualDebug->PushCommand(VisualDebugSegmentCommand(begin, end, color));
+            visualDebug->PushCommand(VisualDebugHalfCone(begin + (normal * mag * ratio), end, radius, 0.f, color));
+        };
+        for (int idx : playerPhysic->mContactIdx)
+        {
+            const PhysicComponent::ContactManifold& c = physicsSystem->GetContact(idx);
+            totalContact++;
+            //if (c.distance < -0.5f)
+            //    continue;
+            //if (glm::dot(c.normal, Camera::up) < 0.5f)
+            //    continue;
+            drawArrow(c.position, c.position + (c.normal * c.distance), { 0, 1, 0, 1 });
+            supportContact++;
+        }
+    }
 }
 
 #if GUI_DEBUG()
 void LoopManager::debug_GUI()
 {
-
+    ImGui::Text("Support Contacts: %d / %d", supportContact, totalContact);
+    supportContact = 0;
+    totalContact = 0;
 }
 #endif
 

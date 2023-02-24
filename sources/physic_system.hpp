@@ -111,6 +111,7 @@ public:
 
     void Update(const float deltaTime) override;
     int CreateContact(const PhysicComponent::ContactManifold& contact);
+    const PhysicComponent::ContactManifold& GetContact(int idx) const;
     void RemoveContact(int idx);
     void ClearContactsCache(PhysicComponent* component);
 
