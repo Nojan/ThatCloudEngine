@@ -9,6 +9,7 @@
 #include "sound_system.hpp"
 
 #include "imgui/imgui_header.hpp"
+#include <Tracy/Tracy.hpp>
 #include <cassert>
 
 GameSystem::GameSystem()
@@ -27,6 +28,7 @@ GameSystem::~GameSystem()
 
 void GameSystem::Update(const float deltaTime)
 {
+    ZoneScoped;
     for (auto& componentSystem : mSystems)
     {
         componentSystem->Update(deltaTime);
@@ -35,6 +37,7 @@ void GameSystem::Update(const float deltaTime)
 
 void GameSystem::FrameStep()
 {
+    ZoneScoped;
     for (const auto& deadEntity : mDeadEntities)
     {
         removeEntitySync(deadEntity);

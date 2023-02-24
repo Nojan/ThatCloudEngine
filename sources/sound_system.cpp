@@ -9,6 +9,7 @@
 
 #include "imgui/imgui_header.hpp"
 
+#include <Tracy/Tracy.hpp>
 #include <SDL.h>
 #include <cstdlib>
 #include <cassert>
@@ -464,6 +465,7 @@ void SoundSystem::FrameStep()
 
 void SoundSystem::Update(const float deltaTime)
 {
+    ZoneScoped;
     assert(0 <= deltaTime);
     const float deltaTimeInv = 1.f / deltaTime;
 

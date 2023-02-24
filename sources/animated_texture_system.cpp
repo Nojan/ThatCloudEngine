@@ -4,6 +4,7 @@
 #include "renderableMesh.hpp"
 
 #include "imgui/imgui_header.hpp"
+#include <Tracy/Tracy.hpp>
 
 namespace Constant {
 IMGUI_VAR(AnimatedTextureTimer, 0.1f);
@@ -42,6 +43,7 @@ void AnimatedTextureComponent::Update(const float deltaTime)
 
 void AnimatedTextureSystem::Update(const float deltaTime)
 {
+    ZoneScoped;
     for (std::unique_ptr<AnimatedTextureComponent>& compoment : mComponents)
     {
         compoment->Update(deltaTime);

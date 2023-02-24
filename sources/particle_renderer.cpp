@@ -13,6 +13,7 @@
 // TODO
 #include <glm/gtc/random.hpp>
 
+#include <Tracy/Tracy.hpp>
 #include <assert.h>
 #include <algorithm>
 
@@ -67,6 +68,7 @@ ParticleRenderer::~ParticleRenderer()
 
 void ParticleRenderer::Update(const float deltaTime)
 {
+    ZoneScoped;
     const Camera * camera = Root::Instance().GetCamera();
     const glm::vec3 positonInWorldSpace = camera->Position() + camera->Direction()*100.f;
     HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);

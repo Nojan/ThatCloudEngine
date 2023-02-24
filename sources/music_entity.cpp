@@ -8,6 +8,7 @@
 #include "vorbis.h"
 #include "imgui/imgui_header.hpp"
 
+#include <Tracy/Tracy.hpp>
 #include <cassert>
 
 MusicEntity::MusicEntity(std::shared_ptr<ResourceFile>& resourceFile)
@@ -58,6 +59,7 @@ void MusicEntity::Terminate()
 
 void MusicEntity::Update(const float deltaTime)
 {
+    ZoneScoped;
     if(nullptr == mVorbis)
         return;
     const stb_vorbis_info vorbis_info = stb_vorbis_get_info(mVorbis);

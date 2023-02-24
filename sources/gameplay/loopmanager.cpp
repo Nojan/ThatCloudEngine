@@ -36,6 +36,7 @@
 
 #include "../opengl_includes.hpp"
 
+#include <Tracy/Tracy.hpp>
 #include <SDL.h>
 #include <cassert>
 #include <algorithm>
@@ -276,6 +277,7 @@ void LoopManager::FrameStep()
 
 void LoopManager::Update(const float deltaTime)
 {
+    ZoneScoped;
     mMusic->Update(deltaTime);
 
     // update the grid
