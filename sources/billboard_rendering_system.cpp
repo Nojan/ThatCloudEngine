@@ -7,6 +7,7 @@
 #include "renderer_list.hpp"
 #include "transform_system.hpp"
 
+#include <Tracy/Tracy.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 void BillboardComponent::draw(BillboardRenderer * renderer)
@@ -26,6 +27,7 @@ void BillboardComponent::draw(BillboardRenderer * renderer)
 
 void BillboardRenderingSystem::FrameStep()
 {
+    ZoneScoped;
     if (!mRenderer)
         mRenderer = Global::rendererList()->getRenderer<BillboardRenderer>();
     assert(mRenderer);

@@ -14,6 +14,7 @@
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
+#include <Tracy/Tracy.hpp>
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
@@ -296,6 +297,7 @@ void Root::Terminate()
 
 void Root::Update()
 {
+    FrameMarkNamed("Frame");
     assert(IsRunning());
     const std::chrono::milliseconds frameLimiter(16);
     const float frameDuration = frameLimiter.count() / 1000.f;
