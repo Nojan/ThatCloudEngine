@@ -4,6 +4,7 @@
 #include "../../resourcemanager.hpp"
 #include "../../resourcefile.hpp"
 
+#include <cstring>
 #include <cassert>
 #include <cstring>
 #ifdef __EMSCRIPTEN__
