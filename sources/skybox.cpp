@@ -11,6 +11,7 @@
 
 #include "imgui/imgui_header.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include <tracy/Tracy.hpp>
 
 #include <stdio.h>
 
@@ -139,6 +140,7 @@ Skybox::~Skybox()
 
 void Skybox::Render(const Scene * scene)
 {
+    ZoneScopedN("Skybox::Render");
     mShaderProgram->Bind();
     // Get a handle for our buffers
     GLuint vertexPositionID = mShaderProgram->GetAttribLocation(HashedString("vertexPosition"));

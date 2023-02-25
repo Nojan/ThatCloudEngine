@@ -7,7 +7,7 @@
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <cassert>
 
 #include "global.hpp"
@@ -81,7 +81,7 @@ RenderingSystem::~RenderingSystem()
 
 void RenderingSystem::FrameStep()
 {
-    ZoneScoped;
+    ZoneScopedN("RenderingSystem::Framestep");
     if (!mRenderer)
         mRenderer = Global::rendererList()->getRenderer<MeshRenderer>();
     assert(mRenderer);
@@ -134,7 +134,7 @@ RenderingSkinSystem::~RenderingSkinSystem()
 
 void RenderingSkinSystem::FrameStep()
 {
-    ZoneScoped;
+    ZoneScopedN("RenderingSkinSystem::Framestep");
     if (!mRenderer)
         mRenderer = Global::rendererList()->getRenderer<SkinMeshRenderer>();
     assert(mRenderer);
@@ -146,7 +146,7 @@ void RenderingSkinSystem::FrameStep()
 
 void RenderingSkinSystem::Update(const float deltaTime)
 {
-    ZoneScoped;
+    ZoneScopedN("RenderingSkinSystem::Update");
     for (auto& component : mComponents)
     {
         float time = component->mAnimationTime;

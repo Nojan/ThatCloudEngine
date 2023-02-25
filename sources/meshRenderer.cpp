@@ -16,6 +16,7 @@
 
 #include "imgui/imgui_header.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <assert.h>
 #include <algorithm>
@@ -49,6 +50,7 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::Render(const Scene* scene)
 {
+    ZoneScopedN("MeshRenderer::Render");
     if(false)
     {
         const DirectionalLight& dirLight = scene->GetDirectionalLight();

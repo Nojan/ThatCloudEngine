@@ -14,7 +14,7 @@
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
@@ -297,7 +297,7 @@ void Root::Terminate()
 
 void Root::Update()
 {
-    FrameMarkNamed("Frame");
+    ZoneScopedN("FrameLoop");
     assert(IsRunning());
     const std::chrono::milliseconds frameLimiter(16);
     const float frameDuration = frameLimiter.count() / 1000.f;
@@ -308,29 +308,32 @@ void Root::Update()
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     //glClearDepth(1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    SDL_Event e;
     int width, height;
     SDL_GetWindowSize(mSDL_ctx->window, &width, &height);
     mInputController->BeginEvents();
-    while (SDL_PollEvent(&e) != 0) {
-        if (SDL_QUIT == e.type) {
-            mState = State::Terminating;
-            break;
+    {
+        ZoneScopedN("PollEvents");
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (SDL_QUIT == e.type) {
+                mState = State::Terminating;
+                break;
+            }
+            if (SDL_KEYDOWN == e.type && SDLK_ESCAPE == e.key.keysym.sym) {
+                mState = State::Terminating;
+                break;
+            }
+            if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
+            {
+                width = static_cast<int>(e.window.data1);
+                height = static_cast<int>(e.window.data2);
+                glViewport(0, 0, width, height);
+                mCamera->WindowResize(width, height);
+            }
+            mInputController->Event(e, glm::ivec2(width, height));
+            mCamera->Event(e);
+            mGameplayLoopManager->Event(e);
         }
-        if (SDL_KEYDOWN == e.type && SDLK_ESCAPE == e.key.keysym.sym) {
-            mState = State::Terminating;
-            break;
-        }
-        if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
-        {
-            width = static_cast<int>(e.window.data1);
-            height = static_cast<int>(e.window.data2);
-            glViewport(0, 0, width, height);
-            mCamera->WindowResize(width, height);
-        }
-        mInputController->Event(e, glm::ivec2(width, height));
-        mCamera->Event(e); 
-        mGameplayLoopManager->Event(e);
     }
     mInputController->EndEvents();
     if (mInputController->GetInput().center)
@@ -346,6 +349,7 @@ void Root::Update()
     const bool disableRenderer = Constant::DisableRenderer;
     if (!disableFrameStep)
     {
+        ZoneScopedN("Framestep");
         for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
         {
             updater->FrameStep();
@@ -358,6 +362,7 @@ void Root::Update()
     }
     float playedFrame = 0;
     while (frameDuration <= lastFrameDuration) {
+        ZoneScopedN("Update");
         lastFrameDuration -= frameDuration;
         playedFrame += frameDuration;
         const float frameStep = frameDuration * mFrameMultiplier;
@@ -371,70 +376,81 @@ void Root::Update()
         mInputController->Update(frameStep);
     }
     
-    for (auto& renderer : mRendererList)
     {
-        if (!disableRenderer)
+        ZoneScopedN("Renderers");
+        for (auto& renderer : mRendererList)
         {
-            renderer->Render(mScene.get());
+            if (!disableRenderer)
+            {
+                renderer->Render(mScene.get());
+            }
+            renderer->FlushFrame();
         }
-        renderer->FlushFrame();
     }
     IMGUI_ONLY(mInputController->DrawGamepad());
     mFrameLeftover = lastFrameDuration;
-#if GUI_DEBUG()
-    if (ImGui::Begin("Debug_Info"))
     {
-        ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
-        ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
-        if (false)
+        ZoneScopedN("Debug GUI");
+#if GUI_DEBUG()
+        if (ImGui::Begin("Debug_Info"))
         {
-            ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
-            ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
-            ImGui::Checkbox("DisableRenderer", &Constant::DisableRenderer);
-        }
-        //if (ImGui::CollapsingHeader("OpenGL"))
-        //{
-        //    static bool wireframe = false;
-        //    ImGui::Checkbox("Wireframe", &wireframe);
-        //    if (wireframe)
-        //        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        //    else
-        //        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        //}
-        if (ImGui::CollapsingHeader("Control"))
-        {
-            mInputController->debug_GUI();
-        }
-        if (ImGui::CollapsingHeader("Main camera"))
-        {
-            mCamera->debug_GUI();
-        }
-        if (ImGui::CollapsingHeader("Scene - light"))
-        {
-            mScene->debug_GUI();
-        }
-        if (ImGui::CollapsingHeader("Renderer"))
-        {
-            for (auto& renderer : mRendererList)
+            ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
+            ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
+            if (false)
             {
-                if (ImGui::CollapsingHeader(renderer->debug_name()))
-                    renderer->debug_GUI();
+                ImGui::Checkbox("DisableFrameStep", &Constant::DisableFrameStep);
+                ImGui::Checkbox("DisableUpdater", &Constant::DisableUpdater);
+                ImGui::Checkbox("DisableRenderer", &Constant::DisableRenderer);
+            }
+            //if (ImGui::CollapsingHeader("OpenGL"))
+            //{
+            //    static bool wireframe = false;
+            //    ImGui::Checkbox("Wireframe", &wireframe);
+            //    if (wireframe)
+            //        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            //    else
+            //        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //}
+            if (ImGui::CollapsingHeader("Control"))
+            {
+                mInputController->debug_GUI();
+            }
+            if (ImGui::CollapsingHeader("Main camera"))
+            {
+                mCamera->debug_GUI();
+            }
+            if (ImGui::CollapsingHeader("Scene - light"))
+            {
+                mScene->debug_GUI();
+            }
+            if (ImGui::CollapsingHeader("Renderer"))
+            {
+                for (auto& renderer : mRendererList)
+                {
+                    if (ImGui::CollapsingHeader(renderer->debug_name()))
+                        renderer->debug_GUI();
+                }
+            }
+            Global::gameSytem()->debug_GUI();
+            if (ImGui::CollapsingHeader("Gameplay"))
+            {
+                mGameplayLoopManager->debug_GUI();
             }
         }
-        Global::gameSytem()->debug_GUI();
-        if (ImGui::CollapsingHeader("Gameplay"))
-        {
-            mGameplayLoopManager->debug_GUI();
-        }
-    }
-    ImGui::End();
+        ImGui::End();
 #endif
-    IMGUI_ONLY(ImGui::Render());
-    IMGUI_ONLY(ImGui_ImplSdl_RenderDrawLists(ImGui::GetDrawData()));
-    SDL_GL_SwapWindow(mSDL_ctx->window);
+        IMGUI_ONLY(ImGui::Render());
+        IMGUI_ONLY(ImGui_ImplSdl_RenderDrawLists(ImGui::GetDrawData()));
+    }
+    {
+        ZoneScopedN("Swap");
+        SDL_GL_SwapWindow(mSDL_ctx->window);
+    }
+    FrameMark;
     if(0 == SDL_GL_GetSwapInterval())
     {
+        ZoneScopedN("Frame limiter");
         const auto endFrame = std::chrono::high_resolution_clock::now();
         const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
         std::this_thread::sleep_for(frameLimiter - renderingDuration);

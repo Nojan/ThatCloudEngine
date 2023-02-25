@@ -5,7 +5,7 @@
 #include "../game_entity.hpp"
 #include "../visualdebug.hpp"
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 
 void GridCellComponent::Update(const float deltaTime)
 {
@@ -65,7 +65,7 @@ GridCellSystem::GridCellSystem()
 
 void GridCellSystem::Update(const float deltaTime)
 {
-    ZoneScoped;
+    ZoneScopedN("GridCellSystem::Update");
     for (auto& component : mComponents)
     {
         component.Update(deltaTime);

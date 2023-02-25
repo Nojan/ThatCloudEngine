@@ -10,6 +10,7 @@
 
 #include "imgui/imgui_header.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -57,7 +58,8 @@ void BillboardRenderer::PushToRenderQueue(const Billboard& billboard)
 
 void BillboardRenderer::Render(const Scene * scene)
 {
-	if (mRenderQueue.empty())
+    ZoneScopedN("BillboardRenderer::Render");
+    if (mRenderQueue.empty())
         return;
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
