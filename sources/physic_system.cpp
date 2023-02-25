@@ -3,7 +3,7 @@
 #include "transform_system.hpp"
 #include "game_entity.hpp"
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <cassert>
 
 PhysicComponent::PhysicComponent()
@@ -124,7 +124,7 @@ PhysicSystem::~PhysicSystem()
 
 void PhysicSystem::Update(const float deltaTime)
 {
-    ZoneScoped;
+    ZoneScopedN("PhysicSystem::Update");
     assert(0 <= deltaTime);
     const size_t componentsSize = mComponents.size();
     for (size_t idx = 0; idx < componentsSize; ++idx)

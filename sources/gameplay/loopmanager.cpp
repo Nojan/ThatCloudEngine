@@ -36,7 +36,7 @@
 
 #include "../opengl_includes.hpp"
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <SDL.h>
 #include <cassert>
 #include <algorithm>
@@ -186,7 +186,7 @@ void LoopManager::Init()
     }
 
     
-    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" }; 
+    const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
 
     for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
     {
@@ -277,7 +277,7 @@ void LoopManager::FrameStep()
 
 void LoopManager::Update(const float deltaTime)
 {
-    ZoneScoped;
+    ZoneScopedN("LoopManager::Update");
     mMusic->Update(deltaTime);
 
     // update the grid

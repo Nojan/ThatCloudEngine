@@ -8,6 +8,7 @@
 
 #include "../imgui/imgui_header.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <assert.h>
 #include <algorithm>
@@ -45,6 +46,7 @@ VisualDebugRenderer_vao::~VisualDebugRenderer_vao()
 
 void VisualDebugRenderer_vao::Render(const Scene * scene)
 {
+    ZoneScopedN("VisualDebugRenderer_vao::Render");
     if (mIndexFill.empty() && mIndexLine.empty())
         return;
     glEnable(GL_DEPTH_TEST);
@@ -261,6 +263,7 @@ VisualDebugRenderer::~VisualDebugRenderer()
 
 void VisualDebugRenderer::Render(const Scene * scene)
 {
+    ZoneScopedN("VisualDebugRenderer::Render");
     if (mIndexFill.empty() && mIndexLine.empty())
         return;
     glEnable(GL_DEPTH_TEST);

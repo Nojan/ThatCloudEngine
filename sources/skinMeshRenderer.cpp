@@ -18,6 +18,7 @@
 
 #include "imgui/imgui_header.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <assert.h>
 #include <algorithm>
@@ -70,6 +71,7 @@ SkinMeshRenderer::~SkinMeshRenderer()
 
 void SkinMeshRenderer::Render(const Scene* scene)
 {
+    ZoneScopedN("SkinMeshRenderer::Render");
     if (mRenderQueue.empty())
         return;
     glEnable(GL_DEPTH_TEST);
