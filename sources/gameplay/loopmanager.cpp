@@ -187,7 +187,51 @@ void LoopManager::Init()
 
     
     const char* meshes[] = {"islandvolcano", "cityvolcano", "islandsrest", "island3big", "oceanbottom_7", "shallowwater5volcano", "shallowwater5rest", "shallowwater4rest", "shallowwater43big", "ocean_3", "beachvolcano", "beachrest", "beach3big", "wavevolcano", "wave3big", "waverest", "treevolcano", "treerest", "tree3big" };
+#if 1
+    {
+        std::shared_ptr<MeshResourceList> MeshesResources = std::make_shared<MeshResourceList>();
+        MeshesResources->reserve(sizeof(meshes)/sizeof(char*));
 
+        for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
+        {
+            sprintf(filename, "../assets/3D/%s.assxml", meshes[i]);
+            std::shared_ptr<MeshResourceList> ResourceList = Global::resourceManager()->meshResource(filename);
+            for(const auto& res : *ResourceList)
+            {
+                auto FindWithTexture = [&texture = res.m_texture](const MeshResource& res) -> bool {
+                    return res.m_texture == texture;
+                };
+                const auto Found = std::find_if(MeshesResources->begin(), MeshesResources->end(), FindWithTexture);
+                if (Found == MeshesResources->end())
+                {
+                    MeshesResources->push_back(res);
+                }
+                else
+                {
+                    MeshCombine(*Found->m_mesh, *res.m_mesh);
+                }
+            }
+        }
+
+        {
+            GameEntity* entity = gameSystem->createEntity();
+            mEntities.push_back(entity);
+            gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+
+            gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+            GraphicMeshComponent* renderingComponent = entity->getComponent<GraphicMeshComponent>();
+            renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+            renderingComponent->setupResource(MeshesResources);
+
+            if (!waveTextures.empty())
+            {
+                gameSystem->getSystem<AnimatedTextureSystem>()->attachEntity(entity);
+                AnimatedTextureComponent* animatedComponent = entity->getComponent<AnimatedTextureComponent>();
+                animatedComponent->mTexture.insert(animatedComponent->mTexture.begin(), waveTextures.begin(), waveTextures.end());
+            }
+        }
+    }
+#else
     for (size_t i = 0; i < sizeof(meshes)/sizeof(char*); ++i)
     {
         GameEntity* entity = gameSystem->createEntity();
@@ -209,7 +253,7 @@ void LoopManager::Init()
             animatedComponent->mTexture.insert(animatedComponent->mTexture.begin(), waveTextures.begin(), waveTextures.end());
         }
     }
-
+#endif
     glm::vec3 boyPosition, cameraOffset;
     const char level_name[] = "../assets/Cloud/Levels/Yun.xml";
     CloudSpawner cloudSpawner = [this](const glm::vec3& cloudPosition, const int cloudColor, const float cloudPower)
