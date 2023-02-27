@@ -29,6 +29,25 @@ bool Mesh::Valid() const
     return valid;
 }
 
+void MeshCombine(Mesh& a, Mesh& b)
+{
+    assert(a.Valid());
+    assert(b.Valid());
+
+    const size_t vertexOffset = a.mVertex.size();
+    const size_t indexOffset = a.mIndex.size();
+    a.mVertex.insert(a.mVertex.end(), b.mVertex.begin(), b.mVertex.end());
+    a.mNormal.insert(a.mNormal.end(), b.mNormal.begin(), b.mNormal.end());
+    a.mTextureCoord.insert(a.mTextureCoord.end(), b.mTextureCoord.begin(), b.mTextureCoord.end());
+    a.mIndex.insert(a.mIndex.end(), b.mIndex.begin(), b.mIndex.end());
+    for(size_t idx = indexOffset; idx < a.mIndex.size(); idx++)
+    {
+        a.mIndex[idx] += vertexOffset;
+    }
+    a.mBBox.Add(b.mBBox.Min());
+    a.mBBox.Add(b.mBBox.Max());
+}
+
 Material::Material()
 {
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));

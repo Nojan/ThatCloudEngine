@@ -26,6 +26,8 @@ public:
     BoundingBox3D mBBox;
 };
 
+void MeshCombine(Mesh& a, Mesh& b);
+
 class Material {
 public:
     Material();
