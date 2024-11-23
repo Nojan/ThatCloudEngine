@@ -10,7 +10,7 @@
 
 #include "imgui/imgui_header.hpp"
 #include <glm/gtc/type_ptr.hpp>
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 
 #include <algorithm>
 #include <cassert>

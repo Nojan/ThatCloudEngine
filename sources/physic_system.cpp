@@ -3,7 +3,7 @@
 #include "transform_system.hpp"
 #include "game_entity.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <cassert>
 
 PhysicComponent::PhysicComponent()

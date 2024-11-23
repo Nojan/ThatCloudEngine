@@ -9,7 +9,7 @@
 #include "sound_system.hpp"
 
 #include "imgui/imgui_header.hpp"
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <cassert>
 
 GameSystem::GameSystem()

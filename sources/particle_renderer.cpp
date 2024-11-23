@@ -13,7 +13,7 @@
 // TODO
 #include <glm/gtc/random.hpp>
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <assert.h>
 #include <algorithm>
 

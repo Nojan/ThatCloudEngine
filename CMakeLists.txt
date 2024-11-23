@@ -8,16 +8,6 @@ file(GLOB_RECURSE sources_files sources/*)
 include_directories(externals/glm)
 include_directories(externals)
 
-include(FetchContent)
-FetchContent_Declare (
-	tracy
-	GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-	GIT_TAG v0.9
-	GIT_SHALLOW TRUE
-	GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable (tracy)
-
 add_executable(${TARGET_NAME} ${sources_files})
 if( EMSCRIPTEN )
 	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/html )
@@ -34,11 +24,20 @@ if( EMSCRIPTEN )
 	set_property( TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17 )
 	target_link_libraries( ${TARGET_NAME} ${DEPENDENCIES_LIBRARIES} )
 else()
+	include(FetchContent)
+	FetchContent_Declare (
+	tracy
+	GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+	GIT_TAG v0.9
+	GIT_SHALLOW TRUE
+	GIT_PROGRESS TRUE
+	)
+	FetchContent_MakeAvailable (tracy)
 	find_package(SDL2 CONFIG REQUIRED)
 	include_directories(externals)
 	target_link_libraries(${TARGET_NAME} PRIVATE SDL2::SDL2)
-endif()
 	target_link_libraries(${TARGET_NAME} PRIVATE Tracy::TracyClient)
+endif()
 
 if (CMAKE_HOST_WIN32 AND NOT EMSCRIPTEN)
     add_definitions(-DNOMINMAX)

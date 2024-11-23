@@ -14,7 +14,7 @@
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>

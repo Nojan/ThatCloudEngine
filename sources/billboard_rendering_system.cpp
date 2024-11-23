@@ -7,7 +7,7 @@
 #include "renderer_list.hpp"
 #include "transform_system.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <glm/gtc/quaternion.hpp>
 
 void BillboardComponent::draw(BillboardRenderer * renderer)
