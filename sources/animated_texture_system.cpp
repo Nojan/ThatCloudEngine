@@ -4,7 +4,7 @@
 #include "renderableMesh.hpp"
 
 #include "imgui/imgui_header.hpp"
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 
 namespace Constant {
 IMGUI_VAR(AnimatedTextureTimer, 0.1f);

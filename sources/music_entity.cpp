@@ -8,7 +8,7 @@
 #include "vorbis.h"
 #include "imgui/imgui_header.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <cassert>
 
 MusicEntity::MusicEntity(std::shared_ptr<ResourceFile>& resourceFile)

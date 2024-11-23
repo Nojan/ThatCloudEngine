@@ -7,7 +7,7 @@
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <cassert>
 
 #include "global.hpp"

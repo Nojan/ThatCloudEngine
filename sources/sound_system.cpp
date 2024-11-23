@@ -9,7 +9,7 @@
 
 #include "imgui/imgui_header.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "tracy_helper.hpp"
 #include <SDL.h>
 #include <cstdlib>
 #include <cassert>

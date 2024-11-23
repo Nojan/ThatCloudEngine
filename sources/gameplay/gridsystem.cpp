@@ -5,7 +5,7 @@
 #include "../game_entity.hpp"
 #include "../visualdebug.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "../tracy_helper.hpp"
 
 void GridCellComponent::Update(const float deltaTime)
 {
