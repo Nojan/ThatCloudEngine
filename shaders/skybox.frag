@@ -70,10 +70,10 @@ void main (void)
         sun = vec3(ratioAngle, ratioAngle, ratioAngle);
     }
     color.rgb = saturate(color.rgb + sun);
-    if( abs(fragCS.x) < 0.25 && abs(fragCS.y) < 0.25 )
-    {
-        color.rgb = vec3(1, 0, 0);
-    }
+    //if( abs(fragCS.x) < 0.25 && abs(fragCS.y) < 0.25 )
+    //{
+    //    color.rgb = vec3(1, 0, 0);
+    //}
     
     gl_FragColor = color;
 }
