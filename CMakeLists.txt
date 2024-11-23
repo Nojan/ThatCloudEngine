@@ -33,7 +33,7 @@ if( EMSCRIPTEN )
 	set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-O2 -s USE_SDL=2 -s TOTAL_MEMORY=67108864 -s USE_WEBGL2=1" )
 	# DEV
 	# set_target_properties( ${TARGET_NAME} PROPERTIES LINK_FLAGS "-s USE_SDL=2" )
-	set_property( TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 14 )
+	set_property( TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17 )
 	target_link_libraries( ${TARGET_NAME} ${DEPENDENCIES_LIBRARIES} )
 else()
 	find_package(SDL2 CONFIG REQUIRED)
