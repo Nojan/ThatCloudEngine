@@ -347,6 +347,7 @@ void Root::Update()
     const bool disableFrameStep = Constant::DisableFrameStep;
     const bool disableUpdate = Constant::DisableUpdater;
     const bool disableRenderer = Constant::DisableRenderer;
+    FrameMarkStart("FrameStep");
     if (!disableFrameStep)
     {
         ZoneScopedN("Framestep");
@@ -356,11 +357,13 @@ void Root::Update()
         }
         Global::gameSytem()->FrameStep();
     }
+    FrameMarkEnd("FrameStep");
     if (mFrameMultiplier <= 0)
     {
         lastFrameDuration = 0;
     }
     float playedFrame = 0;
+    FrameMarkStart("FrameUpdate");
     while (frameDuration <= lastFrameDuration) {
         ZoneScopedN("Update");
         lastFrameDuration -= frameDuration;
@@ -375,6 +378,7 @@ void Root::Update()
         Global::gameSytem()->Update(frameStep);
         mInputController->Update(frameStep);
     }
+    FrameMarkEnd("FrameUpdate");
     
     {
         ZoneScopedN("Renderers");
