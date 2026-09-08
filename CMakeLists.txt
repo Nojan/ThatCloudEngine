@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 set( TARGET_NAME Cloud )
-project( ${TARGET_NAME} )
+project( ${TARGET_NAME} CXX C)
 set (CMAKE_CXX_STANDARD 14)
+set(CMAKE_C_STANDARD 11)
 
 file(GLOB_RECURSE sources_files sources/*)
 
