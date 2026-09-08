@@ -1,0 +1,41 @@
+name: C++ CI with vcpkg
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5 # Checkout the repository
+    
+    # System package install
+    - name: Install Linux Build Prerequisites
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf autoconf-archive automake libtool pkg-config libltdl-dev
+
+    # Cache the vcpkg binary cache directory on disk
+    - name: Cache vcpkg Binary Archive
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/vcpkg/archives
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: vcpkg-${{ runner.os }}-
+
+    # Set vcpkg to write binary archives locally to default directory
+    - name: Configure vcpkg Binary Cache
+      shell: bash
+      run: echo "VCPKG_BINARY_SOURCES=clear;files,$HOME/.cache/vcpkg/archives,readwrite" >> $GITHUB_ENV
+
+    # Configure CMake with vcpkg toolchain
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+    # Build
+    - name: Build Project
+      run: cmake --build build --config Release
