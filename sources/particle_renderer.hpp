@@ -7,7 +7,7 @@
 #include "texture.hpp"
 #include "vector.hpp"
 
-#include "glm/common.hpp"
+#include <glm/glm.hpp>
 #include "opengl_includes.hpp"
 
 #include <memory>

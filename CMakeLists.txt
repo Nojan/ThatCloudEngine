@@ -6,10 +6,11 @@ set(CMAKE_C_STANDARD 11)
 
 file(GLOB_RECURSE sources_files sources/*)
 
-include_directories(externals/glm)
 include_directories(externals)
 
 add_executable(${TARGET_NAME} ${sources_files})
+add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
+
 if( EMSCRIPTEN )
 	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/html )
 	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/html )
@@ -26,9 +27,11 @@ if( EMSCRIPTEN )
 	target_link_libraries( ${TARGET_NAME} ${DEPENDENCIES_LIBRARIES} )
 else()
 	find_package(SDL2 CONFIG REQUIRED)
-	include_directories(externals)
 	target_link_libraries(${TARGET_NAME} PRIVATE SDL2::SDL2)
+        find_package(glm CONFIG REQUIRED)
+        target_link_libraries(${TARGET_NAME} PRIVATE glm::glm-header-only)
 endif()
+
 
 if (CMAKE_HOST_WIN32 AND NOT EMSCRIPTEN)
     add_definitions(-DNOMINMAX)
