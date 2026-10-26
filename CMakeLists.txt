@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 set( TARGET_NAME Cloud )
 project( ${TARGET_NAME} CXX C)
-set (CMAKE_CXX_STANDARD 14)
-set(CMAKE_C_STANDARD 11)
+set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 17)
 
 file(GLOB_RECURSE sources_files sources/*)
 
@@ -30,6 +30,11 @@ else()
 	target_link_libraries(${TARGET_NAME} PRIVATE SDL2::SDL2)
         find_package(glm CONFIG REQUIRED)
         target_link_libraries(${TARGET_NAME} PRIVATE glm::glm-header-only)
+
+	# Lets the executable find assets/ and shaders/ whatever its working directory
+	file(GENERATE
+		OUTPUT "$<TARGET_FILE_DIR:${TARGET_NAME}>/data_root.txt"
+		CONTENT "${CMAKE_SOURCE_DIR}")
 endif()
 
 
